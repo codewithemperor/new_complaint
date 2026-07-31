@@ -1,0 +1,19 @@
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+  {{#if officerName}}Dear {{officerName}},{{else}}Hello,{{/if}}
+</p>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+  An assigned complaint has reached <strong style="color:#b45309;">{{percentElapsed}}%</strong> of its SLA target
+  and is at risk of breaching:
+</p>
+<p style="margin:0 0 8px;text-align:center;">
+  <span style="display:inline-block;background-color:#fef3c7;color:#92400e;font-size:20px;font-weight:700;padding:12px 24px;border-radius:6px;letter-spacing:1px;">{{ticketCode}}</span>
+</p>
+<p style="margin:0 0 8px;font-size:14px;color:#6b7280;"><strong>Subject:</strong> {{subject}}</p>
+<p style="margin:0 0 24px;font-size:14px;color:#6b7280;"><strong>Due:</strong> {{dueAt}}</p>
+<p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#374151;">
+  Please take action before the SLA is breached.
+</p>
+<p style="margin:0 0 24px;text-align:center;">
+  <a href="{{queueUrl}}" style="display:inline-block;background-color:#0f766e;color:#ffffff;font-size:14px;font-weight:600;padding:12px 28px;border-radius:6px;text-decoration:none;">Open Queue</a>
+</p>
+<p style="margin:0;font-size:14px;color:#6b7280;">This is an automated SLA notification. Please do not reply to this email.</p>

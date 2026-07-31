@@ -1,0 +1,23 @@
+<p style="margin:0 0 16px;font-size:16px;color:#374151;">
+  {{#if citizenName}}Dear {{citizenName}},{{else}}Hello,{{/if}}
+</p>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+  Your complaint has been reviewed and a resolution has been recorded:
+</p>
+<p style="margin:0 0 24px;text-align:center;">
+  <span style="display:inline-block;background-color:#ecfdf5;color:#065f46;font-size:20px;font-weight:700;padding:12px 24px;border-radius:6px;letter-spacing:1px;">{{ticketCode}}</span>
+</p>
+<div style="margin:0 0 24px;border-left:4px solid #059669;background-color:#f0fdfa;padding:12px 16px;border-radius:4px;">
+  <p style="margin:0 0 4px;font-size:12px;font-weight:600;text-transform:uppercase;color:#059669;">Resolution</p>
+  <p style="margin:0;font-size:15px;line-height:1.6;color:#374151;">{{resolutionText}}</p>
+</div>
+<p style="margin:0 0 8px;font-size:14px;color:#b45309;">
+  <strong>Please confirm by:</strong> {{feedbackDeadline}}
+</p>
+<p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#374151;">
+  If you are satisfied, your complaint will be closed. If not, you may reopen it for further investigation.
+</p>
+<p style="margin:0 0 24px;text-align:center;">
+  <a href="{{feedbackUrl}}" style="display:inline-block;background-color:#0f766e;color:#ffffff;font-size:14px;font-weight:600;padding:12px 28px;border-radius:6px;text-decoration:none;">Submit Feedback</a>
+</p>
+<p style="margin:0;font-size:14px;color:#6b7280;">If no response is received within the grace period, the complaint will be auto-closed.</p>

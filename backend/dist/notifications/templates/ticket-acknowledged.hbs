@@ -1,0 +1,40 @@
+<p style="margin:0 0 16px;font-size:16px;color:#374151;">
+  {{#if citizenName}}Dear {{citizenName}},{{else}}Hello,{{/if}}
+</p>
+
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+  We have received your complaint and it has been assigned the reference number:
+</p>
+
+<p style="margin:0 0 16px;text-align:center;">
+  <span style="display:inline-block;background-color:#ecfdf5;color:#065f46;font-size:20px;font-weight:700;padding:12px 24px;border-radius:6px;letter-spacing:1px;">
+    {{ticketCode}}
+  </span>
+</p>
+
+<p style="margin:0 0 8px;font-size:14px;color:#6b7280;"><strong>Subject:</strong> {{subject}}</p>
+
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+  To check the status of your complaint at any time, visit our tracking page and enter your
+  reference number along with this passcode:
+</p>
+
+<p style="margin:0 0 24px;text-align:center;">
+  <span style="display:inline-block;background-color:#fef3c7;color:#92400e;font-size:28px;font-weight:700;padding:14px 32px;border-radius:8px;letter-spacing:6px;font-family:monospace;">
+    {{trackingPasscode}}
+  </span>
+</p>
+
+<p style="margin:0 0 24px;text-align:center;">
+  <a href="{{trackUrl}}" style="display:inline-block;background-color:#0f766e;color:#ffffff;font-size:14px;font-weight:600;padding:12px 28px;border-radius:6px;text-decoration:none;">
+    Check Complaint Status
+  </a>
+</p>
+
+<p style="margin:0 0 8px;font-size:13px;color:#9ca3af;text-align:center;">
+  Keep this passcode safe — you will need it to track your complaint.
+</p>
+
+<p style="margin:0;font-size:14px;color:#6b7280;">
+  Thank you for reaching out. We will attend to your complaint as soon as possible.
+</p>

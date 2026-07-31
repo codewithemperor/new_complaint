@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../../src/generated/prisma/edge.d.ts"],"sourcesContent":["export * from \"./default\""],"names":[],"mappings":";;;;qBAAc"}

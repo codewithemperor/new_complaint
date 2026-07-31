@@ -1,0 +1,107 @@
+/* Tailwind CSS v4 */
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+ * Theme overrides
+ * ------------------------------------------------------------------------- */
+:root {
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.15 0 0);
+}
+
+.dark {
+  --background: oklch(0.13 0 0);
+  --foreground: oklch(0.95 0 0);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family:
+    var(--font-geist-sans, system-ui),
+    -apple-system,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------------------------------------------------------------------------
+ * Custom animations
+ * ------------------------------------------------------------------------- */
+@keyframes underline-grow {
+  0%, 100% {
+    transform: scaleX(0.3);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes border-shimmer {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer-slide 2.5s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+ * Thin scrollbar styling
+ * ------------------------------------------------------------------------- */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: oklch(0.8 0 0);
+  border-radius: 9999px;
+}
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: oklch(0.35 0 0);
+}
+
+/* ---------------------------------------------------------------------------
+ * Custom scrollbar for ticket detail lists
+ * ------------------------------------------------------------------------- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: oklch(0.75 0 0);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.55 0 0);
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: oklch(0.35 0 0);
+}
