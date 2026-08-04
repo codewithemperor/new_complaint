@@ -61,14 +61,14 @@ let ApprovalsController = class ApprovalsController {
         return this.workflow.refer(id, dto, user);
     }
     // ── Approver inbox ───────────────────────────────────────────────────────
-    async inbox(approverRole, status, currentApproverId, page, pageSize) {
+    async inbox(approverRole, status, currentApproverId, page, pageSize, user) {
         return this.workflow.findInbox({
             approverRole: approverRole,
             status,
             currentApproverId: currentApproverId === 'me' ? undefined : currentApproverId,
             page: page ? parseInt(page, 10) : undefined,
             pageSize: pageSize ? parseInt(pageSize, 10) : undefined
-        });
+        }, user);
     }
     // ── Delegations (PS only) ─────────────────────────────────────────────────
     async createDelegation(dto, user) {
@@ -86,7 +86,7 @@ let ApprovalsController = class ApprovalsController {
 };
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER),
     (0, _common.Post)('tickets/:id/approve'),
     (0, _swagger.ApiOperation)({
         summary: 'Approve at the current tier'
@@ -104,7 +104,7 @@ _ts_decorate([
 ], ApprovalsController.prototype, "approve", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER),
     (0, _common.Post)('tickets/:id/return'),
     (0, _swagger.ApiOperation)({
         summary: 'Return to officer with comments'
@@ -122,10 +122,10 @@ _ts_decorate([
 ], ApprovalsController.prototype, "return", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY),
     (0, _common.Post)('tickets/:id/escalate'),
     (0, _swagger.ApiOperation)({
-        summary: 'Escalate to the next approval tier'
+        summary: 'Escalate to the next approval tier (HOD→PS, PS→Commissioner)'
     }),
     _ts_param(0, (0, _common.Param)('id')),
     _ts_param(1, (0, _common.Body)()),
@@ -140,7 +140,7 @@ _ts_decorate([
 ], ApprovalsController.prototype, "escalate", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER),
     (0, _common.Post)('tickets/:id/refer'),
     (0, _swagger.ApiOperation)({
         summary: 'Refer externally (PS / Commissioner)'
@@ -158,7 +158,7 @@ _ts_decorate([
 ], ApprovalsController.prototype, "refer", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.ADMIN),
     (0, _common.Get)('approval-requests'),
     (0, _swagger.ApiOperation)({
         summary: 'List approval requests for an approver inbox'
@@ -176,19 +176,21 @@ _ts_decorate([
     _ts_param(2, (0, _common.Query)('currentApproverId')),
     _ts_param(3, (0, _common.Query)('page')),
     _ts_param(4, (0, _common.Query)('pageSize')),
+    _ts_param(5, (0, _currentuserdecorator.CurrentUser)()),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
         String,
         String,
         String,
         String,
-        String
+        String,
+        typeof AuthenticatedUser === "undefined" ? Object : AuthenticatedUser
     ]),
     _ts_metadata("design:returntype", Promise)
 ], ApprovalsController.prototype, "inbox", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.PERMANENT_SECRETARY, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.PERMANENT_SECRETARY),
     (0, _common.Post)('delegations'),
     (0, _swagger.ApiOperation)({
         summary: 'Create a delegation (PS only)'
@@ -204,7 +206,7 @@ _ts_decorate([
 ], ApprovalsController.prototype, "createDelegation", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.PERMANENT_SECRETARY, _role.Role.SUPER_ADMIN, _role.Role.DIRECTOR),
+    (0, _rolesdecorator.Roles)(_role.Role.PERMANENT_SECRETARY, _role.Role.DEPARTMENT_HOD),
     (0, _common.Get)('delegations'),
     (0, _swagger.ApiOperation)({
         summary: 'List delegations'
@@ -220,7 +222,7 @@ _ts_decorate([
 ], ApprovalsController.prototype, "listDelegations", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.PERMANENT_SECRETARY, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.PERMANENT_SECRETARY),
     (0, _common.Post)('delegations/:id/revoke'),
     (0, _swagger.ApiOperation)({
         summary: 'Revoke a delegation (PS only)'

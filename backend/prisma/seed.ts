@@ -3,186 +3,145 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+// The seven complaint categories / departments.
+const DEPARTMENTS = [
+  { name: 'Information Services', code: 'ISV', description: 'ICT, records and information management' },
+  { name: 'Public Orientation', code: 'POR', description: 'Public enquiries, orientation and citizen engagement' },
+  { name: 'Graphics', code: 'GRP', description: 'Design, printing and visual communications' },
+  { name: 'Culture and Tourism', code: 'CTU', description: 'Culture, arts, heritage and tourism' },
+  { name: 'Finance & Supply', code: 'FNS', description: 'Finance, accounts and supply chain' },
+  { name: 'Planning, Research and Statistics', code: 'PRS', description: 'Planning, research, monitoring and statistics' },
+  { name: 'Admin Department', code: 'ADM', description: 'Administration and human resources' },
+] as const;
+
+const PASSWORD = 'Password123!';
+
 async function main() {
   console.log('🌱 Seeding database...');
 
   // ── Departments ──
-  const deptICT = await prisma.department.upsert({
-    where: { code: 'ICT' },
-    update: {},
-    create: {
-      name: 'Information & Communications Technology',
-      code: 'ICT',
-      description: 'ICT department',
-    },
-  });
-  const deptWorks = await prisma.department.upsert({
-    where: { code: 'WORKS' },
-    update: {},
-    create: {
-      name: 'Works & Housing',
-      code: 'WORKS',
-      description: 'Works and housing infrastructure',
-    },
-  });
-  const deptHealth = await prisma.department.upsert({
-    where: { code: 'HEALTH' },
-    update: {},
-    create: { name: 'Health', code: 'HEALTH', description: 'Health services' },
-  });
-  const deptEducation = await prisma.department.upsert({
-    where: { code: 'EDUCATION' },
-    update: {},
-    create: {
-      name: 'Education',
-      code: 'EDUCATION',
-      description: 'Education and learning',
-    },
-  });
+  const deptByCode: Record<string, { id: string }> = {};
+  for (const d of DEPARTMENTS) {
+    const row = await prisma.department.upsert({
+      where: { code: d.code },
+      update: { name: d.name, description: d.description },
+      create: { name: d.name, code: d.code, description: d.description },
+    });
+    deptByCode[d.code] = row;
+  }
+
+  const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
   // ── Users ──
-  const passwordHash = await bcrypt.hash('Password123!', 10);
-
+  // SUPER_ADMIN = an ADMIN with isSuperAdmin = true (no separate role).
   const users = [
-    {
-      email: 'admin@kwmoc.gov.ng',
-      fullName: 'Admin Officer',
-      role: 'ADMIN_OFFICER' as const,
-      designation: 'Admin Officer I',
-      departmentId: deptICT.id,
-    },
     {
       email: 'superadmin@kwmoc.gov.ng',
       fullName: 'Super Admin',
-      role: 'SUPER_ADMIN' as const,
+      role: 'ADMIN' as const,
+      isSuperAdmin: true,
       designation: 'System Administrator',
+      permissions: ['ALL'] as const,
     },
     {
-      email: 'intake@kwmoc.gov.ng',
-      fullName: 'Intake Officer',
-      role: 'INTAKE_OFFICER' as const,
-      designation: 'Intake Officer I',
-      departmentId: deptICT.id,
+      // Admin with full module access (every permission explicitly).
+      email: 'admin@kwmoc.gov.ng',
+      fullName: 'Administrator',
+      role: 'ADMIN' as const,
+      isSuperAdmin: false,
+      designation: 'Administrator',
+      permissions: ['ALL'] as const,
     },
     {
-      email: 'officer@kwmoc.gov.ng',
-      fullName: 'Schedule Officer',
-      role: 'SCHEDULE_OFFICER' as const,
-      designation: 'Schedule Officer',
-      departmentId: deptICT.id,
+      // Admin with limited access: intake + reports only.
+      email: 'intake.admin@kwmoc.gov.ng',
+      fullName: 'Intake & Reports Admin',
+      role: 'ADMIN' as const,
+      isSuperAdmin: false,
+      designation: 'Intake Officer',
+      permissions: ['INTAKE', 'REPORTS'] as const,
     },
     {
-      email: 'asstdir@kwmoc.gov.ng',
-      fullName: 'Assistant Director',
-      role: 'ASSISTANT_DIRECTOR' as const,
-      designation: 'Assistant Director',
-      departmentId: deptWorks.id,
+      // Department staff in Information Services.
+      email: 'staff@kwmoc.gov.ng',
+      fullName: 'Information Services Officer',
+      role: 'DEPARTMENT_STAFF' as const,
+      designation: 'Officer',
+      departmentId: deptByCode.ISV.id,
     },
     {
-      email: 'depdir@kwmoc.gov.ng',
-      fullName: 'Deputy Director',
-      role: 'DEPUTY_DIRECTOR' as const,
-      designation: 'Deputy Director',
-      departmentId: deptWorks.id,
+      email: 'hod@kwmoc.gov.ng',
+      fullName: 'Information Services HOD',
+      role: 'DEPARTMENT_HOD' as const,
+      designation: 'Head of Department',
+      departmentId: deptByCode.ISV.id,
     },
     {
-      email: 'director@kwmoc.gov.ng',
-      fullName: 'Director HOD',
-      role: 'DIRECTOR' as const,
-      designation: 'Director',
-      departmentId: deptICT.id,
+      email: 'hod.finance@kwmoc.gov.ng',
+      fullName: 'Finance & Supply HOD',
+      role: 'DEPARTMENT_HOD' as const,
+      designation: 'Head of Department',
+      departmentId: deptByCode.FNS.id,
     },
     {
       email: 'ps@kwmoc.gov.ng',
       fullName: 'Permanent Secretary',
       role: 'PERMANENT_SECRETARY' as const,
-      designation: 'PS',
+      designation: 'Permanent Secretary',
     },
     {
       email: 'commissioner@kwmoc.gov.ng',
-      fullName: 'Hon. Commissioner',
+      fullName: 'Commissioner',
       role: 'COMMISSIONER' as const,
       designation: 'Commissioner',
     },
     {
       email: 'auditor@kwmoc.gov.ng',
-      fullName: 'Auditor General',
+      fullName: 'Auditor',
       role: 'AUDITOR' as const,
       designation: 'Auditor',
-    },
-    {
-      email: 'officer2@kwmoc.gov.ng',
-      fullName: 'Works Officer',
-      role: 'SCHEDULE_OFFICER' as const,
-      designation: 'Schedule Officer',
-      departmentId: deptWorks.id,
-    },
-    {
-      email: 'officer3@kwmoc.gov.ng',
-      fullName: 'Health Officer',
-      role: 'SCHEDULE_OFFICER' as const,
-      designation: 'Schedule Officer',
-      departmentId: deptHealth.id,
-    },
-    {
-      email: 'director2@kwmoc.gov.ng',
-      fullName: 'Works Director',
-      role: 'DIRECTOR' as const,
-      designation: 'Director',
-      departmentId: deptWorks.id,
-    },
-    {
-      email: 'director3@kwmoc.gov.ng',
-      fullName: 'Health Director',
-      role: 'DIRECTOR' as const,
-      designation: 'Director',
-      departmentId: deptHealth.id,
     },
   ];
 
   for (const u of users) {
-    await prisma.user.upsert({
-      where: { email: u.email },
-      update: {},
-      create: { ...u, passwordHash },
+    const { permissions, ...base } = u;
+    const created = await prisma.user.upsert({
+      where: { email: base.email },
+      update: {
+        role: base.role,
+        isSuperAdmin: (base as any).isSuperAdmin ?? false,
+        designation: base.designation,
+        departmentId: base.departmentId,
+      },
+      create: {
+        email: base.email,
+        fullName: base.fullName,
+        role: base.role,
+        isSuperAdmin: (base as any).isSuperAdmin ?? false,
+        designation: base.designation,
+        departmentId: base.departmentId,
+        passwordHash,
+      },
+      select: { id: true, email: true },
     });
+
+    // Replace permissions for ADMIN users (idempotent).
+    if (base.role === 'ADMIN' && permissions?.length) {
+      await prisma.userPermission.deleteMany({ where: { userId: created.id } });
+      await prisma.userPermission.createMany({
+        data: permissions.map((p) => ({ userId: created.id, permission: p as any })),
+      });
+    }
   }
 
   // ── Citizens ──
   const citizens = [
-    {
-      email: 'citizen1@example.com',
-      name: 'Aisha Ibrahim',
-      phone: '08012345678',
-      lga: 'ILORIN_WEST',
-    },
-    {
-      email: 'citizen2@example.com',
-      name: 'Bola Adeyemi',
-      phone: '08023456789',
-      lga: 'ILORIN_EAST',
-    },
-    {
-      email: 'citizen3@example.com',
-      name: 'Chidi Nwosu',
-      phone: '08034567890',
-      lga: 'OFFA',
-    },
-    {
-      email: 'citizen4@example.com',
-      name: null,
-      phone: null,
-      lga: null,
-      isAnonymous: true,
-    },
-    {
-      email: 'citizen5@example.com',
-      name: 'Fatima Musa',
-      phone: '08045678901',
-      lga: 'OYO',
-    },
+    { email: 'citizen1@example.com', name: 'Aisha Ibrahim', phone: '08012345678', lga: 'ILORIN_WEST' },
+    { email: 'citizen2@example.com', name: 'Bola Adeyemi', phone: '08023456789', lga: 'ILORIN_EAST' },
+    { email: 'citizen3@example.com', name: 'Chidi Nwosu', phone: '08034567890', lga: 'OFFA' },
+    { email: 'citizen4@example.com', name: null, phone: null, lga: null, isAnonymous: true },
+    { email: 'citizen5@example.com', name: 'Fatima Musa', phone: '08045678901', lga: 'OYO' },
   ];
-
   for (const c of citizens) {
     await prisma.citizen.upsert({
       where: { email: c.email },
@@ -193,139 +152,79 @@ async function main() {
 
   // ── Tickets ──
   const allCitizens = await prisma.citizen.findMany();
-  const allOfficers = await prisma.user.findMany({
-    where: { role: 'SCHEDULE_OFFICER' },
+  const isvStaff = await prisma.user.findFirst({
+    where: { role: 'DEPARTMENT_STAFF', departmentId: deptByCode.ISV.id },
   });
-  const adminUser = await prisma.user.findFirst({
-    where: { role: 'ADMIN_OFFICER' },
-  });
-  const directorUser = await prisma.user.findFirst({
-    where: { role: 'DIRECTOR', departmentId: deptICT.id },
-  });
+  const adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
 
   const ticketData = [
     {
-      subject: 'Pothole on Unity Road',
-      description:
-        'There is a large pothole on Unity Road near the roundabout that has been causing accidents.',
-      category: 'ROADS',
+      subject: 'Internet outage in ministry offices',
+      description: 'Government offices in our area have had no internet access for the past week.',
+      category: 'Information Services',
       priority: 'P2' as const,
       status: 'ACKNOWLEDGED' as const,
       channel: 'WEB' as const,
       citizenIdx: 0,
-      departmentId: deptWorks.id,
+      departmentId: deptByCode.ISV.id,
     },
     {
-      subject: 'Delayed salary payment',
-      description:
-        'My salary for the last 3 months has not been paid despite all documentation being complete.',
-      category: 'SALARY',
-      priority: 'P1' as const,
+      subject: 'Unclear response on a submitted enquiry',
+      description: 'I submitted an enquiry weeks ago and have not received any orientation or feedback.',
+      category: 'Public Orientation',
+      priority: 'P3' as const,
       status: 'ASSIGNED' as const,
       channel: 'WALK_IN' as const,
       citizenIdx: 1,
-      departmentId: deptICT.id,
-      officerIdx: 0,
+      departmentId: deptByCode.POR.id,
     },
     {
-      subject: 'Hospital lacks equipment',
-      description:
-        'The general hospital in our LGA does not have basic equipment like X-ray machines.',
-      category: 'HEALTH',
-      priority: 'P2' as const,
+      subject: 'Print job not delivered',
+      description: 'A design and print request submitted a month ago has not been delivered.',
+      category: 'Graphics',
+      priority: 'P3' as const,
       status: 'IN_PROGRESS' as const,
       channel: 'WEB' as const,
       citizenIdx: 2,
-      departmentId: deptHealth.id,
-      officerIdx: 2,
+      departmentId: deptByCode.GRP.id,
     },
     {
-      subject: 'School building collapsing',
-      description:
-        'The primary school building in our community is in a state of disrepair and poses danger to students.',
-      category: 'EDUCATION',
-      priority: 'P1' as const,
+      subject: 'Tourism site needs maintenance',
+      description: 'A major tourism site is in disrepair and needs urgent attention.',
+      category: 'Culture and Tourism',
+      priority: 'P2' as const,
       status: 'RESOLVED' as const,
       channel: 'PHONE' as const,
       citizenIdx: 4,
-      departmentId: deptEducation.id,
-      officerIdx: 0,
+      departmentId: deptByCode.CTU.id,
+      officer: isvStaff,
     },
     {
-      subject: 'Water supply interruption',
-      description:
-        'Our community has not had pipe-borne water for 2 weeks now.',
-      category: 'WATER',
-      priority: 'P2' as const,
-      status: 'ACKNOWLEDGED' as const,
-      channel: 'WEB' as const,
-      citizenIdx: 3,
-      departmentId: deptWorks.id,
-    },
-    {
-      subject: 'Traffic light malfunction',
-      description:
-        'The traffic light at the Post Office junction has been non-functional for a week.',
-      category: 'ROADS',
-      priority: 'P3' as const,
-      status: 'ACKNOWLEDGED' as const,
-      channel: 'EMAIL' as const,
-      citizenIdx: 0,
-      departmentId: deptWorks.id,
-    },
-    {
-      subject: 'Internet connectivity issues',
-      description:
-        'Government offices in our area have no internet access for the past month.',
-      category: 'ICT',
-      priority: 'P2' as const,
-      status: 'CLOSED' as const,
-      channel: 'WEB' as const,
-      citizenIdx: 1,
-      departmentId: deptICT.id,
-      officerIdx: 0,
-    },
-    {
-      subject: 'Delay in pension payment',
-      description:
-        'Pensioners have not received their monthly pension for 3 months.',
-      category: 'PENSION',
+      subject: 'Delayed payment',
+      description: 'A payment due to my organisation has been delayed despite completed documentation.',
+      category: 'Finance & Supply',
       priority: 'P1' as const,
+      status: 'CLOSED' as const,
+      channel: 'EMAIL' as const,
+      citizenIdx: 1,
+      departmentId: deptByCode.FNS.id,
+      officer: isvStaff,
+    },
+    {
+      subject: 'Request for statistical data',
+      description: 'I requested published statistics but have not received them.',
+      category: 'Planning, Research and Statistics',
+      priority: 'P4' as const,
       status: 'REOPENED' as const,
       channel: 'LETTER' as const,
       citizenIdx: 4,
-      departmentId: deptICT.id,
-    },
-    {
-      subject: 'Market sanitation problem',
-      description: 'The main market is very dirty and needs urgent cleaning.',
-      category: 'SANITATION',
-      priority: 'P3' as const,
-      status: 'ACKNOWLEDGED' as const,
-      channel: 'WALK_IN' as const,
-      citizenIdx: 2,
-      departmentId: deptWorks.id,
-    },
-    {
-      subject: 'Unresponsive government hotline',
-      description:
-        'The government complaint hotline has been unreachable for days.',
-      category: 'ICT',
-      priority: 'P2' as const,
-      status: 'IN_PROGRESS' as const,
-      channel: 'WEB' as const,
-      citizenIdx: 0,
-      departmentId: deptICT.id,
-      officerIdx: 0,
+      departmentId: deptByCode.PRS.id,
     },
   ];
 
   for (let i = 0; i < ticketData.length; i++) {
     const t = ticketData[i];
     const citizen = allCitizens[t.citizenIdx];
-    const officer =
-      t.officerIdx !== undefined ? allOfficers[t.officerIdx] : null;
-
     const code = `KWMOC-2026-${String(i + 1).padStart(6, '0')}`;
     const trackingToken = `tok_${Math.random().toString(36).slice(2)}`;
     const passcode = String(Math.floor(100000 + Math.random() * 900000));
@@ -337,39 +236,31 @@ async function main() {
       category: t.category,
       status: t.status,
       channel: t.channel,
-      lga: allCitizens[t.citizenIdx]?.lga || 'ILORIN_WEST',
+      lga: citizen?.lga || 'ILORIN_WEST',
       citizenId: citizen.id,
-      departmentId: t.departmentId || null,
+      departmentId: t.departmentId,
       trackingToken,
       trackingPasscode: passcode,
     };
-
     if (t.priority) data.priority = t.priority;
-    if (officer) data.assignedOfficerId = officer.id;
-    if (
-      ['ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REOPENED'].includes(
-        t.status,
-      )
-    ) {
+    if (t.officer) data.assignedOfficerId = t.officer.id;
+    if (['ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REOPENED'].includes(t.status)) {
       data.triagedAt = new Date();
       data.triagedById = adminUser?.id;
     }
     if (['IN_PROGRESS', 'RESOLVED', 'CLOSED'].includes(t.status)) {
       data.slaStartedAt = new Date(Date.now() - 48 * 3600000);
-      data.slaTargetHours =
-        t.priority === 'P1' ? 24 : t.priority === 'P2' ? 72 : 240;
+      data.slaTargetHours = t.priority === 'P1' ? 24 : t.priority === 'P2' ? 72 : 240;
     }
     if (t.status === 'RESOLVED') {
-      data.resolutionText =
-        'The issue has been addressed. Equipment has been procured and deployed.';
+      data.resolutionText = 'The issue has been addressed.';
       data.resolvedAt = new Date(Date.now() - 24 * 3600000);
-      data.resolvedById = officer?.id;
+      data.resolvedById = t.officer?.id;
     }
     if (t.status === 'CLOSED') {
-      data.resolutionText =
-        'Internet connectivity has been restored across all government offices.';
+      data.resolutionText = 'Resolved and confirmed.';
       data.resolvedAt = new Date(Date.now() - 72 * 3600000);
-      data.resolvedById = officer?.id;
+      data.resolvedById = t.officer?.id;
       data.closedAt = new Date(Date.now() - 48 * 3600000);
     }
     if (t.status === 'REOPENED') {
@@ -384,148 +275,52 @@ async function main() {
     });
   }
 
-  const seedYear = 2026;
   await prisma.ticketSequence.upsert({
-    where: { year: seedYear },
+    where: { year: 2026 },
     update: { lastValue: ticketData.length },
-    create: { id: seedYear, year: seedYear, lastValue: ticketData.length },
+    create: { id: 2026, year: 2026, lastValue: ticketData.length },
   });
 
-  // ── SLA Config ──
+  // ── SLA config (escalation chain: HOD → PS → Commissioner) ──
   const slaConfigs = [
-    {
-      priority: 'P1',
-      firstResponseHours: 1,
-      resolutionHours: 24,
-      warningThreshold: 0.8,
-      escalationChain: JSON.stringify([
-        'DIRECTOR',
-        'PERMANENT_SECRETARY',
-        'COMMISSIONER',
-      ]),
-    },
-    {
-      priority: 'P2',
-      firstResponseHours: 4,
-      resolutionHours: 72,
-      warningThreshold: 0.8,
-      escalationChain: JSON.stringify([
-        'DIRECTOR',
-        'PERMANENT_SECRETARY',
-        'COMMISSIONER',
-      ]),
-    },
-    {
-      priority: 'P3',
-      firstResponseHours: 24,
-      resolutionHours: 240,
-      warningThreshold: 0.8,
-      escalationChain: JSON.stringify(['DIRECTOR', 'PERMANENT_SECRETARY']),
-    },
-    {
-      priority: 'P4',
-      firstResponseHours: 48,
-      resolutionHours: 360,
-      warningThreshold: 0.8,
-      escalationChain: JSON.stringify(['DIRECTOR']),
-    },
+    { priority: 'P1', firstResponseHours: 1, resolutionHours: 24, warningThreshold: 0.8, escalationChain: JSON.stringify(['DEPARTMENT_HOD', 'PERMANENT_SECRETARY', 'COMMISSIONER']) },
+    { priority: 'P2', firstResponseHours: 4, resolutionHours: 72, warningThreshold: 0.8, escalationChain: JSON.stringify(['DEPARTMENT_HOD', 'PERMANENT_SECRETARY', 'COMMISSIONER']) },
+    { priority: 'P3', firstResponseHours: 24, resolutionHours: 240, warningThreshold: 0.8, escalationChain: JSON.stringify(['DEPARTMENT_HOD', 'PERMANENT_SECRETARY']) },
+    { priority: 'P4', firstResponseHours: 48, resolutionHours: 360, warningThreshold: 0.8, escalationChain: JSON.stringify(['DEPARTMENT_HOD']) },
   ];
-
   for (const sc of slaConfigs) {
     await prisma.slaConfig.upsert({
       where: { priority: sc.priority as any },
-      update: {},
+      update: { escalationChain: sc.escalationChain },
       create: sc as any,
     });
   }
 
-  // ── Routing Rules ──
+  // ── Routing rules (category → department) ──
   const routingRules = [
-    { category: 'ICT', departmentId: deptICT.id, priorityRank: 1 },
-    { category: 'ROADS', departmentId: deptWorks.id, priorityRank: 1 },
-    { category: 'HEALTH', departmentId: deptHealth.id, priorityRank: 1 },
-    { category: 'EDUCATION', departmentId: deptEducation.id, priorityRank: 1 },
-    { category: 'WATER', departmentId: deptWorks.id, priorityRank: 2 },
-    { category: 'SALARY', departmentId: deptICT.id, priorityRank: 2 },
-    { category: 'PENSION', departmentId: deptICT.id, priorityRank: 3 },
-    { category: 'SANITATION', departmentId: deptWorks.id, priorityRank: 3 },
+    { category: 'Information Services', departmentId: deptByCode.ISV.id, priorityRank: 1 },
+    { category: 'Public Orientation', departmentId: deptByCode.POR.id, priorityRank: 1 },
+    { category: 'Graphics', departmentId: deptByCode.GRP.id, priorityRank: 1 },
+    { category: 'Culture and Tourism', departmentId: deptByCode.CTU.id, priorityRank: 1 },
+    { category: 'Finance & Supply', departmentId: deptByCode.FNS.id, priorityRank: 1 },
+    { category: 'Planning, Research and Statistics', departmentId: deptByCode.PRS.id, priorityRank: 1 },
+    { category: 'Admin Department', departmentId: deptByCode.ADM.id, priorityRank: 1 },
   ];
-
   for (const rule of routingRules) {
-    await prisma.routingRule.create({ data: rule });
-  }
-
-  // ── Ticket Movements ──
-  const tickets = await prisma.ticket.findMany();
-  for (const ticket of tickets) {
-    if (['ACKNOWLEDGED'].includes(ticket.status)) {
-      await prisma.ticketMovement.create({
-        data: {
-          ticketId: ticket.id,
-          type: 'SUBMITTED',
-          note: 'Complaint submitted',
-        },
-      });
-    }
-    if (
-      ['ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REOPENED'].includes(
-        ticket.status,
-      )
-    ) {
-      await prisma.ticketMovement.create({
-        data: {
-          ticketId: ticket.id,
-          type: 'SUBMITTED',
-          note: 'Complaint submitted',
-        },
-      });
-      await prisma.ticketMovement.create({
-        data: {
-          ticketId: ticket.id,
-          type: 'ROUTED',
-          note: `Routed to department`,
-          toUserId: ticket.departmentId ? undefined : undefined,
-        },
-      });
-      await prisma.ticketMovement.create({
-        data: {
-          ticketId: ticket.id,
-          type: 'ASSIGNED',
-          note: 'Assigned to officer',
-          toUserId: ticket.assignedOfficerId,
-        },
-      });
-    }
-    if (['IN_PROGRESS', 'RESOLVED', 'CLOSED'].includes(ticket.status)) {
-      await prisma.ticketMovement.create({
-        data: {
-          ticketId: ticket.id,
-          type: 'SUBMITTED' as any,
-          note: 'Investigation started',
-        },
-      });
-    }
-    if (ticket.status === 'REOPENED') {
-      await prisma.ticketMovement.create({
-        data: {
-          ticketId: ticket.id,
-          type: 'REOPENED',
-          note: 'Citizen not satisfied — reopened',
-        },
-      });
-    }
+    const existing = await prisma.routingRule.findFirst({ where: { category: rule.category } });
+    if (!existing) await prisma.routingRule.create({ data: rule });
   }
 
   console.log('✅ Seed completed!');
-  console.log('📋 Test accounts (password: Password123!):');
-  console.log('   admin@kwmoc.gov.ng — Admin Officer');
-  console.log('   superadmin@kwmoc.gov.ng — Super Admin');
-  console.log('   intake@kwmoc.gov.ng — Intake Officer');
-  console.log('   officer@kwmoc.gov.ng — Schedule Officer');
-  console.log('   director@kwmoc.gov.ng — Director (HOD)');
-  console.log('   ps@kwmoc.gov.ng — Permanent Secretary');
-  console.log('   commissioner@kwmoc.gov.ng — Commissioner');
-  console.log('   auditor@kwmoc.gov.ng — Auditor');
+  console.log(`📋 Test accounts (password: ${PASSWORD}):`);
+  console.log('   superadmin@kwmoc.gov.ng       — Super Admin (ADMIN + isSuperAdmin, ALL perms)');
+  console.log('   admin@kwmoc.gov.ng            — Administrator (ADMIN, ALL perms)');
+  console.log('   intake.admin@kwmoc.gov.ng     — Admin (INTAKE + REPORTS only)');
+  console.log('   staff@kwmoc.gov.ng            — Department Staff (Information Services)');
+  console.log('   hod@kwmoc.gov.ng              — Department HOD (Information Services)');
+  console.log('   ps@kwmoc.gov.ng               — Permanent Secretary');
+  console.log('   commissioner@kwmoc.gov.ng     — Commissioner');
+  console.log('   auditor@kwmoc.gov.ng          — Auditor (read-only)');
 }
 
 main()

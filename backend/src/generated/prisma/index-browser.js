@@ -140,9 +140,17 @@ exports.Prisma.UserScalarFieldEnum = {
   phone: 'phone',
   departmentId: 'departmentId',
   isActive: 'isActive',
+  isSuperAdmin: 'isSuperAdmin',
   lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserPermissionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  permission: 'permission',
+  grantedAt: 'grantedAt'
 };
 
 exports.Prisma.CitizenScalarFieldEnum = {
@@ -356,16 +364,26 @@ exports.Prisma.JsonNullValueFilter = {
   AnyNull: Prisma.AnyNull
 };
 exports.Role = exports.$Enums.Role = {
-  INTAKE_OFFICER: 'INTAKE_OFFICER',
-  ADMIN_OFFICER: 'ADMIN_OFFICER',
-  SCHEDULE_OFFICER: 'SCHEDULE_OFFICER',
-  ASSISTANT_DIRECTOR: 'ASSISTANT_DIRECTOR',
-  DEPUTY_DIRECTOR: 'DEPUTY_DIRECTOR',
-  DIRECTOR: 'DIRECTOR',
+  DEPARTMENT_STAFF: 'DEPARTMENT_STAFF',
+  DEPARTMENT_HOD: 'DEPARTMENT_HOD',
   PERMANENT_SECRETARY: 'PERMANENT_SECRETARY',
   COMMISSIONER: 'COMMISSIONER',
-  SUPER_ADMIN: 'SUPER_ADMIN',
+  ADMIN: 'ADMIN',
   AUDITOR: 'AUDITOR'
+};
+
+exports.Permission = exports.$Enums.Permission = {
+  ALL: 'ALL',
+  INTAKE: 'INTAKE',
+  SCHEDULE: 'SCHEDULE',
+  COMPLAINTS: 'COMPLAINTS',
+  REPORTS: 'REPORTS',
+  USERS: 'USERS',
+  DEPARTMENTS: 'DEPARTMENTS',
+  ROUTING: 'ROUTING',
+  SLA: 'SLA',
+  AUDIT: 'AUDIT',
+  APPROVALS: 'APPROVALS'
 };
 
 exports.TicketStatus = exports.$Enums.TicketStatus = {
@@ -438,7 +456,7 @@ exports.MovementType = exports.$Enums.MovementType = {
 };
 
 exports.ApproverRole = exports.$Enums.ApproverRole = {
-  DIRECTOR: 'DIRECTOR',
+  DEPARTMENT_HOD: 'DEPARTMENT_HOD',
   PERMANENT_SECRETARY: 'PERMANENT_SECRETARY',
   COMMISSIONER: 'COMMISSIONER'
 };
@@ -482,6 +500,7 @@ exports.AuditEventType = exports.$Enums.AuditEventType = {
 exports.Prisma.ModelName = {
   Department: 'Department',
   User: 'User',
+  UserPermission: 'UserPermission',
   Citizen: 'Citizen',
   Ticket: 'Ticket',
   TicketAttachment: 'TicketAttachment',

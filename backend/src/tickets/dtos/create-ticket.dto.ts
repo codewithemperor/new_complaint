@@ -38,7 +38,7 @@ export class CreateTicketDto {
   @IsBoolean()
   isAnonymous?: boolean;
 
-  @ApiProperty({ example: 'INFRASTRUCTURE' })
+  @ApiProperty({ example: 'Finance & Supply' })
   @IsString()
   category: string;
 

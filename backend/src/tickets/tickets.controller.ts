@@ -26,7 +26,9 @@ import { Public } from '../common/decorators/is-public.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';
 import { Role } from '../common/types/role';
+import { Permission } from '../common/types/permission';
 import { Priority, TicketStatus } from '../common/types/ticket-status';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
@@ -67,10 +69,11 @@ export class TicketsController {
   }
 
   /**
-   * Protected endpoint: intake officer logs a complaint on behalf of a citizen.
+   * Protected endpoint: an Admin (with INTAKE) logs a complaint on behalf of a citizen.
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.INTAKE_OFFICER, Role.ADMIN_OFFICER, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN)
+  @Permissions(Permission.INTAKE)
   @Post('intake')
   @UseInterceptors(
     FilesInterceptor('attachments', MAX_FILES, { limits: { fileSize: MAX_FILE_SIZE } }),
@@ -92,9 +95,8 @@ export class TicketsController {
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.ADMIN_OFFICER, Role.SUPER_ADMIN, Role.INTAKE_OFFICER,
-    Role.SCHEDULE_OFFICER, Role.ASSISTANT_DIRECTOR, Role.DEPUTY_DIRECTOR,
-    Role.DIRECTOR, Role.PERMANENT_SECRETARY, Role.COMMISSIONER, Role.AUDITOR,
+    Role.ADMIN, Role.DEPARTMENT_STAFF, Role.DEPARTMENT_HOD,
+    Role.PERMANENT_SECRETARY, Role.COMMISSIONER, Role.AUDITOR,
   )
   @Get()
   @ApiOperation({ summary: 'List tickets with filters (staff)' })
@@ -125,7 +127,8 @@ export class TicketsController {
    * Triage an ACKNOWLEDGED ticket: classify, prioritize, route.
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN_OFFICER, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN)
+  @Permissions(Permission.INTAKE, Permission.SCHEDULE)
   @Patch(':id/triage')
   @ApiOperation({ summary: 'Triage a ticket (Admin Officer / Super Admin)' })
   async triage(
@@ -183,8 +186,7 @@ export class TicketsController {
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.SCHEDULE_OFFICER, Role.ASSISTANT_DIRECTOR,
-    Role.DEPUTY_DIRECTOR, Role.DIRECTOR, Role.SUPER_ADMIN,
+    Role.DEPARTMENT_STAFF, Role.DEPARTMENT_HOD,
   )
   @Patch(':id/start')
   @ApiOperation({ summary: 'Start investigation (officer)' })
@@ -197,8 +199,7 @@ export class TicketsController {
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.SCHEDULE_OFFICER, Role.ASSISTANT_DIRECTOR,
-    Role.DEPUTY_DIRECTOR, Role.DIRECTOR, Role.SUPER_ADMIN,
+    Role.DEPARTMENT_STAFF, Role.DEPARTMENT_HOD,
   )
   @Post(':id/minutes')
   @ApiOperation({ summary: 'Post an investigation minute (officer)' })
@@ -215,8 +216,7 @@ export class TicketsController {
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.SCHEDULE_OFFICER, Role.ASSISTANT_DIRECTOR,
-    Role.DEPUTY_DIRECTOR, Role.DIRECTOR, Role.SUPER_ADMIN,
+    Role.DEPARTMENT_STAFF, Role.DEPARTMENT_HOD,
   )
   @Post(':id/request-info')
   @ApiOperation({ summary: 'Request info from citizen (officer)' })
@@ -234,8 +234,7 @@ export class TicketsController {
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.SCHEDULE_OFFICER, Role.ASSISTANT_DIRECTOR,
-    Role.DEPUTY_DIRECTOR, Role.DIRECTOR, Role.SUPER_ADMIN,
+    Role.DEPARTMENT_STAFF, Role.DEPARTMENT_HOD,
   )
   @Patch(':id/request-approval')
   @ApiOperation({ summary: 'Request departmental approval (officer)' })
@@ -272,8 +271,7 @@ export class TicketsController {
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.SCHEDULE_OFFICER, Role.ASSISTANT_DIRECTOR,
-    Role.DEPUTY_DIRECTOR, Role.DIRECTOR, Role.SUPER_ADMIN,
+    Role.DEPARTMENT_STAFF, Role.DEPARTMENT_HOD,
   )
   @Post(':id/resolution')
   @ApiOperation({ summary: 'Submit a resolution (officer)' })
@@ -319,12 +317,13 @@ export class TicketsController {
   }
 
   /**
-   * Archive a closed ticket (SUPER_ADMIN only).
+   * Archive a closed ticket (Super Admin / ADMIN with COMPLAINTS).
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN)
+  @Permissions(Permission.COMPLAINTS)
   @Post(':id/archive')
-  @ApiOperation({ summary: 'Archive a closed ticket (Super Admin)' })
+  @ApiOperation({ summary: 'Archive a closed ticket (admin)' })
   async archive(@Param('id') id: string) {
     return this.ticketsService.archive(id);
   }
@@ -333,7 +332,8 @@ export class TicketsController {
    * Admin: list reopened tickets (re-triage queue).
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN_OFFICER, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN)
+  @Permissions(Permission.COMPLAINTS)
   @Get('admin/reopened')
   @ApiOperation({ summary: 'List reopened tickets (admin)' })
   async reopened(
@@ -352,7 +352,7 @@ export class TicketsController {
    * Admin: list archived tickets (read-only archive view).
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN_OFFICER, Role.SUPER_ADMIN, Role.AUDITOR)
+  @Roles(Role.ADMIN, Role.AUDITOR)
   @Get('admin/archive')
   @ApiOperation({ summary: 'List archived tickets (admin/auditor)' })
   async archived(
@@ -378,7 +378,7 @@ export class TicketsController {
    * capped at 100 to keep payload sizes reasonable for the timeline payload.
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.AUDITOR)
+  @Roles(Role.ADMIN, Role.AUDITOR)
   @Get('admin/all')
   @ApiOperation({
     summary:
@@ -431,9 +431,8 @@ export class TicketsController {
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.SUPER_ADMIN,
-    Role.ADMIN_OFFICER,
-    Role.DIRECTOR,
+    Role.ADMIN,
+    Role.DEPARTMENT_HOD,
     Role.PERMANENT_SECRETARY,
     Role.AUDITOR,
   )

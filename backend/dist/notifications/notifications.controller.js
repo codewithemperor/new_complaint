@@ -52,25 +52,21 @@ let NotificationsController = class NotificationsController {
     }
     async getActionableCount(user) {
         const role = user.role;
-        // Admin / Intake / Super Admin: tickets awaiting classification
-        if ([
-            'ADMIN_OFFICER',
-            'INTAKE_OFFICER',
-            'SUPER_ADMIN'
-        ].includes(role)) {
+        // Admin: tickets awaiting classification
+        if (role === 'ADMIN') {
             return this.prisma.ticket.count({
                 where: {
                     status: 'ACKNOWLEDGED'
                 }
             });
         }
-        // HOD (Director): pending approval requests addressed to them
-        if (role === 'DIRECTOR') {
+        // HOD: pending approval requests addressed to them
+        if (role === 'DEPARTMENT_HOD') {
             return this.prisma.approvalRequest.count({
                 where: {
                     currentApproverId: user.id,
                     status: 'PENDING',
-                    approverRole: 'DIRECTOR'
+                    approverRole: 'DEPARTMENT_HOD'
                 }
             });
         }
@@ -98,12 +94,8 @@ let NotificationsController = class NotificationsController {
             ]);
             return escalated + breached;
         }
-        // Officers: their active tickets
-        if ([
-            'SCHEDULE_OFFICER',
-            'ASSISTANT_DIRECTOR',
-            'DEPUTY_DIRECTOR'
-        ].includes(role)) {
+        // Department staff: their active tickets
+        if (role === 'DEPARTMENT_STAFF') {
             return this.prisma.ticket.count({
                 where: {
                     assignedOfficerId: user.id,
@@ -124,12 +116,8 @@ let NotificationsController = class NotificationsController {
     async getActionableItems(user) {
         const role = user.role;
         const take = 20;
-        // Admin / Intake / Super Admin: unclassified tickets
-        if ([
-            'ADMIN_OFFICER',
-            'INTAKE_OFFICER',
-            'SUPER_ADMIN'
-        ].includes(role)) {
+        // Admin: unclassified tickets
+        if (role === 'ADMIN') {
             const tickets = await this.prisma.ticket.findMany({
                 where: {
                     status: 'ACKNOWLEDGED'
@@ -153,16 +141,16 @@ let NotificationsController = class NotificationsController {
                     status: t.status,
                     action: 'Needs classification',
                     createdAt: t.createdAt.toISOString(),
-                    link: `/admin/ticket/${t.id}`
+                    link: `/dashboard/triage`
                 }));
         }
         // HOD: pending approvals
-        if (role === 'DIRECTOR') {
+        if (role === 'DEPARTMENT_HOD') {
             const approvals = await this.prisma.approvalRequest.findMany({
                 where: {
                     currentApproverId: user.id,
                     status: 'PENDING',
-                    approverRole: 'DIRECTOR'
+                    approverRole: 'DEPARTMENT_HOD'
                 },
                 orderBy: {
                     createdAt: 'asc'
@@ -186,7 +174,7 @@ let NotificationsController = class NotificationsController {
                     status: a.ticket.status,
                     action: 'Approval requested',
                     createdAt: a.createdAt.toISOString(),
-                    link: `/admin/ticket/${a.ticket.id}`
+                    link: `/dashboard/approvals`
                 }));
         }
         // PS / Commissioner: escalated approvals
@@ -222,15 +210,11 @@ let NotificationsController = class NotificationsController {
                     status: a.ticket.status,
                     action: 'Escalated for decision',
                     createdAt: a.createdAt.toISOString(),
-                    link: `/admin/ticket/${a.ticket.id}`
+                    link: `/dashboard/approvals`
                 }));
         }
-        // Officers: their active tickets
-        if ([
-            'SCHEDULE_OFFICER',
-            'ASSISTANT_DIRECTOR',
-            'DEPUTY_DIRECTOR'
-        ].includes(role)) {
+        // Department staff: their active tickets
+        if (role === 'DEPARTMENT_STAFF') {
             const tickets = await this.prisma.ticket.findMany({
                 where: {
                     assignedOfficerId: user.id,
@@ -263,7 +247,7 @@ let NotificationsController = class NotificationsController {
                     status: t.status,
                     action: t.status === 'ASSIGNED' ? 'Start investigation' : `Status: ${t.status}`,
                     createdAt: t.createdAt.toISOString(),
-                    link: `/admin/ticket/${t.id}`
+                    link: `/dashboard/complaints/${t.id}`
                 }));
         }
         return [];

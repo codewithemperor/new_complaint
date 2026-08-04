@@ -1,4 +1,6 @@
 import {
+  ArrayUnique,
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsOptional,
@@ -9,6 +11,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '../../common/types/role';
+import { Permission } from '../../common/types/permission';
 
 /** Super Admin creates a staff user. */
 export class CreateUserDto {
@@ -47,4 +50,22 @@ export class CreateUserDto {
   @IsOptional()
   @IsUUID()
   departmentId?: string;
+
+  @ApiPropertyOptional({
+    enum: Permission,
+    enumName: 'Permission',
+    type: [String],
+    description: 'Module permissions for ADMIN users (ignored for other roles).',
+  })
+  @IsOptional()
+  @IsEnum(Permission, { each: true })
+  @ArrayUnique()
+  permissions?: Permission[];
+
+  @ApiPropertyOptional({
+    description: 'Grant Super Admin bypass (only meaningful for ADMIN role).',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isSuperAdmin?: boolean;
 }

@@ -11,9 +11,13 @@ export default function OfflinePage() {
       className="flex min-h-screen items-center justify-center bg-neutral-50 px-4"
       style={{ fontFamily: "system-ui, sans-serif" }}
     >
-      <div className="w-full max-w-md rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h1 className="text-lg font-semibold text-neutral-800">You&apos;re offline</h1>
-        <p className="mt-1 text-sm text-neutral-500">No internet connection detected</p>
+      <div className="w-full max-w-md rounded-xl border border-neutral-200 bg-neutral-50 p-6 shadow-sm">
+        <h1 className="text-lg font-semibold text-neutral-800">
+          You&apos;re offline
+        </h1>
+        <p className="mt-1 text-sm text-neutral-500">
+          No internet connection detected
+        </p>
         <p className="mt-4 text-sm text-neutral-600">
           The KwaraMOc Complaints app can&apos;t reach the server right now.
           Your work is safe — once you&apos;re back online, reconnect and try

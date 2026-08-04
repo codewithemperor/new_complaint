@@ -92,19 +92,19 @@ let SlaPolicy = class SlaPolicy {
             case _ticketstatus.Priority.P1:
             case _ticketstatus.Priority.P2:
                 return [
-                    _role.Role.DIRECTOR,
+                    _role.Role.DEPARTMENT_HOD,
                     _role.Role.PERMANENT_SECRETARY,
                     _role.Role.COMMISSIONER
                 ];
             case _ticketstatus.Priority.P3:
                 return [
-                    _role.Role.DIRECTOR,
+                    _role.Role.DEPARTMENT_HOD,
                     _role.Role.PERMANENT_SECRETARY
                 ];
             case _ticketstatus.Priority.P4:
             default:
                 return [
-                    _role.Role.DIRECTOR
+                    _role.Role.DEPARTMENT_HOD
                 ];
         }
     }

@@ -16,7 +16,9 @@ const _updatedepartmentdto = require("./dtos/update-department.dto");
 const _jwtauthguard = require("../common/guards/jwt-auth.guard");
 const _rolesguard = require("../common/guards/roles.guard");
 const _rolesdecorator = require("../common/decorators/roles.decorator");
+const _permissionsdecorator = require("../common/decorators/permissions.decorator");
 const _role = require("../common/types/role");
+const _permission = require("../common/types/permission");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
@@ -68,10 +70,11 @@ _ts_decorate([
 ], DepartmentsController.prototype, "findAll", null);
 _ts_decorate([
     (0, _common.UseGuards)(_rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.DEPARTMENTS),
     (0, _common.Post)(),
     (0, _swagger.ApiOperation)({
-        summary: 'Create a department (Super Admin)'
+        summary: 'Create a department (admin)'
     }),
     _ts_param(0, (0, _common.Body)()),
     _ts_metadata("design:type", Function),
@@ -82,10 +85,11 @@ _ts_decorate([
 ], DepartmentsController.prototype, "create", null);
 _ts_decorate([
     (0, _common.UseGuards)(_rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.DEPARTMENTS),
     (0, _common.Patch)(':id'),
     (0, _swagger.ApiOperation)({
-        summary: 'Update a department (Super Admin)'
+        summary: 'Update a department (admin)'
     }),
     _ts_param(0, (0, _common.Param)('id')),
     _ts_param(1, (0, _common.Body)()),
@@ -98,10 +102,11 @@ _ts_decorate([
 ], DepartmentsController.prototype, "update", null);
 _ts_decorate([
     (0, _common.UseGuards)(_rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.DEPARTMENTS),
     (0, _common.Delete)(':id'),
     (0, _swagger.ApiOperation)({
-        summary: 'Delete a department (Super Admin)'
+        summary: 'Delete a department (admin)'
     }),
     _ts_param(0, (0, _common.Param)('id')),
     _ts_metadata("design:type", Function),

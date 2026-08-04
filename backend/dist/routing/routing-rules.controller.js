@@ -14,7 +14,9 @@ const _prismaservice = require("../prisma/prisma.service");
 const _jwtauthguard = require("../common/guards/jwt-auth.guard");
 const _rolesguard = require("../common/guards/roles.guard");
 const _rolesdecorator = require("../common/decorators/roles.decorator");
+const _permissionsdecorator = require("../common/decorators/permissions.decorator");
 const _role = require("../common/types/role");
+const _permission = require("../common/types/permission");
 const _createroutingruledto = require("./dtos/create-routing-rule.dto");
 const _updateroutingruledto = require("./dtos/update-routing-rule.dto");
 function _ts_decorate(decorators, target, key, desc) {
@@ -200,7 +202,8 @@ RoutingRulesController = _ts_decorate([
     (0, _swagger.ApiTags)('routing-rules'),
     (0, _common.Controller)('routing-rules'),
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.ROUTING),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
         typeof _prismaservice.PrismaService === "undefined" ? Object : _prismaservice.PrismaService

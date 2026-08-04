@@ -38,6 +38,9 @@ _export(exports, {
     get NotificationStatus () {
         return NotificationStatus;
     },
+    get Permission () {
+        return Permission;
+    },
     get Priority () {
         return Priority;
     },
@@ -92,6 +95,7 @@ const $Public = _library.Types.Public;
 const $Extensions = _library.Types.Extensions;
 (function($Enums) {})($Enums || ($Enums = {}));
 const Role;
+const Permission;
 const TicketStatus;
 const Priority;
 const Channel;

@@ -16,18 +16,23 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';
 import { Role } from '../common/types/role';
+import { Permission } from '../common/types/permission';
 
 /**
- * Users controller — Super Admin user management (CRUD).
+ * Users controller — admin user management (CRUD).
  *
- * Read-side access for auth/jwt stays in AuthService; this controller is the
- * admin write boundary. Deletes are soft (deactivate) to preserve history.
+ * Accessible to Super Admins (ADMIN + isSuperAdmin) and ADMIN users granted the
+ * USERS permission. Read-side access for auth/jwt stays in AuthService; this
+ * controller is the admin write boundary. Deletes are soft (deactivate) to
+ * preserve history.
  */
 @ApiTags('users')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.SUPER_ADMIN)
+@Roles(Role.ADMIN)
+@Permissions(Permission.USERS)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

@@ -7,17 +7,22 @@
  * local enum is what DTOs and decorators reference; the Prisma enum is what the
  * DB stores. They are kept in sync manually (one value per role).
  *
- * See planning/02-roles-rbac.md for the full role-action matrix.
+ * Simplified role model:
+ *  - ADMIN handles intake, scheduling, and general admin. Granular module
+ *    access is controlled via the Permission enum + UserPermission rows.
+ *  - A Super Admin is an ADMIN user with isSuperAdmin = true (bypasses all
+ *    permission checks). There is no separate SUPER_ADMIN role.
+ *
+ * Escalation hierarchy (top-down):
+ *   1. ADMIN → 2. DEPARTMENT_STAFF → 3. DEPARTMENT_HOD →
+ *   4. PERMANENT_SECRETARY → 5. COMMISSIONER
+ * AUDITOR has read-only access to all complaints and escalations.
  */
 export enum Role {
-  INTAKE_OFFICER = 'INTAKE_OFFICER',
-  ADMIN_OFFICER = 'ADMIN_OFFICER',
-  SCHEDULE_OFFICER = 'SCHEDULE_OFFICER',
-  ASSISTANT_DIRECTOR = 'ASSISTANT_DIRECTOR',
-  DEPUTY_DIRECTOR = 'DEPUTY_DIRECTOR',
-  DIRECTOR = 'DIRECTOR',
+  DEPARTMENT_STAFF = 'DEPARTMENT_STAFF',
+  DEPARTMENT_HOD = 'DEPARTMENT_HOD',
   PERMANENT_SECRETARY = 'PERMANENT_SECRETARY',
   COMMISSIONER = 'COMMISSIONER',
-  SUPER_ADMIN = 'SUPER_ADMIN',
+  ADMIN = 'ADMIN',
   AUDITOR = 'AUDITOR',
 }

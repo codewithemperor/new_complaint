@@ -2,7 +2,16 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Building2, Globe, Clock, CircleCheckBig, Activity, TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
+import {
+  Building2,
+  Globe,
+  Clock,
+  CircleCheckBig,
+  Activity,
+  TrendingUp,
+  TrendingDown,
+  ExternalLink,
+} from "lucide-react";
 
 /* ── Animated counter hook ─────────────────────────────────────── */
 function useCountUp(target: number, duration: number = 1200) {
@@ -19,7 +28,7 @@ function useCountUp(target: number, duration: number = 1200) {
           setHasStarted(true);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -57,7 +66,12 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
     .join(" ");
 
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="opacity-60 group-hover:opacity-100 transition-opacity">
+    <svg
+      width={w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      className="opacity-60 group-hover:opacity-100 transition-opacity"
+    >
       <polyline
         points={points}
         fill="none"
@@ -77,7 +91,15 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
 }
 
 /* ── Animated progress bar ─────────────────────────────────────── */
-function ProgressBar({ value, color, delay }: { value: number; color: string; delay: number }) {
+function ProgressBar({
+  value,
+  color,
+  delay,
+}: {
+  value: number;
+  color: string;
+  delay: number;
+}) {
   const [width, setWidth] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -90,14 +112,17 @@ function ProgressBar({ value, color, delay }: { value: number; color: string; de
           setTimeout(() => setWidth(value), delay);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [value, delay]);
 
   return (
-    <div ref={ref} className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+    <div
+      ref={ref}
+      className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-100"
+    >
       <div
         className="h-full rounded-full transition-all duration-1000 ease-out"
         style={{ width: `${width}%`, backgroundColor: color }}
@@ -120,16 +145,19 @@ function AnimatedDivider() {
           setTimeout(() => setWidth(100), 300);
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
   return (
-    <div ref={ref} className="hidden md:block w-full flex items-center justify-center">
+    <div
+      ref={ref}
+      className="hidden md:block w-full flex items-center justify-center"
+    >
       <div
-        className="h-px bg-gradient-to-r from-transparent via-emerald-300 to-transparent transition-all duration-1000 ease-out"
+        className="h-px bg-gradient-to-r from-transparent via-green-300 to-transparent transition-all duration-1000 ease-out"
         style={{ width: `${width}%` }}
       />
     </div>
@@ -145,12 +173,12 @@ export default function StatsSection() {
     {
       value: `${stat11.count}+`,
       label: "Departments Integrated",
-      icon: <Building2 size={24} className="text-teal-600" />,
+      icon: <Building2 size={24} className="text-green-600" />,
       ref: stat11.ref,
       sparkline: [4, 6, 5, 7, 8, 9, 11],
-      sparkColor: "#0d9488",
+      sparkColor: "#16a34a",
       progress: 78,
-      progressColor: "#0d9488",
+      progressColor: "#16a34a",
       progressDelay: 200,
       progressLabel: "of 14 target depts",
       trend: "up" as const,
@@ -159,12 +187,12 @@ export default function StatsSection() {
     {
       value: `${stat16.count}`,
       label: "LGAs Covered",
-      icon: <Globe size={24} className="text-teal-600" />,
+      icon: <Globe size={24} className="text-green-600" />,
       ref: stat16.ref,
       sparkline: [10, 12, 11, 13, 14, 15, 16],
-      sparkColor: "#0d9488",
+      sparkColor: "#16a34a",
       progress: 100,
-      progressColor: "#0d9488",
+      progressColor: "#16a34a",
       progressDelay: 400,
       progressLabel: "full coverage",
       trend: "up" as const,
@@ -173,7 +201,7 @@ export default function StatsSection() {
     {
       value: "24/7",
       label: "Submission Availability",
-      icon: <Clock size={24} className="text-teal-600" />,
+      icon: <Clock size={24} className="text-green-600" />,
       ref: null,
       sparkline: [95, 98, 99, 97, 100, 99, 100],
       sparkColor: "#f59e0b",
@@ -187,7 +215,7 @@ export default function StatsSection() {
     {
       value: `${stat100.count}%`,
       label: "Issues Tracked",
-      icon: <CircleCheckBig size={24} className="text-teal-600" />,
+      icon: <CircleCheckBig size={24} className="text-green-600" />,
       ref: stat100.ref,
       sparkline: [82, 88, 91, 94, 96, 98, 100],
       sparkColor: "#10b981",
@@ -201,7 +229,7 @@ export default function StatsSection() {
   ];
 
   return (
-    <section className="relative border-b border-neutral-100 bg-white py-14">
+    <section className="relative border-b border-neutral-100 bg-neutral-50 py-14">
       {/* Background pattern */}
       <div
         className="absolute inset-0 opacity-[0.03]"
@@ -215,10 +243,12 @@ export default function StatsSection() {
       {/* Pulsing live indicator */}
       <div className="absolute top-4 right-6 flex items-center gap-2">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
         </span>
-        <span className="text-[11px] font-medium text-neutral-400">System online</span>
+        <span className="text-[11px] font-medium text-neutral-400">
+          System online
+        </span>
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-6 md:grid-cols-4 lg:px-8">
@@ -232,9 +262,9 @@ export default function StatsSection() {
           >
             <div
               ref={s.ref as React.RefObject<HTMLDivElement>}
-              className="group rounded-2xl p-5 text-center transition-all duration-300 hover:bg-neutral-50 hover:scale-[1.03] hover:shadow-lg hover:shadow-emerald-500/5 md:border-r md:border-neutral-100 md:last:border-r-0 md:rounded-none md:p-0 md:hover:bg-transparent md:hover:scale-100 md:hover:shadow-none"
+              className="group rounded-2xl p-5 text-center transition-all duration-300 hover:bg-neutral-50 hover:scale-[1.03] hover:shadow-lg hover:shadow-green-500/5 md:border-r md:border-neutral-100 md:last:border-r-0 md:rounded-none md:p-0 md:hover:bg-transparent md:hover:scale-100 md:hover:shadow-none"
             >
-              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 opacity-70 transition-all group-hover:opacity-100 group-hover:shadow-sm group-hover:shadow-teal-200/50">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 opacity-70 transition-all group-hover:opacity-100 group-hover:shadow-sm group-hover:shadow-green-200/50">
                 {s.icon}
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -242,11 +272,13 @@ export default function StatsSection() {
                   {s.value}
                 </p>
                 {/* Trend indicator */}
-                <span className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                  s.trend === "up"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : "bg-red-50 text-red-600"
-                }`}>
+                <span
+                  className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                    s.trend === "up"
+                      ? "bg-green-50 text-green-600"
+                      : "bg-red-50 text-red-600"
+                  }`}
+                >
                   {s.trend === "up" ? (
                     <TrendingUp size={10} />
                   ) : (
@@ -266,8 +298,14 @@ export default function StatsSection() {
 
               {/* Progress bar */}
               <div className="mt-3 px-2">
-                <ProgressBar value={s.progress} color={s.progressColor} delay={s.progressDelay} />
-                <p className="mt-1 text-[10px] font-medium text-neutral-400">{s.progressLabel}</p>
+                <ProgressBar
+                  value={s.progress}
+                  color={s.progressColor}
+                  delay={s.progressDelay}
+                />
+                <p className="mt-1 text-[10px] font-medium text-neutral-400">
+                  {s.progressLabel}
+                </p>
               </div>
             </div>
           </motion.div>
@@ -282,18 +320,18 @@ export default function StatsSection() {
       {/* Bottom status bar + View Full Report */}
       <div className="mx-auto mt-6 flex max-w-7xl items-center justify-center gap-6 px-6 lg:px-8">
         <div className="flex items-center gap-2 text-xs text-neutral-400">
-          <Activity size={14} className="text-emerald-500" />
+          <Activity size={14} className="text-green-500" />
           <span>Last updated: just now</span>
         </div>
         <span className="text-neutral-200">|</span>
         <div className="flex items-center gap-2 text-xs text-neutral-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
           <span>All systems operational</span>
         </div>
         <span className="text-neutral-200">|</span>
         <a
           href="#"
-          className="flex items-center gap-1 text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700"
+          className="flex items-center gap-1 text-xs font-medium text-green-600 transition-colors hover:text-green-700"
         >
           View Full Report
           <ExternalLink size={12} />

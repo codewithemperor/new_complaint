@@ -68,7 +68,7 @@ export enum AwaitingState {
 
 /** The approval tier currently holding a request. Mirrors Prisma enum. */
 export enum ApproverRole {
-  DIRECTOR = 'DIRECTOR',
+  DEPARTMENT_HOD = 'DEPARTMENT_HOD',
   PERMANENT_SECRETARY = 'PERMANENT_SECRETARY',
   COMMISSIONER = 'COMMISSIONER',
 }

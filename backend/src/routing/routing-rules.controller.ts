@@ -13,7 +13,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';
 import { Role } from '../common/types/role';
+import { Permission } from '../common/types/permission';
 import { CreateRoutingRuleDto } from './dtos/create-routing-rule.dto';
 import { UpdateRoutingRuleDto } from './dtos/update-routing-rule.dto';
 import { NotFoundException } from '@nestjs/common';
@@ -21,7 +23,8 @@ import { NotFoundException } from '@nestjs/common';
 @ApiTags('routing-rules')
 @Controller('routing-rules')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.SUPER_ADMIN)
+@Roles(Role.ADMIN)
+@Permissions(Permission.ROUTING)
 export class RoutingRulesController {
   constructor(private readonly prisma: PrismaService) {}
 

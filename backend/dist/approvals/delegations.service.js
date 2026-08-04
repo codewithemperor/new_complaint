@@ -34,7 +34,7 @@ let DelegationsService = class DelegationsService {
         this.prisma = prisma;
     }
     async create(dto, user) {
-        if (user.role !== _role.Role.PERMANENT_SECRETARY && user.role !== _role.Role.SUPER_ADMIN) {
+        if (user.role !== _role.Role.PERMANENT_SECRETARY && !user.isSuperAdmin) {
             throw new _common.ForbiddenException('Only the Permanent Secretary may delegate approval authority.');
         }
         const validFrom = new Date(dto.validFrom);
@@ -48,8 +48,8 @@ let DelegationsService = class DelegationsService {
             }
         });
         if (!delegate) throw new _common.NotFoundException('Delegate user not found.');
-        if (delegate.role !== _role.Role.DIRECTOR) {
-            throw new _common.BadRequestException('Delegation target must be a Director (HOD).');
+        if (delegate.role !== _role.Role.DEPARTMENT_HOD) {
+            throw new _common.BadRequestException('Delegation target must be a Department HOD.');
         }
         return this.prisma.delegation.create({
             data: {
@@ -108,7 +108,7 @@ let DelegationsService = class DelegationsService {
             }
         });
         if (!delegation) throw new _common.NotFoundException('Delegation not found.');
-        if (delegation.delegatorId !== user.id && user.role !== _role.Role.SUPER_ADMIN) {
+        if (delegation.delegatorId !== user.id && !user.isSuperAdmin) {
             throw new _common.ForbiddenException('You may only revoke your own delegations.');
         }
         return this.prisma.delegation.update({

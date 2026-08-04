@@ -20,7 +20,9 @@ const DISMISS_KEY = "kwmoc_install_dismissed_at";
 const DISMISS_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 export function InstallPrompt() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(
+    null,
+  );
   const [dismissedAt, setDismissedAt] = useState<number | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -71,14 +73,14 @@ export function InstallPrompt() {
       role="dialog"
       aria-labelledby="install-prompt-title"
       aria-describedby="install-prompt-desc"
-      className="fixed bottom-4 right-4 z-40 w-[300px] overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-xl shadow-emerald-900/10 animate-in slide-in-from-bottom-4 duration-300"
+      className="fixed bottom-4 right-4 z-40 w-[300px] overflow-hidden rounded-2xl border border-green-200 bg-neutral-50 shadow-xl shadow-green-900/10 animate-in slide-in-from-bottom-4 duration-300"
     >
       {/* Accent strip */}
-      <div className="h-1 bg-emerald-500" />
+      <div className="h-1 bg-green-500" />
       <div className="p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-50 ring-1 ring-emerald-100">
-            <Smartphone size={18} className="text-emerald-600" />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-green-50 ring-1 ring-green-100">
+            <Smartphone size={18} className="text-green-600" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
@@ -100,7 +102,8 @@ export function InstallPrompt() {
               id="install-prompt-desc"
               className="mt-1 text-xs leading-relaxed text-neutral-500"
             >
-              Add the app to your home screen for quick, offline-friendly access.
+              Add the app to your home screen for quick, offline-friendly
+              access.
             </p>
           </div>
         </div>
@@ -108,7 +111,7 @@ export function InstallPrompt() {
         <div className="mt-3 flex gap-2">
           <button
             onClick={install}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md active:scale-[0.98]"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md active:scale-[0.98]"
           >
             <Download size={13} />
             Install now

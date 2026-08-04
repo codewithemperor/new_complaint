@@ -1,4 +1,5 @@
 import { Role } from './role';
+import { Permission } from './permission';
 
 /**
  * The authenticated principal attached to request.user by JwtAuthGuard.
@@ -10,4 +11,6 @@ export interface AuthenticatedUser {
   role: Role;
   fullName: string;
   departmentId?: string | null;
+  isSuperAdmin: boolean;
+  permissions: Permission[];
 }

@@ -16,12 +16,14 @@ import { DepartmentResponseDto } from './dtos/department-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';
 import { Role } from '../common/types/role';
+import { Permission } from '../common/types/permission';
 
 /**
  * Departments controller.
  *  - GET /departments — any authenticated staff (for selectors).
- *  - POST/PATCH/DELETE — Super Admin only.
+ *  - POST/PATCH/DELETE — Super Admin, or ADMIN with the DEPARTMENTS permission.
  */
 @ApiTags('departments')
 @ApiBearerAuth()
@@ -37,25 +39,28 @@ export class DepartmentsController {
   }
 
   @UseGuards(RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN)
+  @Permissions(Permission.DEPARTMENTS)
   @Post()
-  @ApiOperation({ summary: 'Create a department (Super Admin)' })
+  @ApiOperation({ summary: 'Create a department (admin)' })
   create(@Body() dto: CreateDepartmentDto) {
     return this.departmentsService.create(dto);
   }
 
   @UseGuards(RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN)
+  @Permissions(Permission.DEPARTMENTS)
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a department (Super Admin)' })
+  @ApiOperation({ summary: 'Update a department (admin)' })
   update(@Param('id') id: string, @Body() dto: UpdateDepartmentDto) {
     return this.departmentsService.update(id, dto);
   }
 
   @UseGuards(RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN)
+  @Permissions(Permission.DEPARTMENTS)
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a department (Super Admin)' })
+  @ApiOperation({ summary: 'Delete a department (admin)' })
   remove(@Param('id') id: string) {
     return this.departmentsService.remove(id);
   }

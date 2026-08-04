@@ -74,7 +74,7 @@ export class ReportsService {
 
     const officers = await this.prisma.user.findMany({
       where: {
-        role: { in: ['SCHEDULE_OFFICER', 'ASSISTANT_DIRECTOR', 'DEPUTY_DIRECTOR', 'DIRECTOR'] },
+        role: { in: ['DEPARTMENT_STAFF', 'DEPARTMENT_HOD'] },
         isActive: true,
       },
       include: {

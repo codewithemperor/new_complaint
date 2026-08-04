@@ -52,7 +52,9 @@ let JwtStrategy = class JwtStrategy extends (0, _passport.PassportStrategy)(_pas
             // Cast: Prisma-generated Role enum → local Role enum (identical string values).
             role: user.role,
             fullName: user.fullName,
-            departmentId: user.departmentId
+            departmentId: user.departmentId,
+            isSuperAdmin: user.isSuperAdmin,
+            permissions: user.permissions.map((p)=>p.permission)
         };
     }
 };

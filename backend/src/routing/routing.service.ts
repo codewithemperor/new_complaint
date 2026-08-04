@@ -36,7 +36,7 @@ export class RoutingService {
       const fallbackOfficer = await this.prisma.user.findFirst({
         where: {
           departmentId: rule.departmentId,
-          role: 'SCHEDULE_OFFICER',
+          role: 'DEPARTMENT_STAFF',
           isActive: true,
         },
       });
@@ -46,7 +46,7 @@ export class RoutingService {
         const fallbackHod = await this.prisma.user.findFirst({
           where: {
             departmentId: rule.departmentId,
-            role: 'DIRECTOR',
+            role: 'DEPARTMENT_HOD',
             isActive: true,
           },
         });

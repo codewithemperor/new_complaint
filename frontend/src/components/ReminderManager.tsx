@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Bell, BellRing, X, Clock, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  Bell,
+  BellRing,
+  X,
+  Clock,
+  Calendar,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 
 /**
@@ -70,7 +78,7 @@ export function ReminderManager({
       const res = await api.get<Reminder[] | { items: Reminder[] }>(
         `/reminders/ticket/${ticketId}`,
       );
-      const list = Array.isArray(res) ? res : res.items ?? [];
+      const list = Array.isArray(res) ? res : (res.items ?? []);
       setReminders(list);
     } catch (err) {
       // Silently fail — non-critical
@@ -129,7 +137,9 @@ export function ReminderManager({
     const result = await Notification.requestPermission();
     setPermission(result);
     if (result !== "granted") {
-      setError("Notifications were blocked. You can still create in-app reminders.");
+      setError(
+        "Notifications were blocked. You can still create in-app reminders.",
+      );
       return false;
     }
     return true;
@@ -176,10 +186,13 @@ export function ReminderManager({
             body: note.trim() || `${ticketCode ?? "Ticket"} follow-up`,
             scheduledFor: due.toISOString(),
             ticketCode,
-            url: ticketId ? `/admin/ticket/${ticketId}` : "/",
+            url: ticketId ? `/dashboard/complaints/${ticketId}` : "/",
           },
         });
-      } else if (permission !== "granted" && typeof Notification !== "undefined") {
+      } else if (
+        permission !== "granted" &&
+        typeof Notification !== "undefined"
+      ) {
         // Try to request permission
         const granted = await requestPermission();
         if (granted && "serviceWorker" in navigator) {
@@ -192,7 +205,7 @@ export function ReminderManager({
               body: note.trim() || `${ticketCode ?? "Ticket"} follow-up`,
               scheduledFor: due.toISOString(),
               ticketCode,
-              url: ticketId ? `/admin/ticket/${ticketId}` : "/",
+              url: ticketId ? `/dashboard/complaints/${ticketId}` : "/",
             },
           });
         }
@@ -205,7 +218,9 @@ export function ReminderManager({
       await loadReminders();
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message || `Failed to create reminder (${err.statusCode})`);
+        setError(
+          err.message || `Failed to create reminder (${err.statusCode})`,
+        );
       } else {
         setError("Could not create reminder. Please try again.");
       }
@@ -254,16 +269,16 @@ export function ReminderManager({
 
   if (variant === "card") {
     return (
-      <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-            <BellRing size={16} className="text-teal-600" />
+            <BellRing size={16} className="text-green-600" />
             Scheduled Reminders
           </h3>
           {permission !== "granted" && (
             <button
               onClick={requestPermission}
-              className="inline-flex items-center gap-1 rounded-md bg-teal-50 px-2 py-1 text-[10px] font-medium text-teal-700 hover:bg-teal-100"
+              className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-[10px] font-medium text-green-700 hover:bg-green-100"
             >
               <Bell size={10} />
               Enable notifications
@@ -283,11 +298,7 @@ export function ReminderManager({
           loading={loading}
         />
 
-        <ReminderList
-          reminders={reminders}
-          onCancel={cancelReminder}
-          compact
-        />
+        <ReminderList reminders={reminders} onCancel={cancelReminder} compact />
 
         <BannerMessage error={error} success={success} />
       </div>
@@ -299,14 +310,17 @@ export function ReminderManager({
       <button
         ref={buttonRef}
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm transition-all hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm transition-all hover:border-green-300 hover:bg-green-50 hover:text-green-700"
         aria-expanded={open}
         aria-haspopup="dialog"
       >
-        <BellRing size={12} className={reminders.length > 0 ? "text-teal-600" : ""} />
+        <BellRing
+          size={12}
+          className={reminders.length > 0 ? "text-green-600" : ""}
+        />
         Set Reminder
         {reminders.length > 0 && (
-          <span className="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-teal-600 px-1 text-[9px] font-bold text-white">
+          <span className="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-green-600 px-1 text-[9px] font-bold text-white">
             {reminders.length}
           </span>
         )}
@@ -315,7 +329,7 @@ export function ReminderManager({
       {open && (
         <div
           ref={popoverRef}
-          className="absolute right-0 top-full z-30 mt-2 w-[340px] rounded-xl border border-neutral-200 bg-white p-4 shadow-xl"
+          className="absolute right-0 top-full z-30 mt-2 w-[340px] rounded-xl border border-neutral-200 bg-neutral-50 p-4 shadow-xl"
           role="dialog"
           aria-label="Schedule a reminder"
         >
@@ -400,14 +414,14 @@ function ReminderForm({
         placeholder="Reminder title (e.g. Call back citizen)"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
+        className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
       />
       <textarea
         placeholder="Optional note…"
         value={note}
         onChange={(e) => setNote(e.target.value)}
         rows={2}
-        className="w-full resize-none rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
+        className="w-full resize-none rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
       />
 
       {/* Quick presets */}
@@ -416,7 +430,7 @@ function ReminderForm({
           <button
             key={p.label}
             onClick={() => applyPreset(p.minutes)}
-            className="rounded-full border border-neutral-200 bg-neutral-50 px-2 py-1 text-[10px] font-medium text-neutral-600 transition-colors hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700"
+            className="rounded-full border border-neutral-200 bg-neutral-50 px-2 py-1 text-[10px] font-medium text-neutral-600 transition-colors hover:border-green-300 hover:bg-green-50 hover:text-green-700"
           >
             {p.label}
           </button>
@@ -432,14 +446,14 @@ function ReminderForm({
           type="datetime-local"
           value={scheduledFor}
           onChange={(e) => setScheduledFor(e.target.value)}
-          className="w-full rounded-lg border border-neutral-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
+          className="w-full rounded-lg border border-neutral-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600"
         />
       </div>
 
       <button
         onClick={onSubmit}
         disabled={loading || !title.trim() || !scheduledFor}
-        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-teal-700 hover:shadow disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-700 hover:shadow disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? (
           <>
@@ -468,17 +482,23 @@ function ReminderList({
 }) {
   if (reminders.length === 0) {
     return (
-      <div className={`mt-3 text-center text-xs text-neutral-400 ${compact ? "" : "border-t border-neutral-100 pt-3"}`}>
+      <div
+        className={`mt-3 text-center text-xs text-neutral-400 ${compact ? "" : "border-t border-neutral-100 pt-3"}`}
+      >
         No active reminders.
       </div>
     );
   }
 
   return (
-    <ul className={`mt-3 space-y-1.5 ${compact ? "" : "border-t border-neutral-100 pt-3"}`}>
+    <ul
+      className={`mt-3 space-y-1.5 ${compact ? "" : "border-t border-neutral-100 pt-3"}`}
+    >
       {reminders
         .slice()
-        .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
+        .sort(
+          (a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime(),
+        )
         .map((r) => {
           const due = new Date(r.dueAt);
           const isPast = due.getTime() < Date.now();
@@ -490,7 +510,7 @@ function ReminderList({
               <Clock
                 size={12}
                 className={`mt-0.5 flex-shrink-0 ${
-                  isPast ? "text-red-500" : "text-teal-600"
+                  isPast ? "text-red-500" : "text-green-600"
                 }`}
               />
               <div className="min-w-0 flex-1">
@@ -538,7 +558,7 @@ function BannerMessage({
   }
   if (success) {
     return (
-      <div className="mt-3 flex items-start gap-2 rounded-lg bg-emerald-50 p-2 text-xs text-emerald-700">
+      <div className="mt-3 flex items-start gap-2 rounded-lg bg-green-50 p-2 text-xs text-green-700">
         <CheckCircle2 size={12} className="mt-0.5 flex-shrink-0" />
         <p className="flex-1">{success}</p>
       </div>

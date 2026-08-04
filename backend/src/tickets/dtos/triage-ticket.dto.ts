@@ -2,11 +2,13 @@ import { IsString, IsOptional, IsEnum, IsUUID } from 'class-validator';
 import { Priority, Sensitivity } from '../../common/types/ticket-status';
 
 export class TriageTicketDto {
+  @IsOptional()
   @IsString()
-  category: string;
+  category?: string;
 
+  @IsOptional()
   @IsEnum(Priority)
-  priority: Priority;
+  priority?: Priority;
 
   @IsOptional()
   @IsUUID()

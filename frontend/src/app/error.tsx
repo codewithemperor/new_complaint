@@ -18,7 +18,7 @@ export default function Error({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
+      <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-neutral-50 p-8 text-center shadow-sm">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
           <AlertTriangle className="h-8 w-8 text-red-500" />
         </div>
@@ -26,8 +26,8 @@ export default function Error({
           Something went wrong
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-          An unexpected error occurred while loading this page. Our team has been
-          notified. Please try again or return to the homepage.
+          An unexpected error occurred while loading this page. Our team has
+          been notified. Please try again or return to the homepage.
         </p>
 
         {error?.message && (
@@ -46,14 +46,14 @@ export default function Error({
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <button
             onClick={reset}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
           >
             <RotateCw className="h-4 w-4" />
             Try again
           </button>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50"
           >
             <Home className="h-4 w-4" />
             Back to home

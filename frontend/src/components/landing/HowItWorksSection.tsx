@@ -2,7 +2,20 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PenLine, Search, CircleCheckBig, ArrowRight, Clock, Shield, FileText, Eye, CheckCircle2, ChevronRight, ChevronDown, Timer } from "lucide-react";
+import {
+  PenLine,
+  Search,
+  CircleCheckBig,
+  ArrowRight,
+  Clock,
+  Shield,
+  FileText,
+  Eye,
+  CheckCircle2,
+  ChevronRight,
+  ChevronDown,
+  Timer,
+} from "lucide-react";
 
 interface HowItWorksSectionProps {
   onComplaintOpen: () => void;
@@ -19,7 +32,8 @@ const stepDetails = [
       { icon: Clock, text: "Average 2 min completion" },
       { icon: Shield, text: "No account required" },
     ],
-    learnMore: "Our streamlined form collects all essential information in a single page. You can attach photos, documents, or other evidence files. Once submitted, you'll receive a unique reference number via SMS and email for tracking purposes.",
+    learnMore:
+      "Our streamlined form collects all essential information in a single page. You can attach photos, documents, or other evidence files. Once submitted, you'll receive a unique reference number via SMS and email for tracking purposes.",
   },
   {
     icon: Search,
@@ -31,7 +45,8 @@ const stepDetails = [
       { icon: Clock, text: "Email notifications" },
       { icon: Shield, text: "Secure passcode access" },
     ],
-    learnMore: "Use your reference number and secure passcode to check your complaint status at any time. The system automatically classifies your complaint and routes it to the appropriate department. You'll receive email notifications at each stage transition.",
+    learnMore:
+      "Use your reference number and secure passcode to check your complaint status at any time. The system automatically classifies your complaint and routes it to the appropriate department. You'll receive email notifications at each stage transition.",
   },
   {
     icon: CircleCheckBig,
@@ -43,7 +58,8 @@ const stepDetails = [
       { icon: Eye, text: "One-click reopen" },
       { icon: Shield, text: "Satisfaction guarantee" },
     ],
-    learnMore: "Once a department resolves your complaint, you'll be notified immediately. You can confirm the resolution or reopen the case with a single click if you're not satisfied. All interactions are logged for full transparency and accountability.",
+    learnMore:
+      "Once a department resolves your complaint, you'll be notified immediately. You can confirm the resolution or reopen the case with a single click if you're not satisfied. All interactions are logged for full transparency and accountability.",
   },
 ];
 
@@ -54,7 +70,13 @@ const featuredIn = [
 ];
 
 /* ── Step card with expandable section ──────────────────────────── */
-function StepCard({ step, index }: { step: typeof stepDetails[0]; index: number }) {
+function StepCard({
+  step,
+  index,
+}: {
+  step: (typeof stepDetails)[0];
+  index: number;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
   const Icon = step.icon;
 
@@ -64,18 +86,23 @@ function StepCard({ step, index }: { step: typeof stepDetails[0]; index: number 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.15 }}
-      className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm transition-all duration-300 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1"
+      className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-50 p-8 shadow-sm transition-all duration-300 hover:border-green-300 hover:shadow-xl hover:shadow-green-500/10 hover:-translate-y-1"
     >
       {/* Step number badge with animated circle */}
       <div className="absolute right-6 top-6 flex items-center justify-center">
         <div className="relative flex h-12 w-12 items-center justify-center">
           {/* Animated ring */}
           <motion.div
-            className="absolute inset-0 rounded-full border-2 border-emerald-200"
+            className="absolute inset-0 rounded-full border-2 border-green-200"
             animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: index * 0.3 }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: index * 0.3,
+            }}
           />
-          <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 font-mono text-sm font-bold text-emerald-700 ring-1 ring-emerald-100 transition-all group-hover:bg-emerald-600 group-hover:text-white">
+          <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-green-50 font-mono text-sm font-bold text-green-700 ring-1 ring-green-100 transition-all group-hover:bg-green-600 group-hover:text-white">
             {String(index + 1).padStart(2, "0")}
           </span>
         </div>
@@ -88,12 +115,10 @@ function StepCard({ step, index }: { step: typeof stepDetails[0]; index: number 
       </div>
 
       <div className="relative">
-        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 shadow-sm ring-1 ring-emerald-100 transition-all group-hover:shadow-md group-hover:ring-emerald-300">
-          <Icon size={26} className="text-teal-700" />
+        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 shadow-sm ring-1 ring-green-100 transition-all group-hover:shadow-md group-hover:ring-green-300">
+          <Icon size={26} className="text-green-700" />
         </div>
-        <h3 className="text-xl font-semibold text-neutral-900">
-          {step.title}
-        </h3>
+        <h3 className="text-xl font-semibold text-neutral-900">{step.title}</h3>
         <p className="mt-2 text-sm leading-relaxed text-neutral-600">
           {step.body}
         </p>
@@ -103,9 +128,12 @@ function StepCard({ step, index }: { step: typeof stepDetails[0]; index: number 
           {step.details.map((d, j) => {
             const DetailIcon = d.icon;
             return (
-              <div key={j} className="flex items-center gap-2.5 text-xs text-neutral-700">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 ring-1 ring-emerald-100">
-                  <DetailIcon size={12} className="text-emerald-700" />
+              <div
+                key={j}
+                className="flex items-center gap-2.5 text-xs text-neutral-700"
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-green-50 ring-1 ring-green-100">
+                  <DetailIcon size={12} className="text-green-700" />
                 </span>
                 {d.text}
               </div>
@@ -116,7 +144,7 @@ function StepCard({ step, index }: { step: typeof stepDetails[0]; index: number 
         {/* Learn More expandable section */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700"
+          className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-green-600 transition-colors hover:text-green-700"
           aria-expanded={isExpanded}
           aria-label={`Learn more about ${step.title}`}
         >
@@ -146,23 +174,25 @@ function StepCard({ step, index }: { step: typeof stepDetails[0]; index: number 
 
       {/* Connecting dot on card edges - desktop */}
       {index < 2 && (
-        <div className="absolute -right-4 top-1/2 z-20 hidden h-3 w-3 -translate-y-1/2 rounded-full border-2 border-neutral-200 bg-white md:block group-hover:border-emerald-400 transition-colors" />
+        <div className="absolute -right-4 top-1/2 z-20 hidden h-3 w-3 -translate-y-1/2 rounded-full border-2 border-neutral-200 bg-neutral-50 md:block group-hover:border-green-400 transition-colors" />
       )}
       {index > 0 && (
-        <div className="absolute -left-4 top-1/2 z-20 hidden h-3 w-3 -translate-y-1/2 rounded-full border-2 border-neutral-200 bg-white md:block group-hover:border-emerald-400 transition-colors" />
+        <div className="absolute -left-4 top-1/2 z-20 hidden h-3 w-3 -translate-y-1/2 rounded-full border-2 border-neutral-200 bg-neutral-50 md:block group-hover:border-green-400 transition-colors" />
       )}
     </motion.div>
   );
 }
 
-export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSectionProps) {
+export default function HowItWorksSection({
+  onComplaintOpen,
+}: HowItWorksSectionProps) {
   return (
     <>
       {/* How it works */}
-      <section id="how-it-works" className="bg-white py-24 sm:py-32">
+      <section id="how-it-works" className="bg-neutral-50 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">
+            <span className="text-xs font-bold uppercase tracking-widest text-green-600">
               Process
             </span>
             <h2 className="mt-3 text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl">
@@ -180,7 +210,7 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
               <div className="mx-auto flex max-w-4xl items-center justify-between px-20">
                 {/* Line between step 1 and 2 */}
                 <motion.div
-                  className="flex-1 border-t-2 border-dashed border-emerald-200"
+                  className="flex-1 border-t-2 border-dashed border-green-200"
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
                   viewport={{ once: true }}
@@ -188,11 +218,11 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
                   style={{ transformOrigin: "left" }}
                 />
                 <div className="mx-4 flex items-center justify-center">
-                  <ChevronRight size={20} className="text-emerald-300" />
+                  <ChevronRight size={20} className="text-green-300" />
                 </div>
                 {/* Line between step 2 and 3 */}
                 <motion.div
-                  className="flex-1 border-t-2 border-dashed border-emerald-200"
+                  className="flex-1 border-t-2 border-dashed border-green-200"
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
                   viewport={{ once: true }}
@@ -200,7 +230,7 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
                   style={{ transformOrigin: "left" }}
                 />
                 <div className="mx-4 flex items-center justify-center">
-                  <ChevronRight size={20} className="text-emerald-300" />
+                  <ChevronRight size={20} className="text-green-300" />
                 </div>
               </div>
             </div>
@@ -222,9 +252,9 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
                 {featuredIn.map((name) => (
                   <div
                     key={name}
-                    className="flex items-center gap-2 rounded-full border border-neutral-100 bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-500 transition-colors hover:border-emerald-200 hover:text-emerald-700"
+                    className="flex items-center gap-2 rounded-full border border-neutral-100 bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-500 transition-colors hover:border-green-200 hover:text-green-700"
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
                     {name}
                   </div>
                 ))}
@@ -238,7 +268,7 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
       <section className="relative overflow-hidden bg-neutral-50 py-24 sm:py-32">
         <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 lg:grid-cols-2 lg:px-8">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">
+            <span className="text-xs font-bold uppercase tracking-widest text-green-600">
               Action
             </span>
             <h2 className="mt-3 text-4xl font-bold leading-tight tracking-tight text-neutral-900 sm:text-5xl">
@@ -246,25 +276,25 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
             </h2>
             <p className="mt-5 max-w-md text-lg leading-relaxed text-neutral-600">
               Describe the issue, choose the department it concerns, and attach
-              any supporting evidence. You&apos;ll receive a tracking reference the
-              moment you submit — no account required.
+              any supporting evidence. You&apos;ll receive a tracking reference
+              the moment you submit — no account required.
             </p>
 
             <ul className="mt-8 space-y-4 text-sm text-neutral-700">
               <li className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-green-600">
                   &#10003;
                 </span>
                 Takes about two minutes to complete
               </li>
               <li className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-green-600">
                   &#10003;
                 </span>
                 Photo &amp; document attachments supported
               </li>
               <li className="flex items-center gap-3">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 text-green-600">
                   &#10003;
                 </span>
                 Instant reference number &amp; email confirmation
@@ -283,7 +313,7 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
 
           <div className="relative">
             {/* Abstract UI representation for corporate aesthetic */}
-            <div className="relative rounded-3xl border border-neutral-200 bg-white p-2 shadow-2xl shadow-neutral-200/50">
+            <div className="relative rounded-3xl border border-neutral-200 bg-neutral-50 p-2 shadow-2xl shadow-neutral-200/50">
               <div className="rounded-2xl bg-neutral-50 p-6">
                 <div className="mb-6 flex gap-1.5">
                   <div className="h-2.5 w-2.5 rounded-full bg-red-400"></div>
@@ -293,33 +323,33 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
                 <div className="space-y-4">
                   <div>
                     <div className="mb-2 h-3 w-1/4 rounded-full bg-neutral-300"></div>
-                    <div className="h-10 w-full rounded-lg border border-neutral-200 bg-white"></div>
+                    <div className="h-10 w-full rounded-lg border border-neutral-200 bg-neutral-50"></div>
                   </div>
                   <div>
                     <div className="mb-2 h-3 w-1/4 rounded-full bg-neutral-300"></div>
-                    <div className="h-10 w-full rounded-lg border border-neutral-200 bg-white"></div>
+                    <div className="h-10 w-full rounded-lg border border-neutral-200 bg-neutral-50"></div>
                   </div>
                   <div>
                     <div className="mb-2 h-3 w-1/4 rounded-full bg-neutral-300"></div>
-                    <div className="h-24 w-full rounded-lg border border-dashed border-neutral-300 bg-white flex items-center justify-center text-neutral-400 text-xs">
+                    <div className="h-24 w-full rounded-lg border border-dashed border-neutral-300 bg-neutral-50 flex items-center justify-center text-neutral-400 text-xs">
                       Drag &amp; drop files
                     </div>
                   </div>
-                  <div className="h-10 w-1/3 rounded-lg bg-emerald-500"></div>
+                  <div className="h-10 w-1/3 rounded-lg bg-green-500"></div>
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-6 -right-6 -z-10 h-40 w-40 rounded-3xl bg-emerald-400/20 blur-2xl"></div>
+            <div className="absolute -bottom-6 -right-6 -z-10 h-40 w-40 rounded-3xl bg-green-400/20 blur-2xl"></div>
           </div>
         </div>
       </section>
 
       {/* Transparency / tracking feature */}
       <section className="relative overflow-hidden bg-[#04130C] py-24 text-white sm:py-32">
-        <div className="absolute top-0 left-0 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl"></div>
+        <div className="absolute top-0 left-0 h-96 w-96 rounded-full bg-green-500/10 blur-3xl"></div>
         <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 lg:grid-cols-2 lg:px-8">
           <div className="order-2 lg:order-1">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+            <div className="rounded-3xl border border-white/10 bg-neutral-50/5 p-8 shadow-2xl backdrop-blur-xl">
               <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-6">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
@@ -329,7 +359,7 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
                     Resolution rate this quarter
                   </p>
                 </div>
-                <span className="rounded-full bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300 ring-1 ring-inset ring-emerald-400/20">
+                <span className="rounded-full bg-green-400/10 px-3 py-1.5 text-xs font-bold text-green-300 ring-1 ring-inset ring-green-400/20">
                   &#9650; 12% Increase
                 </span>
               </div>
@@ -340,7 +370,7 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
                     className="group flex flex-1 flex-col items-center justify-end"
                   >
                     <div
-                      className="w-full rounded-t-lg bg-emerald-500/60 transition-all duration-300 group-hover:bg-emerald-400"
+                      className="w-full rounded-t-lg bg-green-500/60 transition-all duration-300 group-hover:bg-green-400"
                       style={{ height: `${h}%` }}
                     ></div>
                     <span className="mt-2 text-[10px] font-medium text-neutral-500">
@@ -352,29 +382,48 @@ export default function HowItWorksSection({ onComplaintOpen }: HowItWorksSection
             </div>
           </div>
           <div className="order-1 lg:order-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
+            <span className="text-xs font-bold uppercase tracking-widest text-green-400">
               Transparency
             </span>
             <h2 className="mt-3 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
               See exactly where things stand
             </h2>
             <p className="mt-6 max-w-md text-lg leading-relaxed text-neutral-400">
-              Every complaint moves through the same public stages — classification,
-              investigation, approval, resolution — so you always know what
-              happens next and who&apos;s responsible for it.
+              Every complaint moves through the same public stages —
+              classification, investigation, approval, resolution — so you
+              always know what happens next and who&apos;s responsible for it.
             </p>
             <div className="mt-8 space-y-4">
               <div className="flex items-center gap-3 text-neutral-300">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10 text-green-400">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </span>
                 Secure &amp; confidential processing
               </div>
               <div className="flex items-center gap-3 text-neutral-300">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10 text-green-400">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                   </svg>
                 </span>

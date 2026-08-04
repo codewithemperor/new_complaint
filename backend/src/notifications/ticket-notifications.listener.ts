@@ -71,7 +71,7 @@ export class TicketNotificationsListener {
           priority: ticket.priority,
           departmentName: ticket.department?.name ?? 'N/A',
           officerName: ticket.assignedOfficer.fullName,
-          queueUrl: `${appUrl}/officer/queue`,
+          queueUrl: `${appUrl}/dashboard/queue`,
         },
       });
     }
@@ -80,7 +80,7 @@ export class TicketNotificationsListener {
       const hod = await this.prisma.user.findFirst({
         where: {
           departmentId: ticket.departmentId,
-          role: 'DIRECTOR',
+          role: 'DEPARTMENT_HOD',
           isActive: true,
         },
       });
@@ -196,7 +196,7 @@ export class TicketNotificationsListener {
     }
 
     const hod = await this.prisma.user.findFirst({
-      where: { departmentId: ticket.departmentId, role: 'DIRECTOR', isActive: true },
+      where: { departmentId: ticket.departmentId, role: 'DEPARTMENT_HOD', isActive: true },
     });
     if (!hod?.email) {
       this.logger.warn(`ticket.approval_requested: no active HOD for dept ${ticket.departmentId} — skipping`);
@@ -218,7 +218,7 @@ export class TicketNotificationsListener {
         departmentName: ticket.department?.name ?? 'N/A',
         officerName: ticket.assignedOfficer?.fullName ?? 'Officer',
         hodName: hod.fullName,
-        inboxUrl: `${appUrl}/hod/approvals`,
+        inboxUrl: `${appUrl}/dashboard/approvals`,
       },
     });
   }
@@ -257,7 +257,7 @@ export class TicketNotificationsListener {
         approverName: payload.approverName,
         approverRole: payload.approverRole,
         comment: payload.comment,
-        queueUrl: `${appUrl}/officer/queue`,
+        queueUrl: `${appUrl}/dashboard/queue`,
       },
     });
   }
@@ -292,7 +292,7 @@ export class TicketNotificationsListener {
         approverName: payload.approverName,
         approverRole: payload.approverRole,
         comment: payload.comment,
-        queueUrl: `${appUrl}/officer/queue`,
+        queueUrl: `${appUrl}/dashboard/queue`,
       },
     });
   }
@@ -366,7 +366,7 @@ export class TicketNotificationsListener {
     }
     if (ticket.departmentId) {
       const hod = await this.prisma.user.findFirst({
-        where: { departmentId: ticket.departmentId, role: 'DIRECTOR', isActive: true },
+        where: { departmentId: ticket.departmentId, role: 'DEPARTMENT_HOD', isActive: true },
       });
       if (hod?.email) recipients.push({ email: hod.email, name: hod.fullName });
     }
@@ -385,7 +385,7 @@ export class TicketNotificationsListener {
           decidedByName: payload.decidedByName,
           decision: payload.decision,
           directive: payload.directive,
-          queueUrl: `${appUrl}/officer/queue`,
+          queueUrl: `${appUrl}/dashboard/queue`,
         },
       });
     }
@@ -622,9 +622,9 @@ export class TicketNotificationsListener {
         context: build(ticket.assignedOfficer.fullName),
       });
     }
-    // Admin complaints desk (the first ADMIN_OFFICER).
+    // Admin complaints desk (the first ADMIN user).
     const admin = await this.prisma.user.findFirst({
-      where: { role: 'ADMIN_OFFICER', isActive: true },
+      where: { role: 'ADMIN', isActive: true },
     });
     if (admin?.email) {
       await this.emailService.send({
@@ -648,7 +648,7 @@ export class TicketNotificationsListener {
     if (!ticket?.departmentId) return;
 
     const hod = await this.prisma.user.findFirst({
-      where: { departmentId: ticket.departmentId, role: 'DIRECTOR', isActive: true },
+      where: { departmentId: ticket.departmentId, role: 'DEPARTMENT_HOD', isActive: true },
     });
     if (!hod?.email) return;
 
@@ -664,7 +664,7 @@ export class TicketNotificationsListener {
         subject: ticket.subject,
         reopenCount: payload.reopenCount,
         hodName: hod.fullName,
-        reviewUrl: `${appUrl}/admin/reopened`,
+        reviewUrl: `${appUrl}/dashboard/reopened`,
       },
     });
   }
@@ -695,7 +695,7 @@ export class TicketNotificationsListener {
     }
     if (ticket.departmentId) {
       const hod = await this.prisma.user.findFirst({
-        where: { departmentId: ticket.departmentId, role: 'DIRECTOR', isActive: true },
+        where: { departmentId: ticket.departmentId, role: 'DEPARTMENT_HOD', isActive: true },
       });
       if (hod?.email) recipients.push({ email: hod.email, name: hod.fullName });
     }
@@ -713,7 +713,7 @@ export class TicketNotificationsListener {
           percentElapsed: payload.percentElapsed,
           dueAt,
           officerName: r.name,
-          queueUrl: `${appUrl}/officer/queue`,
+          queueUrl: `${appUrl}/dashboard/queue`,
         },
       });
     }
@@ -729,12 +729,12 @@ export class TicketNotificationsListener {
     if (!ticket) return;
 
     // Resolve the approver user for the escalated tier (reuse the same logic
-    // as the escalation emails — DIRECTOR by department, PS/COMMISSIONER global).
+    // as the escalation emails — DEPARTMENT_HOD by department, PS/COMMISSIONER global).
     let approverEmail: string | undefined;
     let approverName = 'Approver';
-    if (payload.escalatedToRole === 'DIRECTOR' && ticket.departmentId) {
+    if (payload.escalatedToRole === 'DEPARTMENT_HOD' && ticket.departmentId) {
       const hod = await this.prisma.user.findFirst({
-        where: { departmentId: ticket.departmentId, role: 'DIRECTOR', isActive: true },
+        where: { departmentId: ticket.departmentId, role: 'DEPARTMENT_HOD', isActive: true },
       });
       approverEmail = hod?.email;
       approverName = hod?.fullName ?? approverName;
@@ -753,7 +753,7 @@ export class TicketNotificationsListener {
     const inboxRoute =
       payload.escalatedToRole === 'COMMISSIONER' ? '/commissioner/inbox'
         : payload.escalatedToRole === 'PERMANENT_SECRETARY' ? '/ps/inbox'
-          : '/hod/approvals';
+          : '/dashboard/approvals';
 
     await this.emailService.send({
       to: approverEmail,

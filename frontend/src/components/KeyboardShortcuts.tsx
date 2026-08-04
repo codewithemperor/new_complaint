@@ -79,7 +79,7 @@ export function KeyboardShortcuts() {
             router.push("/report");
           } else if (ev.key === "a") {
             ev.preventDefault();
-            router.push("/admin/complaints");
+            router.push("/dashboard/complaints");
           }
         };
         window.addEventListener("keydown", onSecondKey, { once: true });

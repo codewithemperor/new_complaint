@@ -11,12 +11,13 @@ import { ApproverRole } from '../common/types/ticket-status';
 /**
  * EscalationService — advances an approval request one tier up the chain.
  *
- * Built here (M5) and reused by M7's SLA-breach auto-escalation. The chain
- * comes from SlaPolicy.escalationChain(priority) so the policy owns precedence;
- * this service only walks it.
+ * The escalation chain is: DEPARTMENT_HOD → PERMANENT_SECRETARY → COMMISSIONER.
+ * It comes from SlaPolicy.escalationChain(priority) so the policy owns
+ * precedence; this service only walks it. (Staff → HOD escalation is a movement,
+ * not an approval tier; ADMIN sits at Level 1 as intake/scheduler.)
  *
  * Delegation: when advancing to PERMANENT_SECRETARY, resolveApprover() checks
- * for an active Delegation (PS → Director) and substitutes the delegate.
+ * for an active Delegation (PS → HOD) and substitutes the delegate.
  */
 @Injectable()
 export class EscalationService {
@@ -85,7 +86,7 @@ export class EscalationService {
 
   /**
    * Resolve the user occupying an approver role for a ticket.
-   *  - DIRECTOR → the department's active DIRECTOR (HOD)
+   *  - DEPARTMENT_HOD → the department's active DEPARTMENT_HOD
    *  - PERMANENT_SECRETARY → the active PS user, or their delegate if a
    *    Delegation covers the current moment.
    *  - COMMISSIONER → the active COMMISSIONER user.
@@ -94,10 +95,10 @@ export class EscalationService {
     role: ApproverRole,
     departmentId: string | null,
   ): Promise<string | null> {
-    if (role === ApproverRole.DIRECTOR) {
+    if (role === ApproverRole.DEPARTMENT_HOD) {
       if (!departmentId) return null;
       const hod = await this.prisma.user.findFirst({
-        where: { departmentId, role: Role.DIRECTOR, isActive: true },
+        where: { departmentId, role: Role.DEPARTMENT_HOD, isActive: true },
       });
       return hod?.id ?? null;
     }

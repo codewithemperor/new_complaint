@@ -96,10 +96,8 @@ let ReportsService = class ReportsService {
             where: {
                 role: {
                     in: [
-                        'SCHEDULE_OFFICER',
-                        'ASSISTANT_DIRECTOR',
-                        'DEPUTY_DIRECTOR',
-                        'DIRECTOR'
+                        'DEPARTMENT_STAFF',
+                        'DEPARTMENT_HOD'
                     ]
                 },
                 isActive: true

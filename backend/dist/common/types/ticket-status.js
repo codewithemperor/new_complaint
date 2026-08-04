@@ -101,7 +101,7 @@ var AwaitingState = /*#__PURE__*/ function(AwaitingState) {
     return AwaitingState;
 }({});
 var ApproverRole = /*#__PURE__*/ function(ApproverRole) {
-    ApproverRole["DIRECTOR"] = "DIRECTOR";
+    ApproverRole["DEPARTMENT_HOD"] = "DEPARTMENT_HOD";
     ApproverRole["PERMANENT_SECRETARY"] = "PERMANENT_SECRETARY";
     ApproverRole["COMMISSIONER"] = "COMMISSIONER";
     return ApproverRole;

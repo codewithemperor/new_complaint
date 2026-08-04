@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, ApiError } from "@/lib/api";
-import { CATEGORIES, LGAS, CHANNELS } from "@/lib/constants";
+import { CATEGORIES, DEPARTMENTS, LGAS, CHANNELS } from "@/lib/constants";
 import {
   User,
   FileText,
@@ -21,8 +21,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Clock,
-  Flame,
-  Zap,
   Info,
   Copy,
   Check,
@@ -34,19 +32,24 @@ import {
   Printer,
   Save,
   ClipboardList,
-  Scale,
   Phone,
   Mail,
   Building2,
   Tag,
   MapPin,
+  Server,
+  Compass,
+  Palette,
+  Landmark,
+  Wallet,
+  BarChart3,
 } from "lucide-react";
 
 const inputClass =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm outline-none transition-all duration-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30";
+  "w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/30";
 
 const selectClass =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm outline-none transition-all duration-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23737373%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_8px_center] bg-no-repeat pr-8";
+  "w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/30 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23737373%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_8px_center] bg-no-repeat pr-8";
 
 const alertClass =
   "rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700";
@@ -59,34 +62,22 @@ const STEPS = [
 
 const DRAFT_KEY = "kwaramoc_complaint_draft";
 
-const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  INFRASTRUCTURE: <Building2 size={14} />,
-  HEALTH: <HeartIcon size={14} />,
-  EDUCATION: <ClipboardList size={14} />,
-  SECURITY: <Shield size={14} />,
-  AGRICULTURE: <Zap size={14} />,
-  WATER_SANITATION: <Flame size={14} />,
-  ENVIRONMENT: <Scale size={14} />,
-  LAND_HOUSING: <MapPin size={14} />,
-  TRANSPORT: <ArrowRight size={14} />,
-  OTHER: <Info size={14} />,
+// Department icons keyed by the icon key in lib/constants DEPARTMENTS.
+const DEPARTMENT_ICONS: Record<string, React.ReactNode> = {
+  server: <Server size={14} />,
+  compass: <Compass size={14} />,
+  palette: <Palette size={14} />,
+  landmark: <Landmark size={14} />,
+  wallet: <Wallet size={14} />,
+  chart: <BarChart3 size={14} />,
+  building: <Building2 size={14} />,
 };
 
-function HeartIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-    </svg>
-  );
+// Lookup a department's icon by its display name.
+function departmentIcon(name: string): React.ReactNode {
+  const dept = DEPARTMENTS.find((d) => d.name === name);
+  if (!dept) return <Info size={14} />;
+  return DEPARTMENT_ICONS[dept.icon] ?? <Info size={14} />;
 }
 
 interface ComplaintFormProps {
@@ -253,7 +244,7 @@ export function ComplaintForm({
         phone,
         lga,
         isAnonymous,
-        category: category || "OTHER",
+        category: category || "Admin Department",
         subject,
         description: descriptionText,
       };
@@ -312,7 +303,7 @@ export function ComplaintForm({
                 backgroundColor: [
                   "#059669",
                   "#10b981",
-                  "#14b8a6",
+                  "#22c55e",
                   "#f59e0b",
                   "#34d399",
                   "#6ee7b7",
@@ -340,9 +331,9 @@ export function ComplaintForm({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100"
+            className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100"
           >
-            <CheckCircle2 size={40} className="text-emerald-600" />
+            <CheckCircle2 size={40} className="text-green-600" />
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
@@ -367,14 +358,14 @@ export function ComplaintForm({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="rounded-xl border border-emerald-200 bg-emerald-50 p-5"
+          className="rounded-xl border border-green-200 bg-green-50 p-5"
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-emerald-600">
+              <p className="text-xs font-medium uppercase tracking-wider text-green-600">
                 Ticket Reference
               </p>
-              <p className="mt-1 font-mono text-2xl font-bold tracking-wider text-emerald-800">
+              <p className="mt-1 font-mono text-2xl font-bold tracking-wider text-green-800">
                 {success}
               </p>
             </div>
@@ -385,11 +376,11 @@ export function ComplaintForm({
                 setCopiedTicket(true);
                 setTimeout(() => setCopiedTicket(false), 2000);
               }}
-              className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-50"
+              className="flex items-center gap-1.5 rounded-lg border border-green-200 bg-neutral-50 px-3 py-2 text-xs font-medium text-green-700 transition-colors hover:bg-green-50"
             >
               {copiedTicket ? (
                 <>
-                  <Check size={14} className="text-emerald-600" />
+                  <Check size={14} className="text-green-600" />
                   Copied!
                 </>
               ) : (
@@ -426,7 +417,7 @@ export function ComplaintForm({
                   setCopiedPasscode(true);
                   setTimeout(() => setCopiedPasscode(false), 2000);
                 }}
-                className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50"
+                className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-neutral-50 px-3 py-2 text-xs font-medium text-amber-700 transition-colors hover:bg-amber-50"
               >
                 {copiedPasscode ? (
                   <>
@@ -482,7 +473,7 @@ export function ComplaintForm({
                   `/track?code=${encodeURIComponent(success)}&passcode=${encodeURIComponent(successPasscode)}`,
                 )
               }
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
             >
               <Shield size={16} />
               Track This Complaint
@@ -501,7 +492,7 @@ export function ComplaintForm({
                   w.print();
                 }
               }}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
             >
               <Printer size={16} />
               Print Confirmation
@@ -523,7 +514,7 @@ export function ComplaintForm({
               setFiles([]);
               setCurrentStep(1);
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50"
           >
             <RefreshCw size={14} />
             Submit Another Complaint
@@ -545,7 +536,7 @@ export function ComplaintForm({
     if (bare) return successContent;
 
     return (
-      <div className="mx-auto w-full max-w-lg rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div className="mx-auto w-full max-w-lg rounded-xl border border-neutral-200 bg-neutral-50 p-6 shadow-sm">
         {successContent}
       </div>
     );
@@ -581,10 +572,10 @@ export function ComplaintForm({
                   <div
                     className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all duration-200 ${
                       isActive
-                        ? "border-emerald-600 bg-emerald-600 text-white"
+                        ? "border-green-600 bg-green-600 text-white"
                         : isComplete || isPast
-                          ? "border-emerald-600 bg-emerald-600 text-white"
-                          : "border-neutral-300 bg-white text-neutral-400"
+                          ? "border-green-600 bg-green-600 text-white"
+                          : "border-neutral-300 bg-neutral-50 text-neutral-400"
                     }`}
                   >
                     {isComplete || isPast ? (
@@ -597,9 +588,9 @@ export function ComplaintForm({
                     <p
                       className={`text-xs font-medium transition-colors ${
                         isActive
-                          ? "text-emerald-700"
+                          ? "text-green-700"
                           : isComplete || isPast
-                            ? "text-emerald-600"
+                            ? "text-green-600"
                             : "text-neutral-400"
                       }`}
                     >
@@ -614,9 +605,7 @@ export function ComplaintForm({
                 {idx < STEPS.length - 1 && (
                   <div
                     className={`mx-2 h-0.5 flex-1 rounded-full transition-colors duration-300 ${
-                      currentStep > step.id
-                        ? "bg-emerald-500"
-                        : "bg-neutral-200"
+                      currentStep > step.id ? "bg-green-500" : "bg-neutral-200"
                     }`}
                   />
                 )}
@@ -636,7 +625,7 @@ export function ComplaintForm({
       {/* Progress Bar */}
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-100 mb-4">
         <motion.div
-          className="h-full rounded-full bg-emerald-500"
+          className="h-full rounded-full bg-green-500"
           initial={{ width: `${((currentStep - 1) / STEPS.length) * 100}%` }}
           animate={{ width: `${(currentStep / STEPS.length) * 100}%` }}
           transition={{ duration: 0.3 }}
@@ -660,7 +649,7 @@ export function ComplaintForm({
                 {isAnonymous ? (
                   <EyeOff size={18} className="text-neutral-400" />
                 ) : (
-                  <Eye size={18} className="text-emerald-600" />
+                  <Eye size={18} className="text-green-600" />
                 )}
                 <div>
                   <p className="text-sm font-medium text-neutral-700">
@@ -676,12 +665,12 @@ export function ComplaintForm({
                 role="switch"
                 aria-checked={isAnonymous}
                 onClick={() => setIsAnonymous(!isAnonymous)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-600/20 ${
-                  isAnonymous ? "bg-emerald-600" : "bg-neutral-200"
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-600/20 ${
+                  isAnonymous ? "bg-green-600" : "bg-neutral-200"
                 }`}
               >
                 <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  className={`inline-block h-5 w-5 transform rounded-full bg-neutral-50 shadow ring-0 transition duration-200 ease-in-out ${
                     isAnonymous ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
@@ -800,18 +789,20 @@ export function ComplaintForm({
                     onClick={() => setCategory(c)}
                     className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200 ${
                       category === c
-                        ? "border-emerald-600 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
-                        : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"
+                        ? "border-green-600 bg-green-50 text-green-700 ring-1 ring-green-600/20"
+                        : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"
                     }`}
                   >
                     <span
                       className={
-                        category === c ? "text-emerald-600" : "text-neutral-400"
+                        category === c
+                          ? "text-primary"
+                          : "text-muted-foreground"
                       }
                     >
-                      {CATEGORY_ICONS[c] ?? <FileText size={14} />}
+                      {departmentIcon(c)}
                     </span>
-                    {c.replace(/_/g, " ")}
+                    {c}
                   </button>
                 ))}
               </div>
@@ -874,7 +865,7 @@ export function ComplaintForm({
                 type="file"
                 multiple
                 onChange={handleFileChange}
-                className="block w-full text-sm text-neutral-500 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-emerald-700 hover:file:bg-emerald-100"
+                className="block w-full text-sm text-neutral-500 file:mr-3 file:rounded-lg file:border-0 file:bg-green-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-green-700 hover:file:bg-green-100"
               />
               {files.length > 0 && (
                 <p className="mt-1 text-xs text-neutral-500">
@@ -945,7 +936,7 @@ export function ComplaintForm({
                 {category && (
                   <p className="text-sm text-neutral-700">
                     <span className="text-neutral-400 mr-2">Category:</span>
-                    {category.replace(/_/g, " ")}
+                    {category}
                   </p>
                 )}
                 <p className="text-sm text-neutral-700">
@@ -968,13 +959,13 @@ export function ComplaintForm({
             </div>
 
             {/* Estimated response time */}
-            <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <Clock size={18} className="shrink-0 text-emerald-600" />
+            <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+              <Clock size={18} className="shrink-0 text-green-600" />
               <div>
-                <p className="text-xs font-medium text-emerald-700">
+                <p className="text-xs font-medium text-green-700">
                   Estimated Response Time
                 </p>
-                <p className="text-sm text-emerald-800">
+                <p className="text-sm text-green-800">
                   Based on your complaint category, you should receive an
                   initial response within 24-48 hours.
                 </p>
@@ -1018,7 +1009,7 @@ export function ComplaintForm({
           <button
             type="button"
             onClick={() => setCurrentStep((s) => s - 1)}
-            className="flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+            className="flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
           >
             <ArrowLeft size={14} />
             Back
@@ -1031,8 +1022,8 @@ export function ComplaintForm({
           onClick={saveDraft}
           className={`flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
             draftSaved
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border-neutral-200 bg-white text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+              ? "border-green-200 bg-green-50 text-green-700"
+              : "border-neutral-200 bg-neutral-50 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
           }`}
         >
           {draftSaved ? (
@@ -1052,7 +1043,7 @@ export function ComplaintForm({
           <button
             type="button"
             onClick={() => setCurrentStep((s) => s + 1)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
           >
             Continue
             <ArrowRight size={14} />
@@ -1061,7 +1052,7 @@ export function ComplaintForm({
           <button
             type="submit"
             disabled={submitting}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting ? (
               <>
@@ -1083,7 +1074,7 @@ export function ComplaintForm({
   if (bare) return form;
 
   return (
-    <div className="mx-auto w-full max-w-lg rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <div className="mx-auto w-full max-w-lg rounded-xl border border-neutral-200 bg-neutral-50 shadow-sm">
       <div className="border-b border-neutral-200 px-6 py-4">
         <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
         <p className="mt-1 text-sm text-neutral-500">{description}</p>

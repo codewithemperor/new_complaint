@@ -24,6 +24,11 @@ export type Department = $Result.DefaultSelection<Prisma.$DepartmentPayload>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model UserPermission
+ * 
+ */
+export type UserPermission = $Result.DefaultSelection<Prisma.$UserPermissionPayload>
+/**
  * Model Citizen
  * 
  */
@@ -104,19 +109,32 @@ export type Reminder = $Result.DefaultSelection<Prisma.$ReminderPayload>
  */
 export namespace $Enums {
   export const Role: {
-  INTAKE_OFFICER: 'INTAKE_OFFICER',
-  ADMIN_OFFICER: 'ADMIN_OFFICER',
-  SCHEDULE_OFFICER: 'SCHEDULE_OFFICER',
-  ASSISTANT_DIRECTOR: 'ASSISTANT_DIRECTOR',
-  DEPUTY_DIRECTOR: 'DEPUTY_DIRECTOR',
-  DIRECTOR: 'DIRECTOR',
+  DEPARTMENT_STAFF: 'DEPARTMENT_STAFF',
+  DEPARTMENT_HOD: 'DEPARTMENT_HOD',
   PERMANENT_SECRETARY: 'PERMANENT_SECRETARY',
   COMMISSIONER: 'COMMISSIONER',
-  SUPER_ADMIN: 'SUPER_ADMIN',
+  ADMIN: 'ADMIN',
   AUDITOR: 'AUDITOR'
 };
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const Permission: {
+  ALL: 'ALL',
+  INTAKE: 'INTAKE',
+  SCHEDULE: 'SCHEDULE',
+  COMPLAINTS: 'COMPLAINTS',
+  REPORTS: 'REPORTS',
+  USERS: 'USERS',
+  DEPARTMENTS: 'DEPARTMENTS',
+  ROUTING: 'ROUTING',
+  SLA: 'SLA',
+  AUDIT: 'AUDIT',
+  APPROVALS: 'APPROVALS'
+};
+
+export type Permission = (typeof Permission)[keyof typeof Permission]
 
 
 export const TicketStatus: {
@@ -225,7 +243,7 @@ export type ApprovalStatus = (typeof ApprovalStatus)[keyof typeof ApprovalStatus
 
 
 export const ApproverRole: {
-  DIRECTOR: 'DIRECTOR',
+  DEPARTMENT_HOD: 'DEPARTMENT_HOD',
   PERMANENT_SECRETARY: 'PERMANENT_SECRETARY',
   COMMISSIONER: 'COMMISSIONER'
 };
@@ -267,6 +285,10 @@ export type AuditEventType = (typeof AuditEventType)[keyof typeof AuditEventType
 export type Role = $Enums.Role
 
 export const Role: typeof $Enums.Role
+
+export type Permission = $Enums.Permission
+
+export const Permission: typeof $Enums.Permission
 
 export type TicketStatus = $Enums.TicketStatus
 
@@ -449,6 +471,16 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userPermission`: Exposes CRUD operations for the **UserPermission** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserPermissions
+    * const userPermissions = await prisma.userPermission.findMany()
+    * ```
+    */
+  get userPermission(): Prisma.UserPermissionDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.citizen`: Exposes CRUD operations for the **Citizen** model.
@@ -1042,6 +1074,7 @@ export namespace Prisma {
   export const ModelName: {
     Department: 'Department',
     User: 'User',
+    UserPermission: 'UserPermission',
     Citizen: 'Citizen',
     Ticket: 'Ticket',
     TicketAttachment: 'TicketAttachment',
@@ -1075,7 +1108,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "department" | "user" | "citizen" | "ticket" | "ticketAttachment" | "ticketSequence" | "notificationLog" | "ticketMovement" | "routingRule" | "minute" | "slaPause" | "approvalRequest" | "delegation" | "feedback" | "slaConfig" | "auditEvent" | "reminder"
+      modelProps: "department" | "user" | "userPermission" | "citizen" | "ticket" | "ticketAttachment" | "ticketSequence" | "notificationLog" | "ticketMovement" | "routingRule" | "minute" | "slaPause" | "approvalRequest" | "delegation" | "feedback" | "slaConfig" | "auditEvent" | "reminder"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1224,6 +1257,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserPermission: {
+        payload: Prisma.$UserPermissionPayload<ExtArgs>
+        fields: Prisma.UserPermissionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserPermissionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserPermissionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>
+          }
+          findFirst: {
+            args: Prisma.UserPermissionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserPermissionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>
+          }
+          findMany: {
+            args: Prisma.UserPermissionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>[]
+          }
+          create: {
+            args: Prisma.UserPermissionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>
+          }
+          createMany: {
+            args: Prisma.UserPermissionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserPermissionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>[]
+          }
+          delete: {
+            args: Prisma.UserPermissionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>
+          }
+          update: {
+            args: Prisma.UserPermissionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserPermissionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserPermissionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserPermissionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserPermissionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPermissionPayload>
+          }
+          aggregate: {
+            args: Prisma.UserPermissionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserPermission>
+          }
+          groupBy: {
+            args: Prisma.UserPermissionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserPermissionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserPermissionCountArgs<ExtArgs>
+            result: $Utils.Optional<UserPermissionCountAggregateOutputType> | number
           }
         }
       }
@@ -2435,6 +2542,7 @@ export namespace Prisma {
   export type GlobalOmitConfig = {
     department?: DepartmentOmit
     user?: UserOmit
+    userPermission?: UserPermissionOmit
     citizen?: CitizenOmit
     ticket?: TicketOmit
     ticketAttachment?: TicketAttachmentOmit
@@ -2588,6 +2696,7 @@ export namespace Prisma {
     delegationsMade: number
     delegationsReceived: number
     auditEvents: number
+    permissions: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2600,6 +2709,7 @@ export namespace Prisma {
     delegationsMade?: boolean | UserCountOutputTypeCountDelegationsMadeArgs
     delegationsReceived?: boolean | UserCountOutputTypeCountDelegationsReceivedArgs
     auditEvents?: boolean | UserCountOutputTypeCountAuditEventsArgs
+    permissions?: boolean | UserCountOutputTypeCountPermissionsArgs
   }
 
   // Custom InputTypes
@@ -2674,6 +2784,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountAuditEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AuditEventWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPermissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserPermissionWhereInput
   }
 
 
@@ -3956,6 +4073,7 @@ export namespace Prisma {
     phone: string | null
     departmentId: string | null
     isActive: boolean | null
+    isSuperAdmin: boolean | null
     lastLoginAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -3971,6 +4089,7 @@ export namespace Prisma {
     phone: string | null
     departmentId: string | null
     isActive: boolean | null
+    isSuperAdmin: boolean | null
     lastLoginAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -3986,6 +4105,7 @@ export namespace Prisma {
     phone: number
     departmentId: number
     isActive: number
+    isSuperAdmin: number
     lastLoginAt: number
     createdAt: number
     updatedAt: number
@@ -4003,6 +4123,7 @@ export namespace Prisma {
     phone?: true
     departmentId?: true
     isActive?: true
+    isSuperAdmin?: true
     lastLoginAt?: true
     createdAt?: true
     updatedAt?: true
@@ -4018,6 +4139,7 @@ export namespace Prisma {
     phone?: true
     departmentId?: true
     isActive?: true
+    isSuperAdmin?: true
     lastLoginAt?: true
     createdAt?: true
     updatedAt?: true
@@ -4033,6 +4155,7 @@ export namespace Prisma {
     phone?: true
     departmentId?: true
     isActive?: true
+    isSuperAdmin?: true
     lastLoginAt?: true
     createdAt?: true
     updatedAt?: true
@@ -4121,6 +4244,7 @@ export namespace Prisma {
     phone: string | null
     departmentId: string | null
     isActive: boolean
+    isSuperAdmin: boolean
     lastLoginAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -4153,6 +4277,7 @@ export namespace Prisma {
     phone?: boolean
     departmentId?: boolean
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4166,6 +4291,7 @@ export namespace Prisma {
     delegationsMade?: boolean | User$delegationsMadeArgs<ExtArgs>
     delegationsReceived?: boolean | User$delegationsReceivedArgs<ExtArgs>
     auditEvents?: boolean | User$auditEventsArgs<ExtArgs>
+    permissions?: boolean | User$permissionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -4179,6 +4305,7 @@ export namespace Prisma {
     phone?: boolean
     departmentId?: boolean
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4195,6 +4322,7 @@ export namespace Prisma {
     phone?: boolean
     departmentId?: boolean
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4211,12 +4339,13 @@ export namespace Prisma {
     phone?: boolean
     departmentId?: boolean
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "role" | "designation" | "phone" | "departmentId" | "isActive" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "role" | "designation" | "phone" | "departmentId" | "isActive" | "isSuperAdmin" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     department?: boolean | User$departmentArgs<ExtArgs>
     assignedTickets?: boolean | User$assignedTicketsArgs<ExtArgs>
@@ -4228,6 +4357,7 @@ export namespace Prisma {
     delegationsMade?: boolean | User$delegationsMadeArgs<ExtArgs>
     delegationsReceived?: boolean | User$delegationsReceivedArgs<ExtArgs>
     auditEvents?: boolean | User$auditEventsArgs<ExtArgs>
+    permissions?: boolean | User$permissionsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4250,6 +4380,7 @@ export namespace Prisma {
       delegationsMade: Prisma.$DelegationPayload<ExtArgs>[]
       delegationsReceived: Prisma.$DelegationPayload<ExtArgs>[]
       auditEvents: Prisma.$AuditEventPayload<ExtArgs>[]
+      permissions: Prisma.$UserPermissionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4261,6 +4392,7 @@ export namespace Prisma {
       phone: string | null
       departmentId: string | null
       isActive: boolean
+      isSuperAdmin: boolean
       lastLoginAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -4668,6 +4800,7 @@ export namespace Prisma {
     delegationsMade<T extends User$delegationsMadeArgs<ExtArgs> = {}>(args?: Subset<T, User$delegationsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DelegationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     delegationsReceived<T extends User$delegationsReceivedArgs<ExtArgs> = {}>(args?: Subset<T, User$delegationsReceivedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DelegationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     auditEvents<T extends User$auditEventsArgs<ExtArgs> = {}>(args?: Subset<T, User$auditEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    permissions<T extends User$permissionsArgs<ExtArgs> = {}>(args?: Subset<T, User$permissionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4706,6 +4839,7 @@ export namespace Prisma {
     readonly phone: FieldRef<"User", 'String'>
     readonly departmentId: FieldRef<"User", 'String'>
     readonly isActive: FieldRef<"User", 'Boolean'>
+    readonly isSuperAdmin: FieldRef<"User", 'Boolean'>
     readonly lastLoginAt: FieldRef<"User", 'DateTime'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
@@ -5340,6 +5474,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.permissions
+   */
+  export type User$permissionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    where?: UserPermissionWhereInput
+    orderBy?: UserPermissionOrderByWithRelationInput | UserPermissionOrderByWithRelationInput[]
+    cursor?: UserPermissionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserPermissionScalarFieldEnum | UserPermissionScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5355,6 +5513,1051 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserPermission
+   */
+
+  export type AggregateUserPermission = {
+    _count: UserPermissionCountAggregateOutputType | null
+    _min: UserPermissionMinAggregateOutputType | null
+    _max: UserPermissionMaxAggregateOutputType | null
+  }
+
+  export type UserPermissionMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    permission: $Enums.Permission | null
+    grantedAt: Date | null
+  }
+
+  export type UserPermissionMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    permission: $Enums.Permission | null
+    grantedAt: Date | null
+  }
+
+  export type UserPermissionCountAggregateOutputType = {
+    id: number
+    userId: number
+    permission: number
+    grantedAt: number
+    _all: number
+  }
+
+
+  export type UserPermissionMinAggregateInputType = {
+    id?: true
+    userId?: true
+    permission?: true
+    grantedAt?: true
+  }
+
+  export type UserPermissionMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    permission?: true
+    grantedAt?: true
+  }
+
+  export type UserPermissionCountAggregateInputType = {
+    id?: true
+    userId?: true
+    permission?: true
+    grantedAt?: true
+    _all?: true
+  }
+
+  export type UserPermissionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserPermission to aggregate.
+     */
+    where?: UserPermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserPermissions to fetch.
+     */
+    orderBy?: UserPermissionOrderByWithRelationInput | UserPermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserPermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserPermissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserPermissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserPermissions
+    **/
+    _count?: true | UserPermissionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserPermissionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserPermissionMaxAggregateInputType
+  }
+
+  export type GetUserPermissionAggregateType<T extends UserPermissionAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserPermission]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserPermission[P]>
+      : GetScalarType<T[P], AggregateUserPermission[P]>
+  }
+
+
+
+
+  export type UserPermissionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserPermissionWhereInput
+    orderBy?: UserPermissionOrderByWithAggregationInput | UserPermissionOrderByWithAggregationInput[]
+    by: UserPermissionScalarFieldEnum[] | UserPermissionScalarFieldEnum
+    having?: UserPermissionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserPermissionCountAggregateInputType | true
+    _min?: UserPermissionMinAggregateInputType
+    _max?: UserPermissionMaxAggregateInputType
+  }
+
+  export type UserPermissionGroupByOutputType = {
+    id: string
+    userId: string
+    permission: $Enums.Permission
+    grantedAt: Date
+    _count: UserPermissionCountAggregateOutputType | null
+    _min: UserPermissionMinAggregateOutputType | null
+    _max: UserPermissionMaxAggregateOutputType | null
+  }
+
+  type GetUserPermissionGroupByPayload<T extends UserPermissionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserPermissionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserPermissionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserPermissionGroupByOutputType[P]>
+            : GetScalarType<T[P], UserPermissionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserPermissionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    permission?: boolean
+    grantedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userPermission"]>
+
+  export type UserPermissionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    permission?: boolean
+    grantedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userPermission"]>
+
+  export type UserPermissionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    permission?: boolean
+    grantedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userPermission"]>
+
+  export type UserPermissionSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    permission?: boolean
+    grantedAt?: boolean
+  }
+
+  export type UserPermissionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "permission" | "grantedAt", ExtArgs["result"]["userPermission"]>
+  export type UserPermissionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type UserPermissionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type UserPermissionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $UserPermissionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserPermission"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      permission: $Enums.Permission
+      grantedAt: Date
+    }, ExtArgs["result"]["userPermission"]>
+    composites: {}
+  }
+
+  type UserPermissionGetPayload<S extends boolean | null | undefined | UserPermissionDefaultArgs> = $Result.GetResult<Prisma.$UserPermissionPayload, S>
+
+  type UserPermissionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserPermissionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserPermissionCountAggregateInputType | true
+    }
+
+  export interface UserPermissionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserPermission'], meta: { name: 'UserPermission' } }
+    /**
+     * Find zero or one UserPermission that matches the filter.
+     * @param {UserPermissionFindUniqueArgs} args - Arguments to find a UserPermission
+     * @example
+     * // Get one UserPermission
+     * const userPermission = await prisma.userPermission.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserPermissionFindUniqueArgs>(args: SelectSubset<T, UserPermissionFindUniqueArgs<ExtArgs>>): Prisma__UserPermissionClient<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserPermission that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserPermissionFindUniqueOrThrowArgs} args - Arguments to find a UserPermission
+     * @example
+     * // Get one UserPermission
+     * const userPermission = await prisma.userPermission.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserPermissionFindUniqueOrThrowArgs>(args: SelectSubset<T, UserPermissionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserPermissionClient<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserPermission that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPermissionFindFirstArgs} args - Arguments to find a UserPermission
+     * @example
+     * // Get one UserPermission
+     * const userPermission = await prisma.userPermission.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserPermissionFindFirstArgs>(args?: SelectSubset<T, UserPermissionFindFirstArgs<ExtArgs>>): Prisma__UserPermissionClient<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserPermission that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPermissionFindFirstOrThrowArgs} args - Arguments to find a UserPermission
+     * @example
+     * // Get one UserPermission
+     * const userPermission = await prisma.userPermission.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserPermissionFindFirstOrThrowArgs>(args?: SelectSubset<T, UserPermissionFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserPermissionClient<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserPermissions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPermissionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserPermissions
+     * const userPermissions = await prisma.userPermission.findMany()
+     * 
+     * // Get first 10 UserPermissions
+     * const userPermissions = await prisma.userPermission.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userPermissionWithIdOnly = await prisma.userPermission.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserPermissionFindManyArgs>(args?: SelectSubset<T, UserPermissionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserPermission.
+     * @param {UserPermissionCreateArgs} args - Arguments to create a UserPermission.
+     * @example
+     * // Create one UserPermission
+     * const UserPermission = await prisma.userPermission.create({
+     *   data: {
+     *     // ... data to create a UserPermission
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserPermissionCreateArgs>(args: SelectSubset<T, UserPermissionCreateArgs<ExtArgs>>): Prisma__UserPermissionClient<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserPermissions.
+     * @param {UserPermissionCreateManyArgs} args - Arguments to create many UserPermissions.
+     * @example
+     * // Create many UserPermissions
+     * const userPermission = await prisma.userPermission.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserPermissionCreateManyArgs>(args?: SelectSubset<T, UserPermissionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserPermissions and returns the data saved in the database.
+     * @param {UserPermissionCreateManyAndReturnArgs} args - Arguments to create many UserPermissions.
+     * @example
+     * // Create many UserPermissions
+     * const userPermission = await prisma.userPermission.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserPermissions and only return the `id`
+     * const userPermissionWithIdOnly = await prisma.userPermission.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserPermissionCreateManyAndReturnArgs>(args?: SelectSubset<T, UserPermissionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserPermission.
+     * @param {UserPermissionDeleteArgs} args - Arguments to delete one UserPermission.
+     * @example
+     * // Delete one UserPermission
+     * const UserPermission = await prisma.userPermission.delete({
+     *   where: {
+     *     // ... filter to delete one UserPermission
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserPermissionDeleteArgs>(args: SelectSubset<T, UserPermissionDeleteArgs<ExtArgs>>): Prisma__UserPermissionClient<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserPermission.
+     * @param {UserPermissionUpdateArgs} args - Arguments to update one UserPermission.
+     * @example
+     * // Update one UserPermission
+     * const userPermission = await prisma.userPermission.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserPermissionUpdateArgs>(args: SelectSubset<T, UserPermissionUpdateArgs<ExtArgs>>): Prisma__UserPermissionClient<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserPermissions.
+     * @param {UserPermissionDeleteManyArgs} args - Arguments to filter UserPermissions to delete.
+     * @example
+     * // Delete a few UserPermissions
+     * const { count } = await prisma.userPermission.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserPermissionDeleteManyArgs>(args?: SelectSubset<T, UserPermissionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserPermissions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPermissionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserPermissions
+     * const userPermission = await prisma.userPermission.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserPermissionUpdateManyArgs>(args: SelectSubset<T, UserPermissionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserPermissions and returns the data updated in the database.
+     * @param {UserPermissionUpdateManyAndReturnArgs} args - Arguments to update many UserPermissions.
+     * @example
+     * // Update many UserPermissions
+     * const userPermission = await prisma.userPermission.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserPermissions and only return the `id`
+     * const userPermissionWithIdOnly = await prisma.userPermission.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserPermissionUpdateManyAndReturnArgs>(args: SelectSubset<T, UserPermissionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserPermission.
+     * @param {UserPermissionUpsertArgs} args - Arguments to update or create a UserPermission.
+     * @example
+     * // Update or create a UserPermission
+     * const userPermission = await prisma.userPermission.upsert({
+     *   create: {
+     *     // ... data to create a UserPermission
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserPermission we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserPermissionUpsertArgs>(args: SelectSubset<T, UserPermissionUpsertArgs<ExtArgs>>): Prisma__UserPermissionClient<$Result.GetResult<Prisma.$UserPermissionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserPermissions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPermissionCountArgs} args - Arguments to filter UserPermissions to count.
+     * @example
+     * // Count the number of UserPermissions
+     * const count = await prisma.userPermission.count({
+     *   where: {
+     *     // ... the filter for the UserPermissions we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserPermissionCountArgs>(
+      args?: Subset<T, UserPermissionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserPermissionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserPermission.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPermissionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserPermissionAggregateArgs>(args: Subset<T, UserPermissionAggregateArgs>): Prisma.PrismaPromise<GetUserPermissionAggregateType<T>>
+
+    /**
+     * Group by UserPermission.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPermissionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserPermissionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserPermissionGroupByArgs['orderBy'] }
+        : { orderBy?: UserPermissionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserPermissionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserPermissionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserPermission model
+   */
+  readonly fields: UserPermissionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserPermission.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserPermissionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserPermission model
+   */
+  interface UserPermissionFieldRefs {
+    readonly id: FieldRef<"UserPermission", 'String'>
+    readonly userId: FieldRef<"UserPermission", 'String'>
+    readonly permission: FieldRef<"UserPermission", 'Permission'>
+    readonly grantedAt: FieldRef<"UserPermission", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserPermission findUnique
+   */
+  export type UserPermissionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPermission to fetch.
+     */
+    where: UserPermissionWhereUniqueInput
+  }
+
+  /**
+   * UserPermission findUniqueOrThrow
+   */
+  export type UserPermissionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPermission to fetch.
+     */
+    where: UserPermissionWhereUniqueInput
+  }
+
+  /**
+   * UserPermission findFirst
+   */
+  export type UserPermissionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPermission to fetch.
+     */
+    where?: UserPermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserPermissions to fetch.
+     */
+    orderBy?: UserPermissionOrderByWithRelationInput | UserPermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserPermissions.
+     */
+    cursor?: UserPermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserPermissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserPermissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserPermissions.
+     */
+    distinct?: UserPermissionScalarFieldEnum | UserPermissionScalarFieldEnum[]
+  }
+
+  /**
+   * UserPermission findFirstOrThrow
+   */
+  export type UserPermissionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPermission to fetch.
+     */
+    where?: UserPermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserPermissions to fetch.
+     */
+    orderBy?: UserPermissionOrderByWithRelationInput | UserPermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserPermissions.
+     */
+    cursor?: UserPermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserPermissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserPermissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserPermissions.
+     */
+    distinct?: UserPermissionScalarFieldEnum | UserPermissionScalarFieldEnum[]
+  }
+
+  /**
+   * UserPermission findMany
+   */
+  export type UserPermissionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPermissions to fetch.
+     */
+    where?: UserPermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserPermissions to fetch.
+     */
+    orderBy?: UserPermissionOrderByWithRelationInput | UserPermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserPermissions.
+     */
+    cursor?: UserPermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserPermissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserPermissions.
+     */
+    skip?: number
+    distinct?: UserPermissionScalarFieldEnum | UserPermissionScalarFieldEnum[]
+  }
+
+  /**
+   * UserPermission create
+   */
+  export type UserPermissionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserPermission.
+     */
+    data: XOR<UserPermissionCreateInput, UserPermissionUncheckedCreateInput>
+  }
+
+  /**
+   * UserPermission createMany
+   */
+  export type UserPermissionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserPermissions.
+     */
+    data: UserPermissionCreateManyInput | UserPermissionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserPermission createManyAndReturn
+   */
+  export type UserPermissionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserPermissions.
+     */
+    data: UserPermissionCreateManyInput | UserPermissionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserPermission update
+   */
+  export type UserPermissionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserPermission.
+     */
+    data: XOR<UserPermissionUpdateInput, UserPermissionUncheckedUpdateInput>
+    /**
+     * Choose, which UserPermission to update.
+     */
+    where: UserPermissionWhereUniqueInput
+  }
+
+  /**
+   * UserPermission updateMany
+   */
+  export type UserPermissionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserPermissions.
+     */
+    data: XOR<UserPermissionUpdateManyMutationInput, UserPermissionUncheckedUpdateManyInput>
+    /**
+     * Filter which UserPermissions to update
+     */
+    where?: UserPermissionWhereInput
+    /**
+     * Limit how many UserPermissions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserPermission updateManyAndReturn
+   */
+  export type UserPermissionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * The data used to update UserPermissions.
+     */
+    data: XOR<UserPermissionUpdateManyMutationInput, UserPermissionUncheckedUpdateManyInput>
+    /**
+     * Filter which UserPermissions to update
+     */
+    where?: UserPermissionWhereInput
+    /**
+     * Limit how many UserPermissions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserPermission upsert
+   */
+  export type UserPermissionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserPermission to update in case it exists.
+     */
+    where: UserPermissionWhereUniqueInput
+    /**
+     * In case the UserPermission found by the `where` argument doesn't exist, create a new UserPermission with this data.
+     */
+    create: XOR<UserPermissionCreateInput, UserPermissionUncheckedCreateInput>
+    /**
+     * In case the UserPermission was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserPermissionUpdateInput, UserPermissionUncheckedUpdateInput>
+  }
+
+  /**
+   * UserPermission delete
+   */
+  export type UserPermissionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
+    /**
+     * Filter which UserPermission to delete.
+     */
+    where: UserPermissionWhereUniqueInput
+  }
+
+  /**
+   * UserPermission deleteMany
+   */
+  export type UserPermissionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserPermissions to delete
+     */
+    where?: UserPermissionWhereInput
+    /**
+     * Limit how many UserPermissions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserPermission without action
+   */
+  export type UserPermissionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPermission
+     */
+    select?: UserPermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPermission
+     */
+    omit?: UserPermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPermissionInclude<ExtArgs> | null
   }
 
 
@@ -22629,12 +23832,23 @@ export namespace Prisma {
     phone: 'phone',
     departmentId: 'departmentId',
     isActive: 'isActive',
+    isSuperAdmin: 'isSuperAdmin',
     lastLoginAt: 'lastLoginAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+  export const UserPermissionScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    permission: 'permission',
+    grantedAt: 'grantedAt'
+  };
+
+  export type UserPermissionScalarFieldEnum = (typeof UserPermissionScalarFieldEnum)[keyof typeof UserPermissionScalarFieldEnum]
 
 
   export const CitizenScalarFieldEnum: {
@@ -22963,6 +24177,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Permission'
+   */
+  export type EnumPermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Permission'>
+    
+
+
+  /**
+   * Reference to a field of type 'Permission[]'
+   */
+  export type ListEnumPermissionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Permission[]'>
+    
+
+
+  /**
    * Reference to a field of type 'TicketStatus'
    */
   export type EnumTicketStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TicketStatus'>
@@ -23240,6 +24468,7 @@ export namespace Prisma {
     phone?: StringNullableFilter<"User"> | string | null
     departmentId?: UuidNullableFilter<"User"> | string | null
     isActive?: BoolFilter<"User"> | boolean
+    isSuperAdmin?: BoolFilter<"User"> | boolean
     lastLoginAt?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -23253,6 +24482,7 @@ export namespace Prisma {
     delegationsMade?: DelegationListRelationFilter
     delegationsReceived?: DelegationListRelationFilter
     auditEvents?: AuditEventListRelationFilter
+    permissions?: UserPermissionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -23265,6 +24495,7 @@ export namespace Prisma {
     phone?: SortOrderInput | SortOrder
     departmentId?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    isSuperAdmin?: SortOrder
     lastLoginAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -23278,6 +24509,7 @@ export namespace Prisma {
     delegationsMade?: DelegationOrderByRelationAggregateInput
     delegationsReceived?: DelegationOrderByRelationAggregateInput
     auditEvents?: AuditEventOrderByRelationAggregateInput
+    permissions?: UserPermissionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -23293,6 +24525,7 @@ export namespace Prisma {
     phone?: StringNullableFilter<"User"> | string | null
     departmentId?: UuidNullableFilter<"User"> | string | null
     isActive?: BoolFilter<"User"> | boolean
+    isSuperAdmin?: BoolFilter<"User"> | boolean
     lastLoginAt?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -23306,6 +24539,7 @@ export namespace Prisma {
     delegationsMade?: DelegationListRelationFilter
     delegationsReceived?: DelegationListRelationFilter
     auditEvents?: AuditEventListRelationFilter
+    permissions?: UserPermissionListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -23318,6 +24552,7 @@ export namespace Prisma {
     phone?: SortOrderInput | SortOrder
     departmentId?: SortOrderInput | SortOrder
     isActive?: SortOrder
+    isSuperAdmin?: SortOrder
     lastLoginAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -23339,9 +24574,61 @@ export namespace Prisma {
     phone?: StringNullableWithAggregatesFilter<"User"> | string | null
     departmentId?: UuidNullableWithAggregatesFilter<"User"> | string | null
     isActive?: BoolWithAggregatesFilter<"User"> | boolean
+    isSuperAdmin?: BoolWithAggregatesFilter<"User"> | boolean
     lastLoginAt?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  }
+
+  export type UserPermissionWhereInput = {
+    AND?: UserPermissionWhereInput | UserPermissionWhereInput[]
+    OR?: UserPermissionWhereInput[]
+    NOT?: UserPermissionWhereInput | UserPermissionWhereInput[]
+    id?: UuidFilter<"UserPermission"> | string
+    userId?: UuidFilter<"UserPermission"> | string
+    permission?: EnumPermissionFilter<"UserPermission"> | $Enums.Permission
+    grantedAt?: DateTimeFilter<"UserPermission"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type UserPermissionOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    permission?: SortOrder
+    grantedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type UserPermissionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_permission?: UserPermissionUserIdPermissionCompoundUniqueInput
+    AND?: UserPermissionWhereInput | UserPermissionWhereInput[]
+    OR?: UserPermissionWhereInput[]
+    NOT?: UserPermissionWhereInput | UserPermissionWhereInput[]
+    userId?: UuidFilter<"UserPermission"> | string
+    permission?: EnumPermissionFilter<"UserPermission"> | $Enums.Permission
+    grantedAt?: DateTimeFilter<"UserPermission"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "userId_permission">
+
+  export type UserPermissionOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    permission?: SortOrder
+    grantedAt?: SortOrder
+    _count?: UserPermissionCountOrderByAggregateInput
+    _max?: UserPermissionMaxOrderByAggregateInput
+    _min?: UserPermissionMinOrderByAggregateInput
+  }
+
+  export type UserPermissionScalarWhereWithAggregatesInput = {
+    AND?: UserPermissionScalarWhereWithAggregatesInput | UserPermissionScalarWhereWithAggregatesInput[]
+    OR?: UserPermissionScalarWhereWithAggregatesInput[]
+    NOT?: UserPermissionScalarWhereWithAggregatesInput | UserPermissionScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"UserPermission"> | string
+    userId?: UuidWithAggregatesFilter<"UserPermission"> | string
+    permission?: EnumPermissionWithAggregatesFilter<"UserPermission"> | $Enums.Permission
+    grantedAt?: DateTimeWithAggregatesFilter<"UserPermission"> | Date | string
   }
 
   export type CitizenWhereInput = {
@@ -24637,6 +25924,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -24650,6 +25938,7 @@ export namespace Prisma {
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -24662,6 +25951,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -24674,6 +25964,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -24685,6 +25976,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24698,6 +25990,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -24710,6 +26003,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24722,6 +26016,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -24734,6 +26029,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -24748,6 +26044,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -24763,9 +26060,58 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserPermissionCreateInput = {
+    id?: string
+    permission: $Enums.Permission
+    grantedAt?: Date | string
+    user: UserCreateNestedOneWithoutPermissionsInput
+  }
+
+  export type UserPermissionUncheckedCreateInput = {
+    id?: string
+    userId: string
+    permission: $Enums.Permission
+    grantedAt?: Date | string
+  }
+
+  export type UserPermissionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumPermissionFieldUpdateOperationsInput | $Enums.Permission
+    grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutPermissionsNestedInput
+  }
+
+  export type UserPermissionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    permission?: EnumPermissionFieldUpdateOperationsInput | $Enums.Permission
+    grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserPermissionCreateManyInput = {
+    id?: string
+    userId: string
+    permission: $Enums.Permission
+    grantedAt?: Date | string
+  }
+
+  export type UserPermissionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumPermissionFieldUpdateOperationsInput | $Enums.Permission
+    grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserPermissionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    permission?: EnumPermissionFieldUpdateOperationsInput | $Enums.Permission
+    grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CitizenCreateInput = {
@@ -26336,6 +27682,12 @@ export namespace Prisma {
     none?: AuditEventWhereInput
   }
 
+  export type UserPermissionListRelationFilter = {
+    every?: UserPermissionWhereInput
+    some?: UserPermissionWhereInput
+    none?: UserPermissionWhereInput
+  }
+
   export type TicketMovementOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -26356,6 +27708,10 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type UserPermissionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
@@ -26366,6 +27722,7 @@ export namespace Prisma {
     phone?: SortOrder
     departmentId?: SortOrder
     isActive?: SortOrder
+    isSuperAdmin?: SortOrder
     lastLoginAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -26381,6 +27738,7 @@ export namespace Prisma {
     phone?: SortOrder
     departmentId?: SortOrder
     isActive?: SortOrder
+    isSuperAdmin?: SortOrder
     lastLoginAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -26396,6 +27754,7 @@ export namespace Prisma {
     phone?: SortOrder
     departmentId?: SortOrder
     isActive?: SortOrder
+    isSuperAdmin?: SortOrder
     lastLoginAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -26446,6 +27805,54 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type EnumPermissionFilter<$PrismaModel = never> = {
+    equals?: $Enums.Permission | EnumPermissionFieldRefInput<$PrismaModel>
+    in?: $Enums.Permission[] | ListEnumPermissionFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Permission[] | ListEnumPermissionFieldRefInput<$PrismaModel>
+    not?: NestedEnumPermissionFilter<$PrismaModel> | $Enums.Permission
+  }
+
+  export type UserScalarRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
+  }
+
+  export type UserPermissionUserIdPermissionCompoundUniqueInput = {
+    userId: string
+    permission: $Enums.Permission
+  }
+
+  export type UserPermissionCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    permission?: SortOrder
+    grantedAt?: SortOrder
+  }
+
+  export type UserPermissionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    permission?: SortOrder
+    grantedAt?: SortOrder
+  }
+
+  export type UserPermissionMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    permission?: SortOrder
+    grantedAt?: SortOrder
+  }
+
+  export type EnumPermissionWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Permission | EnumPermissionFieldRefInput<$PrismaModel>
+    in?: $Enums.Permission[] | ListEnumPermissionFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Permission[] | ListEnumPermissionFieldRefInput<$PrismaModel>
+    not?: NestedEnumPermissionWithAggregatesFilter<$PrismaModel> | $Enums.Permission
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPermissionFilter<$PrismaModel>
+    _max?: NestedEnumPermissionFilter<$PrismaModel>
   }
 
   export type CitizenCountOrderByAggregateInput = {
@@ -27043,11 +28450,6 @@ export namespace Prisma {
 
   export type RoutingRuleSumOrderByAggregateInput = {
     priorityRank?: SortOrder
-  }
-
-  export type UserScalarRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
   }
 
   export type MinuteCountOrderByAggregateInput = {
@@ -27668,6 +29070,13 @@ export namespace Prisma {
     connect?: AuditEventWhereUniqueInput | AuditEventWhereUniqueInput[]
   }
 
+  export type UserPermissionCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserPermissionCreateWithoutUserInput, UserPermissionUncheckedCreateWithoutUserInput> | UserPermissionCreateWithoutUserInput[] | UserPermissionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserPermissionCreateOrConnectWithoutUserInput | UserPermissionCreateOrConnectWithoutUserInput[]
+    createMany?: UserPermissionCreateManyUserInputEnvelope
+    connect?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+  }
+
   export type TicketUncheckedCreateNestedManyWithoutAssignedOfficerInput = {
     create?: XOR<TicketCreateWithoutAssignedOfficerInput, TicketUncheckedCreateWithoutAssignedOfficerInput> | TicketCreateWithoutAssignedOfficerInput[] | TicketUncheckedCreateWithoutAssignedOfficerInput[]
     connectOrCreate?: TicketCreateOrConnectWithoutAssignedOfficerInput | TicketCreateOrConnectWithoutAssignedOfficerInput[]
@@ -27729,6 +29138,13 @@ export namespace Prisma {
     connectOrCreate?: AuditEventCreateOrConnectWithoutActorInput | AuditEventCreateOrConnectWithoutActorInput[]
     createMany?: AuditEventCreateManyActorInputEnvelope
     connect?: AuditEventWhereUniqueInput | AuditEventWhereUniqueInput[]
+  }
+
+  export type UserPermissionUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserPermissionCreateWithoutUserInput, UserPermissionUncheckedCreateWithoutUserInput> | UserPermissionCreateWithoutUserInput[] | UserPermissionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserPermissionCreateOrConnectWithoutUserInput | UserPermissionCreateOrConnectWithoutUserInput[]
+    createMany?: UserPermissionCreateManyUserInputEnvelope
+    connect?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
   }
 
   export type EnumRoleFieldUpdateOperationsInput = {
@@ -27879,6 +29295,20 @@ export namespace Prisma {
     deleteMany?: AuditEventScalarWhereInput | AuditEventScalarWhereInput[]
   }
 
+  export type UserPermissionUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserPermissionCreateWithoutUserInput, UserPermissionUncheckedCreateWithoutUserInput> | UserPermissionCreateWithoutUserInput[] | UserPermissionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserPermissionCreateOrConnectWithoutUserInput | UserPermissionCreateOrConnectWithoutUserInput[]
+    upsert?: UserPermissionUpsertWithWhereUniqueWithoutUserInput | UserPermissionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserPermissionCreateManyUserInputEnvelope
+    set?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+    disconnect?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+    delete?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+    connect?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+    update?: UserPermissionUpdateWithWhereUniqueWithoutUserInput | UserPermissionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserPermissionUpdateManyWithWhereWithoutUserInput | UserPermissionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserPermissionScalarWhereInput | UserPermissionScalarWhereInput[]
+  }
+
   export type TicketUncheckedUpdateManyWithoutAssignedOfficerNestedInput = {
     create?: XOR<TicketCreateWithoutAssignedOfficerInput, TicketUncheckedCreateWithoutAssignedOfficerInput> | TicketCreateWithoutAssignedOfficerInput[] | TicketUncheckedCreateWithoutAssignedOfficerInput[]
     connectOrCreate?: TicketCreateOrConnectWithoutAssignedOfficerInput | TicketCreateOrConnectWithoutAssignedOfficerInput[]
@@ -28003,6 +29433,38 @@ export namespace Prisma {
     update?: AuditEventUpdateWithWhereUniqueWithoutActorInput | AuditEventUpdateWithWhereUniqueWithoutActorInput[]
     updateMany?: AuditEventUpdateManyWithWhereWithoutActorInput | AuditEventUpdateManyWithWhereWithoutActorInput[]
     deleteMany?: AuditEventScalarWhereInput | AuditEventScalarWhereInput[]
+  }
+
+  export type UserPermissionUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserPermissionCreateWithoutUserInput, UserPermissionUncheckedCreateWithoutUserInput> | UserPermissionCreateWithoutUserInput[] | UserPermissionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserPermissionCreateOrConnectWithoutUserInput | UserPermissionCreateOrConnectWithoutUserInput[]
+    upsert?: UserPermissionUpsertWithWhereUniqueWithoutUserInput | UserPermissionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserPermissionCreateManyUserInputEnvelope
+    set?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+    disconnect?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+    delete?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+    connect?: UserPermissionWhereUniqueInput | UserPermissionWhereUniqueInput[]
+    update?: UserPermissionUpdateWithWhereUniqueWithoutUserInput | UserPermissionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserPermissionUpdateManyWithWhereWithoutUserInput | UserPermissionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserPermissionScalarWhereInput | UserPermissionScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutPermissionsInput = {
+    create?: XOR<UserCreateWithoutPermissionsInput, UserUncheckedCreateWithoutPermissionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPermissionsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumPermissionFieldUpdateOperationsInput = {
+    set?: $Enums.Permission
+  }
+
+  export type UserUpdateOneRequiredWithoutPermissionsNestedInput = {
+    create?: XOR<UserCreateWithoutPermissionsInput, UserUncheckedCreateWithoutPermissionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPermissionsInput
+    upsert?: UserUpsertWithoutPermissionsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPermissionsInput, UserUpdateWithoutPermissionsInput>, UserUncheckedUpdateWithoutPermissionsInput>
   }
 
   export type TicketCreateNestedManyWithoutCitizenInput = {
@@ -28957,6 +30419,23 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumPermissionFilter<$PrismaModel = never> = {
+    equals?: $Enums.Permission | EnumPermissionFieldRefInput<$PrismaModel>
+    in?: $Enums.Permission[] | ListEnumPermissionFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Permission[] | ListEnumPermissionFieldRefInput<$PrismaModel>
+    not?: NestedEnumPermissionFilter<$PrismaModel> | $Enums.Permission
+  }
+
+  export type NestedEnumPermissionWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Permission | EnumPermissionFieldRefInput<$PrismaModel>
+    in?: $Enums.Permission[] | ListEnumPermissionFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Permission[] | ListEnumPermissionFieldRefInput<$PrismaModel>
+    not?: NestedEnumPermissionWithAggregatesFilter<$PrismaModel> | $Enums.Permission
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPermissionFilter<$PrismaModel>
+    _max?: NestedEnumPermissionFilter<$PrismaModel>
+  }
+
   export type NestedEnumTicketStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.TicketStatus | EnumTicketStatusFieldRefInput<$PrismaModel>
     in?: $Enums.TicketStatus[] | ListEnumTicketStatusFieldRefInput<$PrismaModel>
@@ -29263,6 +30742,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -29275,6 +30755,7 @@ export namespace Prisma {
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDepartmentInput = {
@@ -29286,6 +30767,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -29298,6 +30780,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDepartmentInput = {
@@ -29475,6 +30958,7 @@ export namespace Prisma {
     phone?: StringNullableFilter<"User"> | string | null
     departmentId?: UuidNullableFilter<"User"> | string | null
     isActive?: BoolFilter<"User"> | boolean
+    isSuperAdmin?: BoolFilter<"User"> | boolean
     lastLoginAt?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
@@ -30013,6 +31497,28 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserPermissionCreateWithoutUserInput = {
+    id?: string
+    permission: $Enums.Permission
+    grantedAt?: Date | string
+  }
+
+  export type UserPermissionUncheckedCreateWithoutUserInput = {
+    id?: string
+    permission: $Enums.Permission
+    grantedAt?: Date | string
+  }
+
+  export type UserPermissionCreateOrConnectWithoutUserInput = {
+    where: UserPermissionWhereUniqueInput
+    create: XOR<UserPermissionCreateWithoutUserInput, UserPermissionUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserPermissionCreateManyUserInputEnvelope = {
+    data: UserPermissionCreateManyUserInput | UserPermissionCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type DepartmentUpsertWithoutUsersInput = {
     update: XOR<DepartmentUpdateWithoutUsersInput, DepartmentUncheckedUpdateWithoutUsersInput>
     create: XOR<DepartmentCreateWithoutUsersInput, DepartmentUncheckedCreateWithoutUsersInput>
@@ -30262,6 +31768,148 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AuditEvent"> | Date | string
   }
 
+  export type UserPermissionUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserPermissionWhereUniqueInput
+    update: XOR<UserPermissionUpdateWithoutUserInput, UserPermissionUncheckedUpdateWithoutUserInput>
+    create: XOR<UserPermissionCreateWithoutUserInput, UserPermissionUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserPermissionUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserPermissionWhereUniqueInput
+    data: XOR<UserPermissionUpdateWithoutUserInput, UserPermissionUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserPermissionUpdateManyWithWhereWithoutUserInput = {
+    where: UserPermissionScalarWhereInput
+    data: XOR<UserPermissionUpdateManyMutationInput, UserPermissionUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserPermissionScalarWhereInput = {
+    AND?: UserPermissionScalarWhereInput | UserPermissionScalarWhereInput[]
+    OR?: UserPermissionScalarWhereInput[]
+    NOT?: UserPermissionScalarWhereInput | UserPermissionScalarWhereInput[]
+    id?: UuidFilter<"UserPermission"> | string
+    userId?: UuidFilter<"UserPermission"> | string
+    permission?: EnumPermissionFilter<"UserPermission"> | $Enums.Permission
+    grantedAt?: DateTimeFilter<"UserPermission"> | Date | string
+  }
+
+  export type UserCreateWithoutPermissionsInput = {
+    id?: string
+    email: string
+    passwordHash: string
+    fullName: string
+    role: $Enums.Role
+    designation?: string | null
+    phone?: string | null
+    isActive?: boolean
+    isSuperAdmin?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    department?: DepartmentCreateNestedOneWithoutUsersInput
+    assignedTickets?: TicketCreateNestedManyWithoutAssignedOfficerInput
+    triagedTickets?: TicketCreateNestedManyWithoutTriagedByInput
+    movementsFrom?: TicketMovementCreateNestedManyWithoutFromUserInput
+    movementsTo?: TicketMovementCreateNestedManyWithoutToUserInput
+    minutes?: MinuteCreateNestedManyWithoutAuthorInput
+    approvalsActioned?: ApprovalRequestCreateNestedManyWithoutActionedByInput
+    delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
+    delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
+    auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+  }
+
+  export type UserUncheckedCreateWithoutPermissionsInput = {
+    id?: string
+    email: string
+    passwordHash: string
+    fullName: string
+    role: $Enums.Role
+    designation?: string | null
+    phone?: string | null
+    departmentId?: string | null
+    isActive?: boolean
+    isSuperAdmin?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedOfficerInput
+    triagedTickets?: TicketUncheckedCreateNestedManyWithoutTriagedByInput
+    movementsFrom?: TicketMovementUncheckedCreateNestedManyWithoutFromUserInput
+    movementsTo?: TicketMovementUncheckedCreateNestedManyWithoutToUserInput
+    minutes?: MinuteUncheckedCreateNestedManyWithoutAuthorInput
+    approvalsActioned?: ApprovalRequestUncheckedCreateNestedManyWithoutActionedByInput
+    delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
+    delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
+    auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+  }
+
+  export type UserCreateOrConnectWithoutPermissionsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPermissionsInput, UserUncheckedCreateWithoutPermissionsInput>
+  }
+
+  export type UserUpsertWithoutPermissionsInput = {
+    update: XOR<UserUpdateWithoutPermissionsInput, UserUncheckedUpdateWithoutPermissionsInput>
+    create: XOR<UserCreateWithoutPermissionsInput, UserUncheckedCreateWithoutPermissionsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPermissionsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPermissionsInput, UserUncheckedUpdateWithoutPermissionsInput>
+  }
+
+  export type UserUpdateWithoutPermissionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    fullName?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    designation?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    department?: DepartmentUpdateOneWithoutUsersNestedInput
+    assignedTickets?: TicketUpdateManyWithoutAssignedOfficerNestedInput
+    triagedTickets?: TicketUpdateManyWithoutTriagedByNestedInput
+    movementsFrom?: TicketMovementUpdateManyWithoutFromUserNestedInput
+    movementsTo?: TicketMovementUpdateManyWithoutToUserNestedInput
+    minutes?: MinuteUpdateManyWithoutAuthorNestedInput
+    approvalsActioned?: ApprovalRequestUpdateManyWithoutActionedByNestedInput
+    delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
+    delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
+    auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPermissionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    fullName?: StringFieldUpdateOperationsInput | string
+    role?: EnumRoleFieldUpdateOperationsInput | $Enums.Role
+    designation?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    departmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedOfficerNestedInput
+    triagedTickets?: TicketUncheckedUpdateManyWithoutTriagedByNestedInput
+    movementsFrom?: TicketMovementUncheckedUpdateManyWithoutFromUserNestedInput
+    movementsTo?: TicketMovementUncheckedUpdateManyWithoutToUserNestedInput
+    minutes?: MinuteUncheckedUpdateManyWithoutAuthorNestedInput
+    approvalsActioned?: ApprovalRequestUncheckedUpdateManyWithoutActionedByNestedInput
+    delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
+    delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
+    auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+  }
+
   export type TicketCreateWithoutCitizenInput = {
     id?: string
     ticketCode: string
@@ -30441,6 +32089,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30453,6 +32102,7 @@ export namespace Prisma {
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAssignedTicketsInput = {
@@ -30465,6 +32115,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30476,6 +32127,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAssignedTicketsInput = {
@@ -30492,6 +32144,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30504,6 +32157,7 @@ export namespace Prisma {
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTriagedTicketsInput = {
@@ -30516,6 +32170,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -30527,6 +32182,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTriagedTicketsInput = {
@@ -30853,6 +32509,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30865,6 +32522,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssignedTicketsInput = {
@@ -30877,6 +32535,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30888,6 +32547,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutTriagedTicketsInput = {
@@ -30910,6 +32570,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30922,6 +32583,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTriagedTicketsInput = {
@@ -30934,6 +32596,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -30945,6 +32608,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TicketAttachmentUpsertWithWhereUniqueWithoutTicketInput = {
@@ -31634,6 +33298,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -31646,6 +33311,7 @@ export namespace Prisma {
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMovementsFromInput = {
@@ -31658,6 +33324,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -31669,6 +33336,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMovementsFromInput = {
@@ -31685,6 +33353,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -31697,6 +33366,7 @@ export namespace Prisma {
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMovementsToInput = {
@@ -31709,6 +33379,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -31720,6 +33391,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMovementsToInput = {
@@ -31850,6 +33522,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -31862,6 +33535,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMovementsFromInput = {
@@ -31874,6 +33548,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -31885,6 +33560,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutMovementsToInput = {
@@ -31907,6 +33583,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -31919,6 +33596,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMovementsToInput = {
@@ -31931,6 +33609,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -31942,6 +33621,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type DepartmentCreateWithoutRoutingRulesInput = {
@@ -32110,6 +33790,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32122,6 +33803,7 @@ export namespace Prisma {
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMinutesInput = {
@@ -32134,6 +33816,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32145,6 +33828,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMinutesInput = {
@@ -32275,6 +33959,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32287,6 +33972,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMinutesInput = {
@@ -32299,6 +33985,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32310,6 +33997,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TicketCreateWithoutSlaPausesInput = {
@@ -32618,6 +34306,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32630,6 +34319,7 @@ export namespace Prisma {
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutApprovalsActionedInput = {
@@ -32642,6 +34332,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32653,6 +34344,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutApprovalsActionedInput = {
@@ -32783,6 +34475,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32795,6 +34488,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutApprovalsActionedInput = {
@@ -32807,6 +34501,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32818,6 +34513,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutDelegationsMadeInput = {
@@ -32829,6 +34525,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32841,6 +34538,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestCreateNestedManyWithoutActionedByInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDelegationsMadeInput = {
@@ -32853,6 +34551,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32864,6 +34563,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUncheckedCreateNestedManyWithoutActionedByInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDelegationsMadeInput = {
@@ -32880,6 +34580,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32892,6 +34593,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestCreateNestedManyWithoutActionedByInput
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     auditEvents?: AuditEventCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDelegationsReceivedInput = {
@@ -32904,6 +34606,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32915,6 +34618,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUncheckedCreateNestedManyWithoutActionedByInput
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     auditEvents?: AuditEventUncheckedCreateNestedManyWithoutActorInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDelegationsReceivedInput = {
@@ -32942,6 +34646,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32954,6 +34659,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUpdateManyWithoutActionedByNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDelegationsMadeInput = {
@@ -32966,6 +34672,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32977,6 +34684,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUncheckedUpdateManyWithoutActionedByNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutDelegationsReceivedInput = {
@@ -32999,6 +34707,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33011,6 +34720,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUpdateManyWithoutActionedByNestedInput
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDelegationsReceivedInput = {
@@ -33023,6 +34733,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33034,6 +34745,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUncheckedUpdateManyWithoutActionedByNestedInput
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TicketCreateWithoutFeedbackInput = {
@@ -33342,6 +35054,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -33354,6 +35067,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestCreateNestedManyWithoutActionedByInput
     delegationsMade?: DelegationCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationCreateNestedManyWithoutDelegateInput
+    permissions?: UserPermissionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAuditEventsInput = {
@@ -33366,6 +35080,7 @@ export namespace Prisma {
     phone?: string | null
     departmentId?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -33377,6 +35092,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUncheckedCreateNestedManyWithoutActionedByInput
     delegationsMade?: DelegationUncheckedCreateNestedManyWithoutDelegatorInput
     delegationsReceived?: DelegationUncheckedCreateNestedManyWithoutDelegateInput
+    permissions?: UserPermissionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAuditEventsInput = {
@@ -33507,6 +35223,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33519,6 +35236,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUpdateManyWithoutActionedByNestedInput
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAuditEventsInput = {
@@ -33531,6 +35249,7 @@ export namespace Prisma {
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     departmentId?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33542,6 +35261,7 @@ export namespace Prisma {
     approvalsActioned?: ApprovalRequestUncheckedUpdateManyWithoutActionedByNestedInput
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyDepartmentInput = {
@@ -33553,6 +35273,7 @@ export namespace Prisma {
     designation?: string | null
     phone?: string | null
     isActive?: boolean
+    isSuperAdmin?: boolean
     lastLoginAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -33617,6 +35338,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33629,6 +35351,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDepartmentInput = {
@@ -33640,6 +35363,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33652,6 +35376,7 @@ export namespace Prisma {
     delegationsMade?: DelegationUncheckedUpdateManyWithoutDelegatorNestedInput
     delegationsReceived?: DelegationUncheckedUpdateManyWithoutDelegateNestedInput
     auditEvents?: AuditEventUncheckedUpdateManyWithoutActorNestedInput
+    permissions?: UserPermissionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutDepartmentInput = {
@@ -33663,6 +35388,7 @@ export namespace Prisma {
     designation?: NullableStringFieldUpdateOperationsInput | string | null
     phone?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    isSuperAdmin?: BoolFieldUpdateOperationsInput | boolean
     lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33979,6 +35705,12 @@ export namespace Prisma {
     ip?: string | null
     userAgent?: string | null
     createdAt?: Date | string
+  }
+
+  export type UserPermissionCreateManyUserInput = {
+    id?: string
+    permission: $Enums.Permission
+    grantedAt?: Date | string
   }
 
   export type TicketUpdateWithoutAssignedOfficerInput = {
@@ -34452,6 +36184,24 @@ export namespace Prisma {
     ip?: NullableStringFieldUpdateOperationsInput | string | null
     userAgent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserPermissionUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumPermissionFieldUpdateOperationsInput | $Enums.Permission
+    grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserPermissionUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumPermissionFieldUpdateOperationsInput | $Enums.Permission
+    grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserPermissionUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permission?: EnumPermissionFieldUpdateOperationsInput | $Enums.Permission
+    grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TicketCreateManyCitizenInput = {

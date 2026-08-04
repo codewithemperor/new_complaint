@@ -83,9 +83,21 @@ export function SlaStatus({
   }
 
   const styles = {
-    green: { chip: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-500", bar: "bg-emerald-500" },
-    amber: { chip: "bg-amber-100 text-amber-700", dot: "bg-amber-500", bar: "bg-amber-500" },
-    red: { chip: "bg-red-100 text-red-700", dot: "bg-red-500", bar: "bg-red-500" },
+    green: {
+      chip: "bg-green-100 text-green-700",
+      dot: "bg-green-500",
+      bar: "bg-green-500",
+    },
+    amber: {
+      chip: "bg-amber-100 text-amber-700",
+      dot: "bg-amber-500",
+      bar: "bg-amber-500",
+    },
+    red: {
+      chip: "bg-red-100 text-red-700",
+      dot: "bg-red-500",
+      bar: "bg-red-500",
+    },
   }[color];
 
   return (

@@ -15,36 +15,6 @@ const _slaclockservice = require("../sla/sla-clock.service");
 const _ticketstatemachine = require("../tickets/ticket-state-machine");
 const _escalationservice = require("./escalation.service");
 const _ticketstatus = require("../common/types/ticket-status");
-function _getRequireWildcardCache(nodeInterop) {
-    if (typeof WeakMap !== "function") return null;
-    var cacheBabelInterop = new WeakMap();
-    var cacheNodeInterop = new WeakMap();
-    return (_getRequireWildcardCache = function(nodeInterop) {
-        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
-    })(nodeInterop);
-}
-function _interop_require_wildcard(obj, nodeInterop) {
-    if (!nodeInterop && obj && obj.__esModule) return obj;
-    if (obj === null || typeof obj !== "object" && typeof obj !== "function") return {
-        default: obj
-    };
-    var cache = _getRequireWildcardCache(nodeInterop);
-    if (cache && cache.has(obj)) return cache.get(obj);
-    var newObj = {
-        __proto__: null
-    };
-    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
-    for(var key in obj){
-        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
-            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
-            if (desc && (desc.get || desc.set)) Object.defineProperty(newObj, key, desc);
-            else newObj[key] = obj[key];
-        }
-    }
-    newObj.default = obj;
-    if (cache) cache.set(obj, newObj);
-    return newObj;
-}
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
@@ -284,10 +254,9 @@ let ApprovalWorkflowService = class ApprovalWorkflowService {
     }
     /**
    * The caller must be the request's currentApprover. For the PS tier, an
-   * active delegate may also act. SUPER_ADMIN bypasses.
+   * active delegate may also act. A Super Admin bypasses.
    */ async assertApprover(request, ticket, user) {
-        const { Role } = await Promise.resolve().then(()=>/*#__PURE__*/ _interop_require_wildcard(require("../common/types/role")));
-        if (user.role === Role.SUPER_ADMIN) return;
+        if (user.isSuperAdmin) return;
         if (request.currentApproverId === user.id) return;
         // Delegation: PS-tier request where the caller is the PS's active delegate.
         if (request.approverRole === _ticketstatus.ApproverRole.PERMANENT_SECRETARY && request.currentApproverId) {
@@ -333,12 +302,20 @@ let ApprovalWorkflowService = class ApprovalWorkflowService {
     /**
    * List approval requests for an approver's inbox. Filters by the caller's
    * tier (role) and optional status. Eager-loads ticket + officer for display.
-   */ async findInbox(filters) {
+   *
+   * A Super Admin sees every tier in a single call (the approverRole /
+   * currentApproverId filters are ignored), so the admin oversight view needs
+   * only one request instead of one per tier.
+   */ async findInbox(filters, user) {
         const { approverRole, status, currentApproverId, page = 1, pageSize = 20 } = filters;
         const where = {};
-        if (approverRole) where.approverRole = approverRole;
+        // Super Admins oversee all tiers — skip the per-tier scoping entirely.
+        const isSuperAdmin = !!user?.isSuperAdmin;
+        if (!isSuperAdmin) {
+            if (approverRole) where.approverRole = approverRole;
+            if (currentApproverId) where.currentApproverId = currentApproverId;
+        }
         if (status) where.status = status;
-        if (currentApproverId) where.currentApproverId = currentApproverId;
         const [items, total] = await Promise.all([
             this.prisma.approvalRequest.findMany({
                 where,

@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/users.service';
 import { AuthenticatedUser } from '../types/authenticated-user';
 import { Role } from '../types/role';
+import { Permission } from '../types/permission';
 
 export interface JwtPayload {
   sub: string;
@@ -15,7 +16,8 @@ export interface JwtPayload {
  * JWT strategy. Reads the token from the httpOnly cookie first, falling back to
  * the Authorization: Bearer header. On each request it loads the user from the
  * DB (cheap; hits users.email unique index) so deactivated users are rejected
- * even with a still-valid token.
+ * even with a still-valid token, and so permission/role changes take effect on
+ * the next request without re-issuing the token.
  *
  * The secret is read from process.env directly in super() because parameter
  * properties are assigned AFTER super() runs — so ConfigService isn't yet on
@@ -46,6 +48,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       role: user.role as unknown as Role,
       fullName: user.fullName,
       departmentId: user.departmentId,
+      isSuperAdmin: user.isSuperAdmin,
+      permissions: user.permissions.map((p) => p.permission as unknown as Permission),
     };
   }
 }

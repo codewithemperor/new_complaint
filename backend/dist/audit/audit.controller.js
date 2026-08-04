@@ -87,7 +87,7 @@ let AuditController = class AuditController {
 };
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
     (0, _common.Get)('audit-events'),
     (0, _swagger.ApiOperation)({
         summary: 'List audit events (filtered/paginated)'
@@ -115,7 +115,7 @@ _ts_decorate([
 ], AuditController.prototype, "list", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
     (0, _common.Get)('audit-events/export'),
     (0, _common.Header)('Content-Type', 'text/csv'),
     (0, _swagger.ApiOperation)({
@@ -142,7 +142,7 @@ _ts_decorate([
 ], AuditController.prototype, "exportCsv", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
     (0, _common.Get)('reports/overview'),
     (0, _swagger.ApiOperation)({
         summary: 'System-wide report totals'
@@ -153,7 +153,7 @@ _ts_decorate([
 ], AuditController.prototype, "overview", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
     (0, _common.Get)('reports/department-performance'),
     (0, _swagger.ApiOperation)({
         summary: 'Per-department performance metrics'
@@ -169,7 +169,7 @@ _ts_decorate([
 ], AuditController.prototype, "departmentPerformance", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
     (0, _common.Get)('reports/officer-performance'),
     (0, _swagger.ApiOperation)({
         summary: 'Per-officer performance metrics'
@@ -185,7 +185,7 @@ _ts_decorate([
 ], AuditController.prototype, "officerPerformance", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
     (0, _common.Get)('reports/trend'),
     (0, _swagger.ApiOperation)({
         summary: 'Daily complaints trend over N days'
@@ -199,7 +199,7 @@ _ts_decorate([
 ], AuditController.prototype, "trend", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
     (0, _common.Get)('reports/status-by-department'),
     (0, _swagger.ApiOperation)({
         summary: 'Ticket counts by department and status'

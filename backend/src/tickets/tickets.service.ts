@@ -180,7 +180,16 @@ export class TicketsService {
     const ticket = await this.prisma.ticket.findUnique({ where: { id: ticketId } });
     if (!ticket) throw new NotFoundException('Ticket not found');
 
-    this.stateMachine.assertCanTransition(ticket.status as TicketStatus, TicketStatus.TRIAGED);
+    // A re-assignment of an already-triaged ticket (departmentId provided, ticket
+    // past ACKNOWLEDGED) skips the forward-transition check so admins/HODs can
+    // move an in-flight ticket between departments.
+    const isReassign =
+      !!dto.departmentId &&
+      !['ACKNOWLEDGED', 'SUBMITTED'].includes(ticket.status as string);
+
+    if (!isReassign) {
+      this.stateMachine.assertCanTransition(ticket.status as TicketStatus, TicketStatus.TRIAGED);
+    }
 
     let routingResult: { departmentId: string; officerId?: string };
 
@@ -188,17 +197,17 @@ export class TicketsService {
       routingResult = { departmentId: dto.departmentId, officerId: dto.overrideOfficerId };
     } else if (dto.departmentId) {
       const fallbackOfficer = await this.prisma.user.findFirst({
-        where: { departmentId: dto.departmentId, role: 'SCHEDULE_OFFICER', isActive: true },
+        where: { departmentId: dto.departmentId, role: 'DEPARTMENT_STAFF', isActive: true },
       });
       routingResult = {
         departmentId: dto.departmentId,
         officerId: fallbackOfficer?.id ?? (await this.prisma.user.findFirst({
-          where: { departmentId: dto.departmentId, role: 'DIRECTOR', isActive: true },
+          where: { departmentId: dto.departmentId, role: 'DEPARTMENT_HOD', isActive: true },
         }))?.id,
       };
     } else {
       const resolved = await this.routingService.resolve({
-        category: dto.category,
+        category: dto.category ?? ticket.category ?? '',
         priority: dto.priority,
         lga: ticket.lga ?? undefined,
       });
@@ -216,9 +225,9 @@ export class TicketsService {
       await tx.ticket.update({
         where: { id: ticketId },
         data: {
-          status: 'TRIAGED',
-          category: dto.category,
-          priority: dto.priority as any,
+          status: isReassign ? ticket.status : 'TRIAGED',
+          category: dto.category ?? ticket.category,
+          priority: (dto.priority as any) ?? ticket.priority,
           sensitivity: (dto.sensitivity as any) ?? ticket.sensitivity,
           triagedAt: now,
           triagedById: triagedBy.id,
@@ -228,9 +237,11 @@ export class TicketsService {
       await tx.ticketMovement.create({
         data: {
           ticketId,
-          type: MovementType.ROUTED,
+          type: isReassign ? MovementType.REASSIGNED : MovementType.ROUTED,
           fromUserId: triagedBy.id,
-          note: dto.triageNote ?? `Triaged as ${dto.category} / ${dto.priority}`,
+          note: dto.triageNote ?? (isReassign
+            ? `Reassigned to department`
+            : `Triaged as ${dto.category ?? ticket.category} / ${dto.priority ?? ticket.priority}`),
         },
       });
 
@@ -474,10 +485,10 @@ export class TicketsService {
   // ─────────────────────────────────────────────────────────────────────────
 
   /**
-   * Ownership check for officer endpoints. The assigned officer, plus any
-   * superior (DIRECTOR / DEPUTY_DIRECTOR / ASSISTANT_DIRECTOR) in the ticket's
-   * own department, may act on it. SUPER_ADMIN bypasses. Also enforces the
-   * closed-ticket freeze (no writes once CLOSED). Throws if not.
+   * Ownership check for officer endpoints. The assigned officer, plus the
+   * DEPARTMENT_HOD in the ticket's own department, may act on it. A Super Admin
+   * bypasses. Also enforces the closed-ticket freeze (no writes once CLOSED).
+   * Throws if not.
    */
   private async assertCanAct(ticketId: string, user: AuthenticatedUser): Promise<void> {
     const ticket = await this.prisma.ticket.findUnique({
@@ -486,26 +497,21 @@ export class TicketsService {
     });
     if (!ticket) throw new NotFoundException('Ticket not found');
 
-    // Closed-ticket freeze applies to everyone (officer + superior); only
-    // SUPER_ADMIN archive (a separate path) may touch a closed ticket.
+    // Closed-ticket freeze applies to everyone (officer + HOD); only
+    // Super Admin archive (a separate path) may touch a closed ticket.
     this.assertNotFrozen(ticket.status as TicketStatus);
 
-    if (user.role === Role.SUPER_ADMIN) return;
+    if (user.isSuperAdmin) return;
 
     const isAssignee = ticket.assignedOfficerId === user.id;
 
-    // Superiors in the same department may also act (oversight).
-    const superiorRoles: Role[] = [
-      Role.DIRECTOR,
-      Role.DEPUTY_DIRECTOR,
-      Role.ASSISTANT_DIRECTOR,
-    ];
-    const isSuperiorInDept =
-      superiorRoles.includes(user.role) &&
+    // The department HOD may also act (oversight).
+    const isHodInDept =
+      user.role === Role.DEPARTMENT_HOD &&
       !!ticket.departmentId &&
       ticket.departmentId === user.departmentId;
 
-    if (!isAssignee && !isSuperiorInDept) {
+    if (!isAssignee && !isHodInDept) {
       throw new ForbiddenException('You are not assigned to this ticket.');
     }
   }
@@ -704,7 +710,7 @@ export class TicketsService {
     const hod = await this.prisma.user.findFirst({
       where: {
         departmentId: ticket.departmentId,
-        role: Role.DIRECTOR,
+        role: Role.DEPARTMENT_HOD,
         isActive: true,
       },
     });
@@ -719,7 +725,7 @@ export class TicketsService {
         data: {
           ticketId: id,
           requestedById: user.id,
-          approverRole: 'DIRECTOR',
+          approverRole: 'DEPARTMENT_HOD',
           currentApproverId: hod?.id ?? null,
           status: 'PENDING',
         },
@@ -1216,10 +1222,19 @@ export class TicketsService {
       this.prisma.ticket.count({ where }),
     ]);
 
-    // Rename `auditEvents` → `events` to match the API contract.
+    // Map each AuditEvent into the API contract the timeline UI expects:
+    // `eventType` → `type`, the nested `actor` is flattened to
+    // `actorName` / `actorRole`, and `meta` → `note`.
     const items = rawItems.map(({ auditEvents, ...rest }) => ({
       ...rest,
-      events: auditEvents,
+      events: (auditEvents ?? []).map((e) => ({
+        id: e.id,
+        type: e.eventType,
+        note: e.meta ?? null,
+        createdAt: e.createdAt,
+        actorName: e.actor?.fullName ?? null,
+        actorRole: e.actor?.role ?? null,
+      })),
     }));
 
     const totalPages = total === 0 ? 0 : Math.ceil(total / safePageSize);

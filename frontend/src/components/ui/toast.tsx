@@ -41,11 +41,11 @@ const TOAST_STYLES: Record<
 > = {
   success: {
     icon: CheckCircle2,
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    iconColor: "text-emerald-600",
-    title: "text-emerald-900",
-    message: "text-emerald-700",
+    bg: "bg-green-50",
+    border: "border-green-200",
+    iconColor: "text-green-600",
+    title: "text-green-900",
+    message: "text-green-700",
   },
   error: {
     icon: AlertCircle,
@@ -65,11 +65,11 @@ const TOAST_STYLES: Record<
   },
   info: {
     icon: Info,
-    bg: "bg-teal-50",
-    border: "border-teal-200",
-    iconColor: "text-teal-600",
-    title: "text-teal-900",
-    message: "text-teal-700",
+    bg: "bg-green-50",
+    border: "border-green-200",
+    iconColor: "text-green-600",
+    title: "text-green-900",
+    message: "text-green-700",
   },
 };
 
@@ -131,7 +131,9 @@ export function ToastContainer() {
           >
             <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${style.iconColor}`} />
             <div className="min-w-0 flex-1">
-              <p className={`text-sm font-semibold ${style.title}`}>{t.title}</p>
+              <p className={`text-sm font-semibold ${style.title}`}>
+                {t.title}
+              </p>
               {t.message && (
                 <p className={`mt-0.5 text-xs ${style.message}`}>{t.message}</p>
               )}

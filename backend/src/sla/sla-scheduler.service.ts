@@ -134,7 +134,7 @@ export class SlaScheduler {
       } else {
         // No active approval — escalate to the HOD (create a PENDING request).
         const hodId = await this.escalation.resolveApprover(
-          'DIRECTOR' as any,
+          'DEPARTMENT_HOD' as any,
           ticket.departmentId,
         );
         await this.prisma.$transaction(async (tx) => {
@@ -142,7 +142,7 @@ export class SlaScheduler {
             data: {
               ticketId,
               requestedById: SlaScheduler.SYSTEM_ACTOR,
-              approverRole: 'DIRECTOR',
+              approverRole: 'DEPARTMENT_HOD',
               currentApproverId: hodId,
               status: 'PENDING',
             },
@@ -163,7 +163,7 @@ export class SlaScheduler {
     }
 
     const chain = this.policy.escalationChain(priority ?? Priority.P4);
-    const escalatedToRole = chain[0] ?? 'DIRECTOR';
+    const escalatedToRole = chain[0] ?? 'DEPARTMENT_HOD';
     this.eventEmitter.emit('sla.breach', { ticketId, escalatedToRole });
   }
 

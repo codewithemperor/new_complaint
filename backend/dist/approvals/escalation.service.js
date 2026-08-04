@@ -98,17 +98,17 @@ let EscalationService = class EscalationService {
     }
     /**
    * Resolve the user occupying an approver role for a ticket.
-   *  - DIRECTOR → the department's active DIRECTOR (HOD)
+   *  - DEPARTMENT_HOD → the department's active DEPARTMENT_HOD
    *  - PERMANENT_SECRETARY → the active PS user, or their delegate if a
    *    Delegation covers the current moment.
    *  - COMMISSIONER → the active COMMISSIONER user.
    */ async resolveApprover(role, departmentId) {
-        if (role === _ticketstatus.ApproverRole.DIRECTOR) {
+        if (role === _ticketstatus.ApproverRole.DEPARTMENT_HOD) {
             if (!departmentId) return null;
             const hod = await this.prisma.user.findFirst({
                 where: {
                     departmentId,
-                    role: _role.Role.DIRECTOR,
+                    role: _role.Role.DEPARTMENT_HOD,
                     isActive: true
                 }
             });

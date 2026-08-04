@@ -97,11 +97,11 @@ const STATUS_COLORS: Record<string, string> = {
   SUBMITTED: "bg-neutral-100 text-neutral-600 border-neutral-200",
   ACKNOWLEDGED: "bg-cyan-50 text-cyan-700 border-cyan-200",
   TRIAGED: "bg-violet-50 text-violet-700 border-violet-200",
-  ASSIGNED: "bg-teal-50 text-teal-700 border-teal-200",
+  ASSIGNED: "bg-green-50 text-green-700 border-green-200",
   IN_PROGRESS: "bg-amber-50 text-amber-700 border-amber-200",
   PENDING_APPROVAL: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  RESOLVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  APPROVED: "bg-green-50 text-green-700 border-green-200",
+  RESOLVED: "bg-green-50 text-green-700 border-green-200",
   CLOSED: "bg-neutral-100 text-neutral-600 border-neutral-200",
   REOPENED: "bg-orange-50 text-orange-700 border-orange-200",
   ESCALATED: "bg-red-50 text-red-700 border-red-200",
@@ -111,11 +111,11 @@ const STATUS_DOT_COLORS: Record<string, string> = {
   SUBMITTED: "bg-neutral-400",
   ACKNOWLEDGED: "bg-cyan-400",
   TRIAGED: "bg-violet-400",
-  ASSIGNED: "bg-teal-400",
+  ASSIGNED: "bg-green-400",
   IN_PROGRESS: "bg-amber-400",
   PENDING_APPROVAL: "bg-yellow-400",
-  APPROVED: "bg-emerald-500",
-  RESOLVED: "bg-emerald-500",
+  APPROVED: "bg-green-500",
+  RESOLVED: "bg-green-500",
   CLOSED: "bg-neutral-400",
   REOPENED: "bg-orange-400",
   ESCALATED: "bg-red-400",
@@ -138,7 +138,7 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 const PRIORITY_COLORS: Record<string, string> = {
   CRITICAL: "bg-red-50 text-red-700 border-red-200",
   HIGH: "bg-amber-50 text-amber-700 border-amber-200",
-  MEDIUM: "bg-teal-50 text-teal-700 border-teal-200",
+  MEDIUM: "bg-green-50 text-green-700 border-green-200",
   LOW: "bg-neutral-50 text-neutral-600 border-neutral-200",
 };
 
@@ -180,11 +180,11 @@ const MOVEMENT_ICONS: Record<string, React.ReactNode> = {
 const MOVEMENT_DOT_COLORS: Record<string, string> = {
   SUBMITTED: "bg-neutral-400",
   ROUTED: "bg-violet-400",
-  ASSIGNED: "bg-teal-400",
-  REASSIGNED: "bg-teal-400",
+  ASSIGNED: "bg-green-400",
+  REASSIGNED: "bg-green-400",
   RETURNED: "bg-amber-400",
   ESCALATED: "bg-red-400",
-  APPROVED: "bg-emerald-500",
+  APPROVED: "bg-green-500",
   REFERRED: "bg-cyan-400",
   REOPENED: "bg-orange-400",
   CLOSED: "bg-neutral-400",
@@ -205,21 +205,24 @@ const PIPELINE_STEPS = [
 
 /** Get the step index in the pipeline. Returns -1 for unknown. */
 function getStepIndex(status: string): number {
-  const idx = PIPELINE_STEPS.indexOf(status as typeof PIPELINE_STEPS[number]);
+  const idx = PIPELINE_STEPS.indexOf(status as (typeof PIPELINE_STEPS)[number]);
   return idx;
 }
 
 const inputClass =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm outline-none transition-all duration-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30";
+  "w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2.5 text-sm outline-none transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/30";
 
 /** Estimate a resolution date based on priority and created date. */
-function getEstimatedResolution(createdAt: string, priority?: string | null): Date | null {
+function getEstimatedResolution(
+  createdAt: string,
+  priority?: string | null,
+): Date | null {
   const created = new Date(createdAt);
   const hoursMap: Record<string, number> = {
-    P1: 48,   // Critical: 2 days
-    P2: 168,  // High: 7 days
-    P3: 336,  // Medium: 14 days
-    P4: 672,  // Low: 28 days
+    P1: 48, // Critical: 2 days
+    P2: 168, // High: 7 days
+    P3: 336, // Medium: 14 days
+    P4: 672, // Low: 28 days
   };
   const hours = hoursMap[priority ?? "P3"] ?? 336;
   return new Date(created.getTime() + hours * 60 * 60 * 1000);
@@ -228,7 +231,11 @@ function getEstimatedResolution(createdAt: string, priority?: string | null): Da
 /** Mask a string for privacy - show first/last chars only */
 function maskString(str: string, visibleChars = 2): string {
   if (str.length <= visibleChars * 2) return str;
-  return str.slice(0, visibleChars) + "•".repeat(Math.min(str.length - visibleChars * 2, 8)) + str.slice(-visibleChars);
+  return (
+    str.slice(0, visibleChars) +
+    "•".repeat(Math.min(str.length - visibleChars * 2, 8)) +
+    str.slice(-visibleChars)
+  );
 }
 
 /** Mask email for privacy */
@@ -241,7 +248,11 @@ function maskEmail(email: string): string {
 /** Mask phone for privacy */
 function maskPhone(phone: string): string {
   if (phone.length <= 4) return phone;
-  return phone.slice(0, 4) + "•".repeat(Math.min(phone.length - 4, 6)) + phone.slice(-2);
+  return (
+    phone.slice(0, 4) +
+    "•".repeat(Math.min(phone.length - 4, 6)) +
+    phone.slice(-2)
+  );
 }
 
 const RECENT_SEARCHES_KEY = "kwaramoc_recent_searches";
@@ -273,8 +284,20 @@ function saveRecentSearch(code: string) {
 }
 
 /** Floating background element component */
-function FloatingElement({ delay, duration, size, x, y, color }: {
-  delay: number; duration: number; size: number; x: string; y: string; color: string;
+function FloatingElement({
+  delay,
+  duration,
+  size,
+  x,
+  y,
+  color,
+}: {
+  delay: number;
+  duration: number;
+  size: number;
+  x: string;
+  y: string;
+  color: string;
 }) {
   return (
     <motion.div
@@ -311,7 +334,9 @@ export default function TrackFormPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [ticketCopied, setTicketCopied] = useState(false);
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
-  const [hoveredTimelineIdx, setHoveredTimelineIdx] = useState<number | null>(null);
+  const [hoveredTimelineIdx, setHoveredTimelineIdx] = useState<number | null>(
+    null,
+  );
 
   // Load recent searches from localStorage on mount
   useEffect(() => {
@@ -415,7 +440,9 @@ export default function TrackFormPage() {
       setReplySent(true);
       refetch();
     } catch (err) {
-      setReplyError(err instanceof ApiError ? err.message : "Failed to send reply.");
+      setReplyError(
+        err instanceof ApiError ? err.message : "Failed to send reply.",
+      );
     } finally {
       setReplying(false);
     }
@@ -478,7 +505,8 @@ export default function TrackFormPage() {
 
   // Compute progress bar info
   const progressInfo = useMemo(() => {
-    if (!ticket) return { stepIndex: 0, total: PIPELINE_STEPS.length, percent: 0 };
+    if (!ticket)
+      return { stepIndex: 0, total: PIPELINE_STEPS.length, percent: 0 };
     let idx = getStepIndex(ticket.status);
     if (idx === -1) {
       if (ticket.status === "CLOSED") idx = PIPELINE_STEPS.length - 1;
@@ -508,8 +536,11 @@ export default function TrackFormPage() {
     const now = new Date();
     const dueAt = ticket.slaDueAt ? new Date(ticket.slaDueAt) : null;
     const remaining = dueAt ? dueAt.getTime() - now.getTime() : null;
-    const hoursRemaining = remaining ? Math.max(0, Math.round(remaining / (1000 * 60 * 60))) : null;
-    const isBreached = ticket.slaBreached ?? (remaining !== null && remaining < 0);
+    const hoursRemaining = remaining
+      ? Math.max(0, Math.round(remaining / (1000 * 60 * 60)))
+      : null;
+    const isBreached =
+      ticket.slaBreached ?? (remaining !== null && remaining < 0);
     return {
       targetHours: ticket.slaTargetHours,
       dueAt,
@@ -526,21 +557,76 @@ export default function TrackFormPage() {
         {/* Animated background with floating elements */}
         <div className="fixed inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-neutral-50" />
-          <svg className="absolute inset-0 h-full w-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            className="absolute inset-0 h-full w-full opacity-[0.03]"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1" />
+              <pattern
+                id="grid"
+                width="40"
+                height="40"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 40 0 L 0 0 0 40"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#grid)" />
           </svg>
           {/* Floating elements */}
-          <FloatingElement delay={0} duration={6} size={120} x="10%" y="20%" color="#059669" />
-          <FloatingElement delay={1} duration={8} size={80} x="70%" y="15%" color="#14b8a6" />
-          <FloatingElement delay={2} duration={7} size={100} x="80%" y="60%" color="#10b981" />
-          <FloatingElement delay={0.5} duration={9} size={60} x="20%" y="70%" color="#0d9488" />
-          <FloatingElement delay={3} duration={6} size={90} x="50%" y="40%" color="#059669" />
-          <FloatingElement delay={1.5} duration={10} size={70} x="30%" y="80%" color="#14b8a6" />
+          <FloatingElement
+            delay={0}
+            duration={6}
+            size={120}
+            x="10%"
+            y="20%"
+            color="#059669"
+          />
+          <FloatingElement
+            delay={1}
+            duration={8}
+            size={80}
+            x="70%"
+            y="15%"
+            color="#22c55e"
+          />
+          <FloatingElement
+            delay={2}
+            duration={7}
+            size={100}
+            x="80%"
+            y="60%"
+            color="#10b981"
+          />
+          <FloatingElement
+            delay={0.5}
+            duration={9}
+            size={60}
+            x="20%"
+            y="70%"
+            color="#16a34a"
+          />
+          <FloatingElement
+            delay={3}
+            duration={6}
+            size={90}
+            x="50%"
+            y="40%"
+            color="#059669"
+          />
+          <FloatingElement
+            delay={1.5}
+            duration={10}
+            size={70}
+            x="30%"
+            y="80%"
+            color="#22c55e"
+          />
         </div>
         <div className="flex items-center justify-center px-4 pt-20 pb-8">
           <div className="w-full max-w-md">
@@ -551,14 +637,15 @@ export default function TrackFormPage() {
               transition={{ duration: 0.5 }}
               className="mb-6 text-center"
             >
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 border border-emerald-200">
-                <Search size={28} className="text-emerald-600" />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-100 border border-green-200">
+                <Search size={28} className="text-green-600" />
               </div>
               <h1 className="text-2xl font-bold text-neutral-800">
                 Track Your Complaint
               </h1>
               <p className="mt-2 text-sm text-neutral-500">
-                Enter the ticket code and passcode from your confirmation to check the status of your complaint
+                Enter the ticket code and passcode from your confirmation to
+                check the status of your complaint
               </p>
             </motion.div>
 
@@ -567,7 +654,7 @@ export default function TrackFormPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="rounded-xl border border-neutral-200 bg-white shadow-sm w-full overflow-hidden"
+              className="rounded-xl border border-neutral-200 bg-neutral-50 shadow-sm w-full overflow-hidden"
             >
               <div className="space-y-4 p-6">
                 {/* Ticket Code input */}
@@ -578,12 +665,17 @@ export default function TrackFormPage() {
                   <div className="relative">
                     <input
                       value={ticketCode}
-                      onChange={(e) => setTicketCode(e.target.value.toUpperCase())}
+                      onChange={(e) =>
+                        setTicketCode(e.target.value.toUpperCase())
+                      }
                       placeholder="e.g. KWMOC-0001"
                       className={inputClass + " font-mono tracking-wider pl-10"}
                       autoFocus
                     />
-                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    <Search
+                      size={16}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+                    />
                   </div>
                 </div>
                 {/* Passcode input */}
@@ -595,7 +687,10 @@ export default function TrackFormPage() {
                     value={passcode}
                     onChange={(e) => setPasscode(e.target.value)}
                     placeholder="Enter your 6-digit passcode"
-                    className={inputClass + " font-mono text-center text-lg tracking-[0.3em]"}
+                    className={
+                      inputClass +
+                      " font-mono text-center text-lg tracking-[0.3em]"
+                    }
                     maxLength={6}
                     inputMode="numeric"
                   />
@@ -619,7 +714,9 @@ export default function TrackFormPage() {
                             <AlertCircle size={16} className="text-red-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-red-800">Complaint Not Found</p>
+                            <p className="text-sm font-medium text-red-800">
+                              Complaint Not Found
+                            </p>
                             <p className="mt-1 text-sm text-red-700">{error}</p>
                             <ul className="mt-2 space-y-1">
                               <li className="flex items-center gap-1.5 text-xs text-red-600">
@@ -638,8 +735,12 @@ export default function TrackFormPage() {
                           </div>
                         </div>
                         <button
-                          onClick={() => { setError(null); setTicketCode(""); setPasscode(""); }}
-                          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+                          onClick={() => {
+                            setError(null);
+                            setTicketCode("");
+                            setPasscode("");
+                          }}
+                          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-neutral-50 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
                         >
                           <RefreshCw size={14} />
                           Try Again
@@ -651,7 +752,7 @@ export default function TrackFormPage() {
 
                 {/* Search button */}
                 <button
-                  className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-emerald-700 hover:shadow-md w-full disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none"
+                  className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-green-700 hover:shadow-md w-full disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none"
                   onClick={lookup}
                   disabled={loading || !ticketCode.trim() || !passcode.trim()}
                 >
@@ -694,7 +795,7 @@ export default function TrackFormPage() {
                         <button
                           key={s.code}
                           onClick={() => handleRecentSearchClick(s.code)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-mono font-medium text-neutral-700 transition-all hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-mono font-medium text-neutral-700 transition-all hover:border-green-300 hover:bg-green-50 hover:text-green-700"
                         >
                           <Search size={10} className="text-neutral-400" />
                           {s.code}
@@ -722,7 +823,7 @@ export default function TrackFormPage() {
               </Link>
               <Link
                 href="/report"
-                className="flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
+                className="flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
               >
                 <Plus size={14} />
                 Submit New Complaint
@@ -734,28 +835,36 @@ export default function TrackFormPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="mt-8 rounded-xl border border-neutral-200 bg-white p-6"
+              className="mt-8 rounded-xl border border-neutral-200 bg-neutral-50 p-6"
             >
               <h3 className="mb-4 text-center text-sm font-semibold text-neutral-800">
                 How Tracking Works
               </h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-600">
                     <ClipboardList size={16} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-700">1. Submit a Complaint</p>
-                    <p className="text-xs text-neutral-500">You receive a ticket code and a private passcode</p>
+                    <p className="text-sm font-medium text-neutral-700">
+                      1. Submit a Complaint
+                    </p>
+                    <p className="text-xs text-neutral-500">
+                      You receive a ticket code and a private passcode
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-teal-600">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-600">
                     <Fingerprint size={16} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-700">2. Enter Your Credentials</p>
-                    <p className="text-xs text-neutral-500">Use your ticket code and passcode to look up the status</p>
+                    <p className="text-sm font-medium text-neutral-700">
+                      2. Enter Your Credentials
+                    </p>
+                    <p className="text-xs text-neutral-500">
+                      Use your ticket code and passcode to look up the status
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -763,8 +872,13 @@ export default function TrackFormPage() {
                     <BarChart3 size={16} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-700">3. Track Progress in Real Time</p>
-                    <p className="text-xs text-neutral-500">See timeline updates, officer notes, and resolution details</p>
+                    <p className="text-sm font-medium text-neutral-700">
+                      3. Track Progress in Real Time
+                    </p>
+                    <p className="text-xs text-neutral-500">
+                      See timeline updates, officer notes, and resolution
+                      details
+                    </p>
                   </div>
                 </div>
               </div>
@@ -775,7 +889,7 @@ export default function TrackFormPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
-              className="mt-4 rounded-xl border border-neutral-200 bg-white p-6"
+              className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-6"
             >
               <h3 className="mb-4 text-center text-sm font-semibold text-neutral-800">
                 Complaint Lifecycle
@@ -787,7 +901,7 @@ export default function TrackFormPage() {
                       <div
                         className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${
                           i === 0
-                            ? "bg-emerald-100 text-emerald-700"
+                            ? "bg-green-100 text-green-700"
                             : "bg-neutral-100 text-neutral-500"
                         }`}
                       >
@@ -812,10 +926,13 @@ export default function TrackFormPage() {
 
   // ─── Ticket details ───
   const statusLabel = STATUS_LABELS[ticket.status] ?? ticket.status;
-  const statusColor = STATUS_COLORS[ticket.status] ?? "bg-neutral-100 text-neutral-600 border-neutral-200";
+  const statusColor =
+    STATUS_COLORS[ticket.status] ??
+    "bg-neutral-100 text-neutral-600 border-neutral-200";
   const statusDotColor = STATUS_DOT_COLORS[ticket.status] ?? "bg-neutral-400";
   const statusIcon = STATUS_ICONS[ticket.status] ?? <Circle size={14} />;
-  const isResolvedOrClosed = ticket.status === "RESOLVED" || ticket.status === "CLOSED";
+  const isResolvedOrClosed =
+    ticket.status === "RESOLVED" || ticket.status === "CLOSED";
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -823,18 +940,59 @@ export default function TrackFormPage() {
       {/* Animated background with floating elements */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-neutral-50" />
-        <svg className="absolute inset-0 h-full w-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          className="absolute inset-0 h-full w-full opacity-[0.03]"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <defs>
-            <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1" />
+            <pattern
+              id="grid2"
+              width="40"
+              height="40"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 40 0 L 0 0 0 40"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid2)" />
         </svg>
-        <FloatingElement delay={0} duration={6} size={120} x="10%" y="20%" color="#059669" />
-        <FloatingElement delay={1} duration={8} size={80} x="70%" y="15%" color="#14b8a6" />
-        <FloatingElement delay={2} duration={7} size={100} x="80%" y="60%" color="#10b981" />
-        <FloatingElement delay={0.5} duration={9} size={60} x="20%" y="70%" color="#0d9488" />
+        <FloatingElement
+          delay={0}
+          duration={6}
+          size={120}
+          x="10%"
+          y="20%"
+          color="#059669"
+        />
+        <FloatingElement
+          delay={1}
+          duration={8}
+          size={80}
+          x="70%"
+          y="15%"
+          color="#22c55e"
+        />
+        <FloatingElement
+          delay={2}
+          duration={7}
+          size={100}
+          x="80%"
+          y="60%"
+          color="#10b981"
+        />
+        <FloatingElement
+          delay={0.5}
+          duration={9}
+          size={60}
+          x="20%"
+          y="70%"
+          color="#16a34a"
+        />
       </div>
       <div className="mx-auto max-w-lg px-4 pb-8 pt-24">
         {/* Status header with icon badge */}
@@ -844,9 +1002,19 @@ export default function TrackFormPage() {
           transition={{ duration: 0.4 }}
           className="mb-6 text-center"
         >
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold relative overflow-hidden ${statusColor}`}>
-            <span className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 4px, currentColor 4px, currentColor 5px)" }} />
-            <span className={`relative h-2 w-2 rounded-full ${statusDotColor} ${!isResolvedOrClosed ? "animate-pulse" : ""}`} />
+          <span
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold relative overflow-hidden ${statusColor}`}
+          >
+            <span
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(45deg, transparent, transparent 4px, currentColor 4px, currentColor 5px)",
+              }}
+            />
+            <span
+              className={`relative h-2 w-2 rounded-full ${statusDotColor} ${!isResolvedOrClosed ? "animate-pulse" : ""}`}
+            />
             <span className="relative">{statusIcon}</span>
             <span className="relative">{statusLabel}</span>
           </span>
@@ -859,10 +1027,14 @@ export default function TrackFormPage() {
             </p>
             <button
               onClick={handleCopyTicketCode}
-              className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-0.5 text-xs text-neutral-500 transition-all hover:border-emerald-300 hover:text-emerald-600"
+              className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs text-neutral-500 transition-all hover:border-green-300 hover:text-green-600"
               title="Copy ticket code"
             >
-              {ticketCopied ? <Check size={10} className="text-emerald-600" /> : <Copy size={10} />}
+              {ticketCopied ? (
+                <Check size={10} className="text-green-600" />
+              ) : (
+                <Copy size={10} />
+              )}
               {ticketCopied ? "Copied" : "Copy"}
             </button>
           </div>
@@ -873,10 +1045,12 @@ export default function TrackFormPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="mb-4 rounded-xl border border-neutral-200 bg-white p-4 backdrop-blur-sm"
+          className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4 backdrop-blur-sm"
         >
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-neutral-600">Progress</span>
+            <span className="text-xs font-medium text-neutral-600">
+              Progress
+            </span>
             <span className="text-xs font-medium text-neutral-500">
               {progressInfo.stepIndex} / {progressInfo.total} steps
             </span>
@@ -886,12 +1060,14 @@ export default function TrackFormPage() {
               initial={{ width: 0 }}
               animate={{ width: `${progressInfo.percent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className={`h-full rounded-full ${isResolvedOrClosed ? "bg-emerald-500" : "bg-emerald-500"}`}
+              className={`h-full rounded-full ${isResolvedOrClosed ? "bg-green-500" : "bg-green-500"}`}
             />
           </div>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[10px] text-neutral-400">Submitted</span>
-            <span className="text-[10px] font-semibold text-emerald-600">{progressInfo.percent}%</span>
+            <span className="text-[10px] font-semibold text-green-600">
+              {progressInfo.percent}%
+            </span>
             <span className="text-[10px] text-neutral-400">Resolved</span>
           </div>
         </motion.div>
@@ -907,43 +1083,59 @@ export default function TrackFormPage() {
                 ? "border-red-200 bg-red-50"
                 : slaInfo.hoursRemaining !== null && slaInfo.hoursRemaining < 24
                   ? "border-amber-200 bg-amber-50"
-                  : "border-emerald-200 bg-emerald-50"
+                  : "border-green-200 bg-green-50"
             }`}
           >
-            <Timer size={18} className={`shrink-0 ${
-              slaInfo.isBreached
-                ? "text-red-600"
-                : slaInfo.hoursRemaining !== null && slaInfo.hoursRemaining < 24
-                  ? "text-amber-600"
-                  : "text-emerald-600"
-            }`} />
-            <div>
-              <p className={`text-xs font-medium ${
+            <Timer
+              size={18}
+              className={`shrink-0 ${
                 slaInfo.isBreached
-                  ? "text-red-700"
-                  : slaInfo.hoursRemaining !== null && slaInfo.hoursRemaining < 24
-                    ? "text-amber-700"
-                    : "text-emerald-700"
-              }`}>
+                  ? "text-red-600"
+                  : slaInfo.hoursRemaining !== null &&
+                      slaInfo.hoursRemaining < 24
+                    ? "text-amber-600"
+                    : "text-green-600"
+              }`}
+            />
+            <div>
+              <p
+                className={`text-xs font-medium ${
+                  slaInfo.isBreached
+                    ? "text-red-700"
+                    : slaInfo.hoursRemaining !== null &&
+                        slaInfo.hoursRemaining < 24
+                      ? "text-amber-700"
+                      : "text-green-700"
+                }`}
+              >
                 {slaInfo.isBreached ? "SLA Breached" : "SLA Target"}
               </p>
-              <p className={`text-sm ${
-                slaInfo.isBreached
-                  ? "text-red-800"
-                  : slaInfo.hoursRemaining !== null && slaInfo.hoursRemaining < 24
-                    ? "text-amber-800"
-                    : "text-emerald-800"
-              }`}>
+              <p
+                className={`text-sm ${
+                  slaInfo.isBreached
+                    ? "text-red-800"
+                    : slaInfo.hoursRemaining !== null &&
+                        slaInfo.hoursRemaining < 24
+                      ? "text-amber-800"
+                      : "text-green-800"
+                }`}
+              >
                 {slaInfo.isBreached
                   ? "Resolution is overdue"
                   : slaInfo.hoursRemaining !== null
                     ? `${slaInfo.hoursRemaining} hours remaining`
-                    : `${slaInfo.targetHours} hour target`
-                }
+                    : `${slaInfo.targetHours} hour target`}
               </p>
               {slaInfo.dueAt && (
                 <p className="text-xs text-neutral-500 mt-0.5">
-                  Due: {slaInfo.dueAt.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  Due:{" "}
+                  {slaInfo.dueAt.toLocaleDateString(undefined, {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </p>
               )}
             </div>
@@ -960,7 +1152,9 @@ export default function TrackFormPage() {
           >
             <CalendarClock size={18} className="shrink-0 text-amber-600" />
             <div>
-              <p className="text-xs font-medium text-amber-700">Estimated Resolution</p>
+              <p className="text-xs font-medium text-amber-700">
+                Estimated Resolution
+              </p>
               <p className="text-sm text-amber-800">
                 {estimatedResolution.toLocaleDateString(undefined, {
                   weekday: "long",
@@ -978,7 +1172,7 @@ export default function TrackFormPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-xl border border-neutral-200 bg-white/80 shadow-sm backdrop-blur-md"
+          className="rounded-xl border border-neutral-200 bg-neutral-50/80 shadow-sm backdrop-blur-md"
         >
           <div className="space-y-5 p-6">
             {/* Subject */}
@@ -987,7 +1181,9 @@ export default function TrackFormPage() {
                 <FileText size={12} />
                 Subject
               </div>
-              <p className="text-sm font-medium text-neutral-800">{ticket.subject}</p>
+              <p className="text-sm font-medium text-neutral-800">
+                {ticket.subject}
+              </p>
             </div>
 
             {/* Category & Priority */}
@@ -1007,7 +1203,9 @@ export default function TrackFormPage() {
                     <AlertTriangle size={12} />
                     Priority
                   </div>
-                  <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${PRIORITY_COLORS[ticket.priority] ?? "bg-neutral-50 text-neutral-600 border-neutral-200"}`}>
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${PRIORITY_COLORS[ticket.priority] ?? "bg-neutral-50 text-neutral-600 border-neutral-200"}`}
+                  >
                     {PRIORITY_ICONS[ticket.priority] ?? null}
                     {ticket.priority}
                   </span>
@@ -1019,25 +1217,33 @@ export default function TrackFormPage() {
             {ticket.departmentName && (
               <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100">
-                    <Building2 size={16} className="text-teal-600" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                    <Building2 size={16} className="text-green-600" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium uppercase text-neutral-400">Department</p>
-                    <p className="text-sm font-medium text-neutral-700">{ticket.departmentName}</p>
+                    <p className="text-xs font-medium uppercase text-neutral-400">
+                      Department
+                    </p>
+                    <p className="text-sm font-medium text-neutral-700">
+                      {ticket.departmentName}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Citizen Info Section (masked for privacy) */}
-            {(ticket.citizenName || ticket.citizenEmail || ticket.citizenPhone) && (
+            {(ticket.citizenName ||
+              ticket.citizenEmail ||
+              ticket.citizenPhone) && (
               <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100">
                     <UserCircle size={16} className="text-violet-600" />
                   </div>
-                  <p className="text-xs font-medium uppercase text-neutral-400">Complainant</p>
+                  <p className="text-xs font-medium uppercase text-neutral-400">
+                    Complainant
+                  </p>
                 </div>
                 <div className="space-y-1 pl-10">
                   {ticket.citizenName && (
@@ -1071,7 +1277,9 @@ export default function TrackFormPage() {
               <div className="mb-1 text-xs font-medium uppercase text-neutral-400">
                 Description
               </div>
-              <p className="whitespace-pre-wrap text-sm text-neutral-700">{ticket.description}</p>
+              <p className="whitespace-pre-wrap text-sm text-neutral-700">
+                {ticket.description}
+              </p>
             </div>
 
             {/* Submitted date */}
@@ -1087,12 +1295,14 @@ export default function TrackFormPage() {
 
             {/* Resolution */}
             {ticket.resolutionText && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-600">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase text-green-600">
                   <CheckCircle2 size={14} />
                   Resolution
                 </div>
-                <p className="mt-1 text-sm text-neutral-700">{ticket.resolutionText}</p>
+                <p className="mt-1 text-sm text-neutral-700">
+                  {ticket.resolutionText}
+                </p>
               </div>
             )}
 
@@ -1105,7 +1315,10 @@ export default function TrackFormPage() {
                 </div>
                 <ul className="mt-1 space-y-1">
                   {ticket.attachments.map((a, i) => (
-                    <li key={i} className="flex items-center gap-1.5 text-sm text-neutral-600">
+                    <li
+                      key={i}
+                      className="flex items-center gap-1.5 text-sm text-neutral-600"
+                    >
                       <Paperclip size={12} className="text-neutral-400" />
                       {a.filename}
                     </li>
@@ -1121,12 +1334,15 @@ export default function TrackFormPage() {
                   <AlertCircle size={14} />
                   Information Requested
                 </div>
-                <p className="mb-3 text-sm text-neutral-700">{ticket.infoRequest.text}</p>
+                <p className="mb-3 text-sm text-neutral-700">
+                  {ticket.infoRequest.text}
+                </p>
 
                 {replySent ? (
-                  <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-700">
+                  <div className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-700">
                     <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
-                    Thank you — your response has been sent. The investigation will resume shortly.
+                    Thank you — your response has been sent. The investigation
+                    will resume shortly.
                   </div>
                 ) : (
                   <>
@@ -1134,7 +1350,7 @@ export default function TrackFormPage() {
                       value={replyBody}
                       onChange={(e) => setReplyBody(e.target.value)}
                       rows={3}
-                      className="w-full resize-y rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                      className="w-full resize-y rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/30"
                       placeholder="Type your response here..."
                     />
                     {replyError && (
@@ -1144,7 +1360,7 @@ export default function TrackFormPage() {
                       </div>
                     )}
                     <button
-                      className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-emerald-700 hover:shadow-md mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-green-700 hover:shadow-md mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
                       onClick={handleReply}
                       disabled={replying || !replyBody.trim()}
                     >
@@ -1174,24 +1390,31 @@ export default function TrackFormPage() {
                 </div>
                 <div className="space-y-3">
                   {ticket.minutes.map((m, i) => (
-                    <div key={i} className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+                    <div
+                      key={i}
+                      className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 shadow-sm"
+                    >
                       <div className="mb-2 flex items-center justify-between">
                         <span className="flex items-center gap-1.5 text-xs font-medium text-neutral-700">
-                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-50">
-                            <User size={10} className="text-teal-600" />
+                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-50">
+                            <User size={10} className="text-green-600" />
                           </div>
                           {m.author?.fullName ?? "Officer"}
                           {m.author?.designation ? (
-                            <span className="text-neutral-400">· {m.author.designation}</span>
+                            <span className="text-neutral-400">
+                              · {m.author.designation}
+                            </span>
                           ) : null}
                         </span>
                         <span className="text-xs text-neutral-400">
                           {new Date(m.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="whitespace-pre-wrap text-sm text-neutral-700 leading-relaxed">{m.body}</p>
+                      <p className="whitespace-pre-wrap text-sm text-neutral-700 leading-relaxed">
+                        {m.body}
+                      </p>
                       {m.isResolutionDraft && (
-                        <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+                        <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-600">
                           <CheckCircle2 size={10} />
                           Resolution draft
                         </span>
@@ -1215,7 +1438,7 @@ export default function TrackFormPage() {
                   {/* Colored overlay for completed portion */}
                   {ticket.timeline.length > 1 && (
                     <div
-                      className="absolute left-[15px] top-2 w-0.5 bg-emerald-400"
+                      className="absolute left-[15px] top-2 w-0.5 bg-green-400"
                       style={{
                         height: `calc(${((ticket.timeline.length - 1) / ticket.timeline.length) * 100}% - 8px)`,
                       }}
@@ -1224,9 +1447,12 @@ export default function TrackFormPage() {
 
                   <div className="space-y-0">
                     {ticket.timeline.map((entry, i) => {
-                      const icon = MOVEMENT_ICONS[entry.type] ?? <Circle size={14} />;
+                      const icon = MOVEMENT_ICONS[entry.type] ?? (
+                        <Circle size={14} />
+                      );
                       const label = MOVEMENT_LABELS[entry.type] ?? entry.type;
-                      const dotColor = MOVEMENT_DOT_COLORS[entry.type] ?? "bg-neutral-400";
+                      const dotColor =
+                        MOVEMENT_DOT_COLORS[entry.type] ?? "bg-neutral-400";
                       const isLast = i === ticket.timeline.length - 1;
                       return (
                         <motion.div
@@ -1239,20 +1465,28 @@ export default function TrackFormPage() {
                           onMouseLeave={() => setHoveredTimelineIdx(null)}
                         >
                           {/* Dot with icon */}
-                          <div className={`relative z-10 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border-2 border-white text-white shadow-sm transition-all duration-200 ${dotColor} ${isLast ? "ring-2 ring-emerald-200" : ""}`}>
+                          <div
+                            className={`relative z-10 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border-2 border-white text-white shadow-sm transition-all duration-200 ${dotColor} ${isLast ? "ring-2 ring-green-200" : ""}`}
+                          >
                             {icon}
                             {/* Pulse ring for current status */}
                             {isLast && !isResolvedOrClosed && (
-                              <span className="absolute inset-0 rounded-full animate-ping bg-emerald-400 opacity-20" />
+                              <span className="absolute inset-0 rounded-full animate-ping bg-green-400 opacity-20" />
                             )}
                           </div>
                           {/* Content */}
                           <div className="min-w-0 flex-1 pt-0.5">
-                            <p className="text-sm font-medium text-neutral-800">{label}</p>
+                            <p className="text-sm font-medium text-neutral-800">
+                              {label}
+                            </p>
                             {entry.note && (
-                              <p className="mt-0.5 text-xs text-neutral-500">{entry.note}</p>
+                              <p className="mt-0.5 text-xs text-neutral-500">
+                                {entry.note}
+                              </p>
                             )}
-                            <div className={`mt-0.5 transition-all duration-200 ${hoveredTimelineIdx === i ? "opacity-100" : "opacity-60"}`}>
+                            <div
+                              className={`mt-0.5 transition-all duration-200 ${hoveredTimelineIdx === i ? "opacity-100" : "opacity-60"}`}
+                            >
                               <p className="text-xs text-neutral-400">
                                 {new Date(entry.createdAt).toLocaleString()}
                               </p>
@@ -1268,19 +1502,22 @@ export default function TrackFormPage() {
 
             {/* Submit Feedback link for resolved tickets */}
             {isResolvedOrClosed && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                    <MessageSquare size={16} className="text-emerald-600" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
+                    <MessageSquare size={16} className="text-green-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-emerald-800">Your complaint has been resolved</p>
-                    <p className="mt-1 text-xs text-emerald-700">
-                      We value your feedback. Let us know how we handled your complaint.
+                    <p className="text-sm font-medium text-green-800">
+                      Your complaint has been resolved
+                    </p>
+                    <p className="mt-1 text-xs text-green-700">
+                      We value your feedback. Let us know how we handled your
+                      complaint.
                     </p>
                     <Link
                       href={`/#feedback`}
-                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-700"
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700"
                     >
                       <MessageSquare size={12} />
                       Submit Feedback
@@ -1294,13 +1531,13 @@ export default function TrackFormPage() {
             <div className="flex flex-col gap-2 pt-2 sm:flex-row">
               <button
                 onClick={handleBack}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-neutral-50 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
               >
                 <ArrowLeft size={14} />
                 Check Another
               </button>
               <Link href="/report" className="flex flex-1">
-                <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-emerald-700 hover:shadow-md">
+                <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-green-700 hover:shadow-md">
                   <Plus size={14} />
                   Submit New Complaint
                 </button>
@@ -1311,7 +1548,7 @@ export default function TrackFormPage() {
             <div className="flex gap-2">
               <button
                 onClick={handlePrint}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 hover:border-neutral-300"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 hover:border-neutral-300"
               >
                 <Printer size={14} />
                 Print
@@ -1320,8 +1557,8 @@ export default function TrackFormPage() {
                 onClick={handleShare}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2 text-sm font-medium transition-all duration-200 ${
                   shareCopied
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300"
+                    ? "border-green-200 bg-green-50 text-green-700"
+                    : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300"
                 }`}
               >
                 <Share2 size={14} />
@@ -1339,7 +1576,7 @@ export default function TrackFormPage() {
                   a.click();
                   URL.revokeObjectURL(url);
                 }}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 hover:border-neutral-300"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50 hover:border-neutral-300"
               >
                 <Download size={14} />
                 Download
@@ -1353,32 +1590,38 @@ export default function TrackFormPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
-          className="mt-6 rounded-xl border border-neutral-200 bg-white p-5"
+          className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-5"
         >
-          <h3 className="mb-3 text-sm font-semibold text-neutral-800">Contact Support</h3>
+          <h3 className="mb-3 text-sm font-semibold text-neutral-800">
+            Contact Support
+          </h3>
           <div className="space-y-3">
             <a
               href="mailto:support@kwaramoc.kw.gov.ng"
-              className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-emerald-600"
+              className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-green-600"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
-                <Mail size={16} className="text-emerald-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
+                <Mail size={16} className="text-green-600" />
               </div>
               <div>
                 <p className="font-medium text-neutral-700">Email Support</p>
-                <p className="text-xs text-neutral-500">support@kwaramoc.kw.gov.ng</p>
+                <p className="text-xs text-neutral-500">
+                  support@kwaramoc.kw.gov.ng
+                </p>
               </div>
             </a>
             <a
               href="tel:+2340000000000"
-              className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-emerald-600"
+              className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-green-600"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
-                <Phone size={16} className="text-emerald-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
+                <Phone size={16} className="text-green-600" />
               </div>
               <div>
                 <p className="font-medium text-neutral-700">Phone Support</p>
-                <p className="text-xs text-neutral-500">+234 000 000 0000 (Mon-Fri, 8am-4pm)</p>
+                <p className="text-xs text-neutral-500">
+                  +234 000 000 0000 (Mon-Fri, 8am-4pm)
+                </p>
               </div>
             </a>
           </div>

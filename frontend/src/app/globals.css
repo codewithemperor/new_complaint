@@ -1,40 +1,215 @@
-/* Tailwind CSS v4 */
 @import "tailwindcss";
+@import "@heroui/styles";
 
 /* ---------------------------------------------------------------------------
- * Theme overrides
+ * Brand palette — primary (green)
  * ------------------------------------------------------------------------- */
-:root {
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.15 0 0);
+@theme {
+  --color-primary-50: oklch(0.95 0.081 137.47);
+  --color-primary-100: oklch(0.897 0.191 136.36);
+  --color-primary-200: oklch(0.82 0.174 136.34);
+  --color-primary-300: oklch(0.735 0.156 136.09);
+  --color-primary-400: oklch(0.651 0.138 136.35);
+  --color-primary-500: oklch(0.573 0.122 136.24);
+  --color-primary-600: oklch(0.482 0.102 136.2);
+  --color-primary-700: oklch(0.397 0.085 135.99);
+  --color-primary-800: oklch(0.315 0.067 135.9);
+  --color-primary-900: oklch(0.219 0.046 135.86);
+  --color-primary-950: oklch(0.174 0.038 136.96);
 }
 
-.dark {
-  --background: oklch(0.13 0 0);
-  --foreground: oklch(0.95 0 0);
+/* ---------------------------------------------------------------------------
+ * Brand palette — secondary (amber)
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-secondary-50: oklch(0.958 0.019 52.01);
+  --color-secondary-100: oklch(0.916 0.039 53.32);
+  --color-secondary-200: oklch(0.825 0.094 58.6);
+  --color-secondary-300: oklch(0.74 0.123 63.8);
+  --color-secondary-400: oklch(0.644 0.107 63.34);
+  --color-secondary-500: oklch(0.558 0.093 63.26);
+  --color-secondary-600: oklch(0.472 0.079 63.79);
+  --color-secondary-700: oklch(0.391 0.065 62.94);
+  --color-secondary-800: oklch(0.305 0.051 63.71);
+  --color-secondary-900: oklch(0.226 0.037 64.15);
+  --color-secondary-950: oklch(0.177 0.029 63.1);
 }
 
-html,
+/* ---------------------------------------------------------------------------
+ * Neutral / gray scale — same lightness curve as primary & secondary,
+ * near-zero chroma at a neutral hue so it doesn't clash with either brand
+ * color. Used for the --default (HeroUI's neutral role) and any raw gray-*
+ * utilities you need directly.
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-gray-50: oklch(0.985 0.002 90);
+  --color-gray-100: oklch(0.967 0.003 90);
+  --color-gray-200: oklch(0.922 0.004 90);
+  --color-gray-300: oklch(0.869 0.005 90);
+  --color-gray-400: oklch(0.708 0.007 90);
+  --color-gray-500: oklch(0.556 0.006 90);
+  --color-gray-600: oklch(0.446 0.006 90);
+  --color-gray-700: oklch(0.372 0.006 90);
+  --color-gray-800: oklch(0.278 0.005 90);
+  --color-gray-900: oklch(0.208 0.004 90);
+  --color-gray-950: oklch(0.145 0.003 90);
+}
+
+@theme {
+  --color-neutral-50: oklch(0.985 0.002 136.2);
+  --color-neutral-100: oklch(0.97 0.003 136.2);
+  --color-neutral-200: oklch(0.922 0.005 136.2);
+  --color-neutral-300: oklch(0.87 0.006 136.2);
+  --color-neutral-400: oklch(0.708 0.008 136.2);
+  --color-neutral-500: oklch(0.556 0.008 136.2);
+  --color-neutral-600: oklch(0.439 0.008 136.2);
+  --color-neutral-700: oklch(0.371 0.007 136.2);
+  --color-neutral-800: oklch(0.269 0.006 136.2);
+  --color-neutral-900: oklch(0.205 0.005 136.2);
+  --color-neutral-950: oklch(0.145 0.004 136.2);
+}
+
+@layer base {
+  .dark,
+  [data-theme="dark"] {
+    /* Literal swap, not var() references to each other — cross-referencing
+       custom properties within the same scope is circular and resolves to
+       invalid/initial values. */
+    --color-neutral-50: oklch(0.145 0.004 136.2); /* = light 950 */
+    --color-neutral-100: oklch(0.205 0.005 136.2); /* = light 900 */
+    --color-neutral-200: oklch(0.269 0.006 136.2); /* = light 800 */
+    --color-neutral-300: oklch(0.371 0.007 136.2); /* = light 700 */
+    --color-neutral-400: oklch(0.439 0.008 136.2); /* = light 600 */
+    --color-neutral-500: oklch(0.556 0.008 136.2); /* = light 500, midpoint */
+    --color-neutral-600: oklch(0.708 0.008 136.2); /* = light 400 */
+    --color-neutral-700: oklch(0.87 0.006 136.2); /* = light 300 */
+    --color-neutral-800: oklch(0.922 0.005 136.2); /* = light 200 */
+    --color-neutral-900: oklch(0.97 0.003 136.2); /* = light 100 */
+    --color-neutral-950: oklch(0.985 0.002 136.2); /* = light 50 */
+  }
+}
+
+@layer base {
+  :root,
+  [data-theme="light"] {
+    /* Brand */
+    --accent: var(--color-primary-600);
+    --accent-foreground: var(--white);
+
+    --secondary: var(--color-secondary-500);
+    --secondary-foreground: var(--white);
+
+    /* Neutrals */
+    --default: var(--color-gray-100);
+    --default-foreground: var(--color-gray-900);
+
+    /* Base surfaces */
+    --background: var(--color-gray-50);
+    --foreground: var(--color-gray-900);
+
+    --surface: var(--white);
+    --surface-foreground: var(--foreground);
+    --surface-secondary: var(--color-gray-100);
+    --surface-tertiary: var(--color-gray-200);
+
+    --overlay: var(--white);
+    --overlay-foreground: var(--foreground);
+
+    --muted: var(--color-gray-500);
+
+    /* Form fields */
+    --field-background: var(--white);
+    --field-foreground: var(--color-gray-900);
+    --field-placeholder: var(--muted);
+    --field-border: var(--color-gray-200);
+
+    /* Lines */
+    --border: var(--color-gray-200);
+    --separator: var(--color-gray-200);
+
+    /* Focus ring picks up the brand accent */
+    --focus: var(--accent);
+  }
+
+  .dark,
+  [data-theme="dark"] {
+    /* Brand — lighter step for legibility on dark surfaces */
+    --accent: var(--color-primary-400);
+    --accent-foreground: var(--color-gray-950);
+
+    --secondary: var(--color-secondary-400);
+    --secondary-foreground: var(--color-gray-950);
+
+    /* Neutrals */
+    --default: var(--color-gray-800);
+    --default-foreground: var(--color-gray-50);
+
+    /* Base surfaces */
+    --background: var(--color-gray-950);
+    --foreground: var(--color-gray-50);
+
+    --surface: var(--color-gray-900);
+    --surface-foreground: var(--foreground);
+    --surface-secondary: var(--color-gray-800);
+    --surface-tertiary: var(--color-gray-700);
+
+    --overlay: var(--color-gray-900);
+    --overlay-foreground: var(--foreground);
+
+    --muted: var(--color-gray-400);
+
+    /* Form fields */
+    --field-background: var(--color-gray-900);
+    --field-foreground: var(--color-gray-50);
+    --field-placeholder: var(--muted);
+    --field-border: var(--color-gray-700);
+
+    /* Lines */
+    --border: var(--color-gray-800);
+    --separator: var(--color-gray-800);
+
+    --focus: var(--accent);
+  }
+}
+
+/* Make the custom --secondary token available as Tailwind utilities
+   (bg-secondary, text-secondary-foreground, etc.) */
+@theme inline {
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+}
+
+/* ---------------------------------------------------------------------------
+ * Typography
+ * ------------------------------------------------------------------------- */
+@theme inline {
+  --font-sans: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-fraunces), Georgia, serif;
+}
+
 body {
-  height: 100%;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family:
-    var(--font-geist-sans, system-ui),
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+  }
 }
 
 /* ---------------------------------------------------------------------------
  * Custom animations
  * ------------------------------------------------------------------------- */
 @keyframes underline-grow {
-  0%, 100% {
+  0%,
+  100% {
     transform: scaleX(0.3);
     opacity: 0.4;
   }
@@ -67,41 +242,4 @@ body {
 
 .animate-shimmer {
   animation: shimmer-slide 2.5s ease-in-out infinite;
-}
-
-/* ---------------------------------------------------------------------------
- * Thin scrollbar styling
- * ------------------------------------------------------------------------- */
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-}
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: oklch(0.8 0 0);
-  border-radius: 9999px;
-}
-.dark .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: oklch(0.35 0 0);
-}
-
-/* ---------------------------------------------------------------------------
- * Custom scrollbar for ticket detail lists
- * ------------------------------------------------------------------------- */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: oklch(0.75 0 0);
-  border-radius: 9999px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: oklch(0.55 0 0);
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: oklch(0.35 0 0);
 }

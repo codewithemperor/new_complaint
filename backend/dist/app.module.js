@@ -26,8 +26,10 @@ const _routingmodule = require("./routing/routing.module");
 const _slamodule = require("./sla/sla.module");
 const _approvalsmodule = require("./approvals/approvals.module");
 const _auditmodule = require("./audit/audit.module");
+const _dashboardmodule = require("./dashboard/dashboard.module");
 const _remindersmodule = require("./reminders/reminders.module");
 const _jwtauthguard = require("./common/guards/jwt-auth.guard");
+const _permissionsguard = require("./common/guards/permissions.guard");
 function _ts_decorate(decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
@@ -64,14 +66,20 @@ AppModule = _ts_decorate([
             _slamodule.SlaModule,
             _approvalsmodule.ApprovalsModule,
             _auditmodule.AuditModule,
+            _dashboardmodule.DashboardModule,
             _remindersmodule.RemindersModule
         ],
         // JwtAuthGuard is the global default; routes opt out with @Public().
-        // RolesGuard is applied per-route via @UseGuards(RolesGuard) + @Roles(...).
+        // PermissionsGuard layers fine-grained module checks (@Permissions) on top of
+        // the coarse role gate (@Roles + RolesGuard, applied per-route).
         providers: [
             {
                 provide: _core.APP_GUARD,
                 useClass: _jwtauthguard.JwtAuthGuard
+            },
+            {
+                provide: _core.APP_GUARD,
+                useClass: _permissionsguard.PermissionsGuard
             }
         ]
     })

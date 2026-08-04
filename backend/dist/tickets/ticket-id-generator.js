@@ -31,29 +31,57 @@ function _ts_metadata(metadataKey, metadataValue) {
 let TicketIdGenerator = class TicketIdGenerator {
     constructor(prisma){
         this.prisma = prisma;
+        this.logger = new _common.Logger(TicketIdGenerator.name);
     }
     /**
-   * Atomically reserves the next sequence number for the given year and
+   * Atomically reserves the next sequence number for the current year and
    * returns the formatted ticket code. Must be called inside a transaction.
    */ async nextCode(tx) {
         const year = new Date().getFullYear();
-        // SQLite doesn't support SELECT FOR UPDATE, so we use upsert.
-        const seq = await tx.ticketSequence.upsert({
+        // Defensive sync: find the max existing numeric suffix for this year so the
+        // counter never lags behind real rows (which would cause a unique violation
+        // on ticket_code). Cheap (one indexed scan on ticket_code) and rare to drift.
+        const latest = await tx.ticket.findFirst({
+            where: {
+                ticketCode: {
+                    startsWith: `KWMOC-${year}-`
+                }
+            },
+            orderBy: {
+                ticketCode: 'desc'
+            },
+            select: {
+                ticketCode: true
+            }
+        });
+        const maxExisting = latest ? parseInt(latest.ticketCode.split('-').pop() ?? '0', 10) || 0 : 0;
+        const current = await tx.ticketSequence.findUnique({
+            where: {
+                year
+            }
+        });
+        const base = Math.max(current?.lastValue ?? 0, maxExisting);
+        const nextValue = base + 1;
+        // Upsert keeps a single row per year and persists the reconciled counter.
+        await tx.ticketSequence.upsert({
             where: {
                 year
             },
             update: {
-                lastValue: {
-                    increment: 1
-                }
+                lastValue: nextValue
             },
             create: {
                 id: year,
                 year,
-                lastValue: 1
+                lastValue: nextValue
             }
         });
-        return `KWMOC-${year}-${String(seq.lastValue).padStart(6, '0')}`;
+        const code = `KWMOC-${year}-${String(nextValue).padStart(6, '0')}`;
+        // If we had to jump the counter forward, surface it so it's not silent.
+        if (current && nextValue > current.lastValue + 1) {
+            this.logger.warn(`TicketSequence for ${year} jumped ${current.lastValue} → ${nextValue} (max existing code: ${maxExisting}).`);
+        }
+        return code;
     }
 };
 TicketIdGenerator = _ts_decorate([

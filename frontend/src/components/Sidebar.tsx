@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  useRef,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import type { Role } from "@/lib/types";
-import { NAV_BY_ROLE, NAV_SECTIONS, ROLE_LABELS } from "@/lib/nav";
+import type { User as SessionUser } from "@/lib/types";
+import { NAV_BY_ROLE, NAV_SECTIONS, ROLE_LABELS, getNavItems } from "@/lib/nav";
 import type { NavItem } from "@/lib/nav";
 
 /* ─── Lucide Icons ────────────────────────────────────────────────── */
@@ -30,8 +38,6 @@ import {
   Moon,
   Sun,
   Star,
-  ChevronRight,
-  User,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -57,8 +63,26 @@ const ICON_MAP: Record<string, LucideIcon> = {
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  if (parts.length >= 2)
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
+}
+
+// Active / hover treatment for nav links, shared by the favorites list and
+// the regular sections below. Light mode: light green fill + dark green
+// text. Dark mode: darker green fill (not the light-mode tint, which is
+// unreadable on a dark surface) + a bright, legible green text.
+function navLinkClasses(active: boolean, collapsed: boolean) {
+  return `
+    group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium
+    transition-all duration-200
+    ${
+      active
+        ? "bg-green-50 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+        : "text-muted-foreground hover:bg-neutral-100 hover:text-foreground dark:hover:bg-white/5"
+    }
+    ${collapsed ? "justify-center" : ""}
+  `;
 }
 
 /* ─── Types ───────────────────────────────────────────────────────── */
@@ -82,6 +106,8 @@ interface SidebarProps {
   user?: { fullName: string; role: string };
   /** Legacy: user profile with full role type */
   userProfile?: { fullName: string; role: Role; email?: string };
+  /** Full session user — when provided, nav is role+permission filtered. */
+  sessionUser?: SessionUser | null;
   /** Favorited nav item hrefs */
   favorites?: string[];
 }
@@ -98,13 +124,18 @@ export function Sidebar({
   badges = {},
   user,
   userProfile,
+  sessionUser,
   favorites: favoriteHrefs = [],
 }: SidebarProps) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const items = NAV_BY_ROLE[role] ?? [];
+  // Permission-aware nav when the full user is available; otherwise fall back
+  // to the per-role map.
+  const items = sessionUser
+    ? getNavItems(sessionUser)
+    : (NAV_BY_ROLE[role] ?? []);
 
   // Hydration-safe mounted detection using useSyncExternalStore
   const mounted = useSyncExternalStore(
@@ -112,12 +143,15 @@ export function Sidebar({
       // No-op subscription — we only need the snapshot values
       return () => {};
     }, []),
-    () => true,  // client snapshot
-    () => false  // server snapshot
+    () => true, // client snapshot
+    () => false, // server snapshot
   );
 
   // Merge notificationCounts and badges (badges takes precedence)
-  const allBadges = useMemo(() => ({ ...notificationCounts, ...badges }), [notificationCounts, badges]);
+  const allBadges = useMemo(
+    () => ({ ...notificationCounts, ...badges }),
+    [notificationCounts, badges],
+  );
 
   // Resolve user info from either `user` or `userProfile` prop
   const resolvedUser = useMemo(() => {
@@ -141,7 +175,7 @@ export function Sidebar({
       ? items.filter(
           (item) =>
             item.label.toLowerCase().includes(query) ||
-            item.section.toLowerCase().includes(query)
+            item.section.toLowerCase().includes(query),
         )
       : items;
 
@@ -160,8 +194,13 @@ export function Sidebar({
   }, [items, favoriteHrefs, favoriteSet]);
 
   const isActive = useCallback(
-    (href: string) => pathname === href || pathname.startsWith(href + "/"),
-    [pathname]
+    // Exact match for the base /dashboard index; prefix match for deeper routes
+    // so /dashboard/complaints highlights "Complaints" but not "Dashboard".
+    (href: string) =>
+      href === "/dashboard"
+        ? pathname === "/dashboard"
+        : pathname === href || pathname.startsWith(href + "/"),
+    [pathname],
   );
 
   const isDark = mounted && theme === "dark";
@@ -176,38 +215,38 @@ export function Sidebar({
         onClick={onMobileClose}
       />
 
-      {/* Sidebar */}
+      {/* Sidebar — sticky + h-screen so it stays put while the main content scrolls. */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 flex flex-col border-r border-neutral-200 bg-white
-          dark:border-neutral-800 dark:bg-neutral-950
+          fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-border bg-card
           transition-[width,transform] duration-300 ease-in-out
-          md:relative md:z-auto
+          md:sticky md:top-0 md:z-auto
           ${collapsed ? "w-[68px]" : "w-64"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
         {/* Animated decorative shimmer line */}
-        <div className="relative h-[3px] w-full shrink-0 overflow-hidden bg-teal-100 dark:bg-teal-900/30">
+        <div className="relative h-[3px] w-full shrink-0 overflow-hidden bg-green-100 dark:bg-green-950">
           <div
             className="absolute inset-y-0 w-2/5 animate-shimmer rounded-full"
             style={{
-              background: "linear-gradient(90deg, transparent, #0d9488, #14b8a6, #0d9488, transparent)",
+              background:
+                "linear-gradient(90deg, transparent, #16a34a, #22c55e, #16a34a, transparent)",
             }}
           />
         </div>
 
         {/* Brand header */}
-        <div className="flex items-center gap-2 border-b border-neutral-200 px-4 py-4 dark:border-neutral-800">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-700 text-lg font-bold text-white">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-4 ">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-green-700 text-lg font-bold text-white">
             K
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
-              <span className="block text-sm font-semibold text-neutral-800 whitespace-nowrap dark:text-neutral-100 transition-opacity duration-200">
+              <span className="block text-sm font-semibold text-foreground whitespace-nowrap  transition-opacity duration-200">
                 KwaraMOc
               </span>
-              <span className="block text-[10px] text-neutral-400 dark:text-neutral-500 whitespace-nowrap">
+              <span className="block text-[10px] text-muted-foreground  whitespace-nowrap">
                 Complaint System
               </span>
             </div>
@@ -216,16 +255,16 @@ export function Sidebar({
 
         {/* Quick search input */}
         {!collapsed && (
-          <div className="border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
+          <div className="border-b border-border px-3 py-2 ">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Filter menu…"
-                className="w-full rounded-md border border-neutral-200 bg-neutral-50 py-1.5 pl-8 pr-3 text-xs text-neutral-700 placeholder-neutral-400 transition-colors focus:border-teal-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-teal-400 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:placeholder-neutral-500 dark:focus:border-teal-500 dark:focus:bg-neutral-800"
+                className="w-full rounded-md border border-border bg-neutral-50 py-1.5 pl-8 pr-3 text-xs text-foreground placeholder-neutral-400 transition-colors focus:border-green-400 focus:bg-neutral-50 focus:outline-none focus:ring-1 focus:ring-green-400 dark:focus:border-green-500 dark:focus:ring-green-500"
               />
               {searchQuery && (
                 <button
@@ -233,7 +272,7 @@ export function Sidebar({
                     setSearchQuery("");
                     searchInputRef.current?.focus();
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-600 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:bg-neutral-200 hover:text-muted-foreground  "
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -242,13 +281,13 @@ export function Sidebar({
           </div>
         )}
         {collapsed && (
-          <div className="flex justify-center border-b border-neutral-100 py-2 dark:border-neutral-800">
+          <div className="flex justify-center border-b border-border py-2 ">
             <button
               onClick={() => {
                 onToggleCollapse?.();
                 setTimeout(() => searchInputRef.current?.focus(), 350);
               }}
-              className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-neutral-50 hover:text-muted-foreground  "
               title="Search"
               aria-label="Expand and search"
             >
@@ -259,11 +298,15 @@ export function Sidebar({
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin">
-          {searchQuery && groupedItems && Object.keys(groupedItems).length === 0 && (
-            <div className="px-3 py-6 text-center">
-              <p className="text-xs text-neutral-400 dark:text-neutral-500">No matches found</p>
-            </div>
-          )}
+          {searchQuery &&
+            groupedItems &&
+            Object.keys(groupedItems).length === 0 && (
+              <div className="px-3 py-6 text-center">
+                <p className="text-xs text-muted-foreground ">
+                  No matches found
+                </p>
+              </div>
+            )}
 
           {/* Favorites section */}
           {favoriteItems.length > 0 && !searchQuery && (
@@ -271,13 +314,13 @@ export function Sidebar({
               {!collapsed && (
                 <div className="mb-1 px-3 pt-2 pb-1 flex items-center gap-1.5">
                   <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 ">
                     Favorites
                   </span>
                 </div>
               )}
               {collapsed && (
-                <div className="mx-auto mb-1 mt-2 h-px w-6 bg-amber-300 dark:bg-amber-700" />
+                <div className="mx-auto mb-1 mt-2 h-px w-6 bg-amber-300 " />
               )}
               {favoriteItems.map((item) => {
                 const IconComponent = ICON_MAP[item.icon];
@@ -292,26 +335,17 @@ export function Sidebar({
                       onMobileClose?.();
                       setSearchQuery("");
                     }}
-                    className={`
-                      group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium
-                      transition-all duration-200
-                      ${
-                        active
-                          ? "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400"
-                          : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
-                      }
-                      ${collapsed ? "justify-center" : ""}
-                    `}
+                    className={navLinkClasses(active, collapsed)}
                     title={collapsed ? item.label : undefined}
                   >
                     {/* Active left border stripe */}
                     {active && (
-                      <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-teal-600 dark:bg-teal-400 transition-all" />
+                      <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-green-600 dark:bg-green-500 transition-all" />
                     )}
 
                     {/* Hover slide-in background */}
                     {!active && (
-                      <div className="absolute inset-0 origin-left scale-x-0 rounded-lg bg-teal-50/60 transition-transform duration-200 group-hover:scale-x-100 dark:bg-teal-950/20" />
+                      <div className="absolute inset-0 origin-left scale-x-0 rounded-lg bg-green-50/60 transition-transform duration-200 group-hover:scale-x-100 dark:bg-green-900/25" />
                     )}
 
                     {/* Icon */}
@@ -319,7 +353,9 @@ export function Sidebar({
                       {IconComponent ? (
                         <IconComponent
                           className={`h-[18px] w-[18px] ${
-                            active ? "text-teal-600 dark:text-teal-400" : "text-neutral-500 group-hover:text-neutral-700 dark:text-neutral-400 dark:group-hover:text-neutral-200"
+                            active
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-muted-foreground group-hover:text-foreground  "
                           } transition-colors`}
                         />
                       ) : (
@@ -355,7 +391,7 @@ export function Sidebar({
               })}
 
               {/* Divider between favorites and regular nav */}
-              <div className="mx-3 mt-2 border-t border-neutral-200 dark:border-neutral-700" />
+              <div className="mx-3 mt-2 border-t border-border " />
             </div>
           )}
 
@@ -365,9 +401,10 @@ export function Sidebar({
             if (!sectionItems || sectionItems.length === 0) return null;
 
             // Filter out favorite items from regular sections to avoid duplicates
-            const displayItems = favoriteItems.length > 0 && !searchQuery
-              ? sectionItems.filter((item) => !favoriteSet.has(item.href))
-              : sectionItems;
+            const displayItems =
+              favoriteItems.length > 0 && !searchQuery
+                ? sectionItems.filter((item) => !favoriteSet.has(item.href))
+                : sectionItems;
 
             if (displayItems.length === 0) return null;
 
@@ -376,13 +413,13 @@ export function Sidebar({
                 {/* Section header */}
                 {!collapsed && (
                   <div className="mb-1 px-3 pt-2 pb-1">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ">
                       {section.label}
                     </span>
                   </div>
                 )}
                 {collapsed && (
-                  <div className="mx-auto mb-1 mt-2 h-px w-6 bg-neutral-200 dark:bg-neutral-700" />
+                  <div className="mx-auto mb-1 mt-2 h-px w-6 bg-neutral-200 " />
                 )}
 
                 {/* Section items */}
@@ -399,26 +436,17 @@ export function Sidebar({
                         onMobileClose?.();
                         setSearchQuery("");
                       }}
-                      className={`
-                        group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium
-                        transition-all duration-200
-                        ${
-                          active
-                            ? "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400"
-                            : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
-                        }
-                        ${collapsed ? "justify-center" : ""}
-                      `}
+                      className={navLinkClasses(active, collapsed)}
                       title={collapsed ? item.label : undefined}
                     >
                       {/* Active left border stripe */}
                       {active && (
-                        <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-teal-600 dark:bg-teal-400 transition-all" />
+                        <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-green-600 dark:bg-green-500 transition-all" />
                       )}
 
                       {/* Hover slide-in background */}
                       {!active && (
-                        <div className="absolute inset-0 origin-left scale-x-0 rounded-lg bg-teal-50/60 transition-transform duration-200 group-hover:scale-x-100 dark:bg-teal-950/20" />
+                        <div className="absolute inset-0 origin-left scale-x-0 rounded-lg bg-green-50/60 transition-transform duration-200 group-hover:scale-x-100 dark:bg-green-900/25" />
                       )}
 
                       {/* Icon */}
@@ -426,7 +454,9 @@ export function Sidebar({
                         {IconComponent ? (
                           <IconComponent
                             className={`h-[18px] w-[18px] ${
-                              active ? "text-teal-600 dark:text-teal-400" : "text-neutral-500 group-hover:text-neutral-700 dark:text-neutral-400 dark:group-hover:text-neutral-200"
+                              active
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-muted-foreground group-hover:text-foreground  "
                             } transition-colors`}
                           />
                         ) : (
@@ -461,42 +491,35 @@ export function Sidebar({
         </nav>
 
         {/* Bottom section: user profile + dark mode + collapse */}
-        <div className="border-t border-neutral-200 dark:border-neutral-800">
-          {/* User profile mini card */}
+        <div className="border-t border-border ">
+          {/* User profile mini card (display only — no profile page) */}
           {resolvedUser && !collapsed && (
-            <Link
-              href="/profile"
-              className="flex items-center gap-3 px-3 py-3 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"
-              onClick={() => onMobileClose?.()}
-            >
-              <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-700 text-xs font-semibold text-white">
+            <div className="flex items-center gap-3 px-3 py-3">
+              <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-700 text-xs font-semibold text-white">
                 {getInitials(resolvedUser.fullName)}
                 {/* Online indicator */}
-                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500 dark:border-neutral-950" />
+                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500 " />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-neutral-800 dark:text-neutral-100">
+                <p className="truncate text-sm font-medium text-foreground ">
                   {resolvedUser.fullName}
                 </p>
-                <p className="truncate text-[11px] text-neutral-500 dark:text-neutral-400">
+                <p className="truncate text-[11px] text-muted-foreground ">
                   {resolvedUser.role}
                 </p>
               </div>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-neutral-400 dark:text-neutral-500" />
-            </Link>
+            </div>
           )}
           {resolvedUser && collapsed && (
-            <Link
-              href="/profile"
-              className="flex justify-center py-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"
-              onClick={() => onMobileClose?.()}
+            <div
+              className="flex justify-center py-2"
               title={`${resolvedUser.fullName} — ${resolvedUser.role}`}
             >
-              <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-teal-700 text-xs font-semibold text-white">
+              <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-green-700 text-xs font-semibold text-white">
                 {getInitials(resolvedUser.fullName)}
-                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500 dark:border-neutral-950" />
+                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500 " />
               </div>
-            </Link>
+            </div>
           )}
 
           {/* Dark mode toggle + collapse toggle row */}
@@ -504,8 +527,10 @@ export function Sidebar({
             {/* Dark mode toggle */}
             <button
               onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg px-2 py-2 text-sm text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
-              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-neutral-100 hover:text-foreground dark:hover:bg-white/5"
+              aria-label={
+                isDark ? "Switch to light mode" : "Switch to dark mode"
+              }
               title={isDark ? "Light mode" : "Dark mode"}
             >
               {isDark ? (
@@ -513,13 +538,15 @@ export function Sidebar({
               ) : (
                 <Moon className="h-4 w-4" />
               )}
-              {!collapsed && <span className="text-xs">{isDark ? "Light" : "Dark"}</span>}
+              {!collapsed && (
+                <span className="text-xs">{isDark ? "Light" : "Dark"}</span>
+              )}
             </button>
 
             {/* Collapse toggle (desktop only) */}
             <button
               onClick={onToggleCollapse}
-              className="hidden flex-1 items-center justify-center gap-2 rounded-lg px-2 py-2 text-sm text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-700 md:flex dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              className="hidden flex-1 items-center justify-center gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-neutral-100 hover:text-foreground dark:hover:bg-white/5 md:flex"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {collapsed ? (
@@ -536,12 +563,14 @@ export function Sidebar({
 
         {/* Version badge footer */}
         {!collapsed && (
-          <div className="border-t border-neutral-200 px-4 py-2 dark:border-neutral-800">
+          <div className="border-t border-border px-4 py-2 ">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center rounded-md bg-teal-50 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700 dark:bg-teal-950/40 dark:text-teal-400">
+              <span className="inline-flex items-center rounded-md bg-green-50 px-1.5 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-300">
                 v0.1.0
               </span>
-              <span className="text-[10px] text-neutral-400 dark:text-neutral-600">Milestone 1</span>
+              <span className="text-[10px] text-muted-foreground ">
+                Milestone 1
+              </span>
             </div>
           </div>
         )}

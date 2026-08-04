@@ -16,8 +16,10 @@ import { RoutingModule } from './routing/routing.module';
 import { SlaModule } from './sla/sla.module';
 import { ApprovalsModule } from './approvals/approvals.module';
 import { AuditModule } from './audit/audit.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { RemindersModule } from './reminders/reminders.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { PermissionsGuard } from './common/guards/permissions.guard';
 
 @Module({
   imports: [
@@ -39,10 +41,15 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     SlaModule,
     ApprovalsModule,
     AuditModule,
+    DashboardModule,
     RemindersModule,
   ],
   // JwtAuthGuard is the global default; routes opt out with @Public().
-  // RolesGuard is applied per-route via @UseGuards(RolesGuard) + @Roles(...).
-  providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
+  // PermissionsGuard layers fine-grained module checks (@Permissions) on top of
+  // the coarse role gate (@Roles + RolesGuard, applied per-route).
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: PermissionsGuard },
+  ],
 })
 export class AppModule {}

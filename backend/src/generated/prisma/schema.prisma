@@ -13,16 +13,28 @@ datasource db {
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum Role {
-  INTAKE_OFFICER
-  ADMIN_OFFICER
-  SCHEDULE_OFFICER
-  ASSISTANT_DIRECTOR
-  DEPUTY_DIRECTOR
-  DIRECTOR
+  DEPARTMENT_STAFF
+  DEPARTMENT_HOD
   PERMANENT_SECRETARY
   COMMISSIONER
-  SUPER_ADMIN
+  ADMIN
   AUDITOR
+}
+
+// Granular module permissions assignable to ADMIN users by a Super Admin.
+// SUPER_ADMIN = an ADMIN with isSuperAdmin = true (bypasses all permission checks).
+enum Permission {
+  ALL
+  INTAKE
+  SCHEDULE
+  COMPLAINTS
+  REPORTS
+  USERS
+  DEPARTMENTS
+  ROUTING
+  SLA
+  AUDIT
+  APPROVALS
 }
 
 enum TicketStatus {
@@ -104,7 +116,7 @@ enum ApprovalStatus {
 }
 
 enum ApproverRole {
-  DIRECTOR
+  DEPARTMENT_HOD
   PERMANENT_SECRETARY
   COMMISSIONER
 }
@@ -165,6 +177,7 @@ model User {
   departmentId String?     @map("department_id") @db.Uuid
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   isActive     Boolean     @default(true) @map("is_active")
+  isSuperAdmin Boolean     @default(false) @map("is_super_admin")
   lastLoginAt  DateTime?   @map("last_login_at")
 
   assignedTickets     Ticket[]          @relation("OfficerTickets")
@@ -176,6 +189,7 @@ model User {
   delegationsMade     Delegation[]      @relation("Delegator")
   delegationsReceived Delegation[]      @relation("Delegate")
   auditEvents         AuditEvent[]      @relation("UserAuditEvents")
+  permissions         UserPermission[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -184,6 +198,22 @@ model User {
   @@index([role])
   @@index([isActive])
   @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin permissions (granular module access for ADMIN users)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model UserPermission {
+  id         String     @id @default(uuid()) @db.Uuid
+  userId     String     @map("user_id") @db.Uuid
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  permission Permission
+  grantedAt  DateTime   @default(now()) @map("granted_at")
+
+  @@unique([userId, permission])
+  @@index([userId])
+  @@map("user_permissions")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -402,7 +432,7 @@ model ApprovalRequest {
 
   requestedById String @map("requested_by_id") @db.Uuid
 
-  approverRole      ApproverRole @default(DIRECTOR) @map("approver_role")
+  approverRole      ApproverRole @default(DEPARTMENT_HOD) @map("approver_role")
   currentApproverId String?      @map("current_approver_id") @db.Uuid
 
   actionedById String? @map("actioned_by_id") @db.Uuid

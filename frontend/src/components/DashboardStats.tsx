@@ -98,7 +98,7 @@ const ACCENT_MAP: Record<
     iconBg: "bg-orange-100",
     iconText: "text-orange-600",
     trendUp: "text-orange-600",
-    trendDown: "text-emerald-600",
+    trendDown: "text-green-600",
     sparkStroke: "#ea580c",
     sparkFill: "rgba(234,88,12,0.1)",
     activeRing: "ring-orange-400",
@@ -108,7 +108,7 @@ const ACCENT_MAP: Record<
     bg: "bg-slate-50/60",
     iconBg: "bg-slate-100",
     iconText: "text-slate-600",
-    trendUp: "text-teal-600",
+    trendUp: "text-green-600",
     trendDown: "text-red-500",
     sparkStroke: "#64748b",
     sparkFill: "rgba(100,116,139,0.1)",
@@ -120,13 +120,27 @@ const ACCENT_MAP: Record<
 /*  Inline SVG icons                                                   */
 /* ------------------------------------------------------------------ */
 
-function StatIcon({ variant, className }: { variant: StatCardProps["icon"]; className?: string }) {
+function StatIcon({
+  variant,
+  className,
+}: {
+  variant: StatCardProps["icon"];
+  className?: string;
+}) {
   const cls = className ?? "h-5 w-5";
 
   switch (variant) {
     case "total":
       return (
-        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={cls}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <rect x="3" y="3" width="7" height="7" rx="1.5" />
           <rect x="14" y="3" width="7" height="7" rx="1.5" />
           <rect x="3" y="14" width="7" height="7" rx="1.5" />
@@ -135,7 +149,15 @@ function StatIcon({ variant, className }: { variant: StatCardProps["icon"]; clas
       );
     case "awaiting":
       return (
-        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={cls}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M12 3v12" />
           <path d="M12 21v-2" />
           <path d="M5.5 6.5C7 4 9.5 3 12 3s5 1 6.5 3.5" />
@@ -146,21 +168,45 @@ function StatIcon({ variant, className }: { variant: StatCardProps["icon"]; clas
       );
     case "open":
       return (
-        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={cls}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <circle cx="12" cy="12" r="9" />
           <path d="M12 7v5l3 3" />
         </svg>
       );
     case "resolved":
       return (
-        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={cls}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
           <path d="M22 4L12 14.01l-3-3" />
         </svg>
       );
     case "breached":
       return (
-        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={cls}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           <line x1="12" y1="9" x2="12" y2="13" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -168,7 +214,15 @@ function StatIcon({ variant, className }: { variant: StatCardProps["icon"]; clas
       );
     case "reopened":
       return (
-        <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          className={cls}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M1 4v6h6" />
           <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
         </svg>
@@ -218,7 +272,15 @@ function AnimatedValue({ value }: { value: number | string }) {
 /*  Sparkline mini chart (pure SVG, no recharts dependency)            */
 /* ------------------------------------------------------------------ */
 
-function Sparkline({ data, strokeColor, fillColor }: { data: number[]; strokeColor: string; fillColor: string }) {
+function Sparkline({
+  data,
+  strokeColor,
+  fillColor,
+}: {
+  data: number[];
+  strokeColor: string;
+  fillColor: string;
+}) {
   if (data.length < 2) return null;
 
   const width = 80;
@@ -232,11 +294,16 @@ function Sparkline({ data, strokeColor, fillColor }: { data: number[]; strokeCol
   // Calculate points
   const points = data.map((val, i) => ({
     x: padding + (i / (data.length - 1)) * (width - padding * 2),
-    y: padding + (height - padding * 2) - ((val - min) / range) * (height - padding * 2),
+    y:
+      padding +
+      (height - padding * 2) -
+      ((val - min) / range) * (height - padding * 2),
   }));
 
   // Create line path
-  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+  const linePath = points
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+    .join(" ");
 
   // Create area path (fill under the line)
   const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
@@ -244,7 +311,14 @@ function Sparkline({ data, strokeColor, fillColor }: { data: number[]; strokeCol
   return (
     <svg width={width} height={height} className="opacity-70">
       <path d={areaPath} fill={fillColor} />
-      <path d={linePath} fill="none" stroke={strokeColor} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={linePath}
+        fill="none"
+        stroke={strokeColor}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -253,7 +327,17 @@ function Sparkline({ data, strokeColor, fillColor }: { data: number[]; strokeCol
 /*  StatCard                                                           */
 /* ------------------------------------------------------------------ */
 
-export function StatCard({ label, value, accent, icon, trend, sparkline, comparison, onClick, isActive }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  accent,
+  icon,
+  trend,
+  sparkline,
+  comparison,
+  onClick,
+  isActive,
+}: StatCardProps) {
   const colors = ACCENT_MAP[accent];
   const isClickable = !!onClick;
 
@@ -267,9 +351,10 @@ export function StatCard({ label, value, accent, icon, trend, sparkline, compari
       className={`
         group relative overflow-hidden rounded-xl border shadow-sm transition-all duration-200
         ${isClickable ? "cursor-pointer" : ""}
-        ${isActive
-          ? `ring-2 ${colors.activeRing} border-transparent shadow-md -translate-y-0.5`
-          : "border-neutral-200 bg-white hover:shadow-md hover:-translate-y-0.5"
+        ${
+          isActive
+            ? `ring-2 ${colors.activeRing} border-transparent shadow-md -translate-y-0.5`
+            : "border-neutral-200 bg-neutral-50 hover:shadow-md hover:-translate-y-0.5"
         }
       `}
     >
@@ -277,14 +362,18 @@ export function StatCard({ label, value, accent, icon, trend, sparkline, compari
       <div className={`absolute inset-y-0 left-0 w-1 ${colors.stripe}`} />
 
       {/* Subtle background wash */}
-      <div className={`absolute inset-0 ${isActive ? colors.bg : "bg-white"}`} />
+      <div
+        className={`absolute inset-0 ${isActive ? colors.bg : "bg-neutral-50"}`}
+      />
 
       <div className="relative p-4 sm:p-5">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 sm:text-sm">
             {label}
           </p>
-          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${colors.iconBg} ${colors.iconText}`}>
+          <div
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${colors.iconBg} ${colors.iconText}`}
+          >
             <StatIcon variant={icon} />
           </div>
         </div>
@@ -306,15 +395,33 @@ export function StatCard({ label, value, accent, icon, trend, sparkline, compari
         {trend && trend.direction !== "flat" && (
           <div className="mt-1.5 flex items-center gap-1">
             {trend.direction === "up" ? (
-              <svg className={`h-3.5 w-3.5 ${colors.trendUp}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className={`h-3.5 w-3.5 ${colors.trendUp}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M18 15l-6-6-6 6" />
               </svg>
             ) : (
-              <svg className={`h-3.5 w-3.5 ${colors.trendDown}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className={`h-3.5 w-3.5 ${colors.trendDown}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M6 9l6 6 6-6" />
               </svg>
             )}
-            <span className={`text-xs font-medium ${trend.direction === "up" ? colors.trendUp : colors.trendDown}`}>
+            <span
+              className={`text-xs font-medium ${trend.direction === "up" ? colors.trendUp : colors.trendDown}`}
+            >
               {trend.value}
             </span>
             <span className="text-xs text-neutral-400">vs last period</span>
@@ -322,24 +429,38 @@ export function StatCard({ label, value, accent, icon, trend, sparkline, compari
         )}
         {trend && trend.direction === "flat" && (
           <div className="mt-1.5 flex items-center gap-1">
-            <svg className="h-3.5 w-3.5 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              className="h-3.5 w-3.5 text-neutral-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M5 12h14" />
             </svg>
-            <span className="text-xs font-medium text-neutral-400">{trend.value}</span>
+            <span className="text-xs font-medium text-neutral-400">
+              {trend.value}
+            </span>
           </div>
         )}
 
         {/* Comparison to previous period */}
         {comparison && (
           <div className="mt-1 flex items-center gap-1">
-            <span className="text-[10px] font-medium text-neutral-400">{comparison}</span>
+            <span className="text-[10px] font-medium text-neutral-400">
+              {comparison}
+            </span>
           </div>
         )}
 
         {/* Click to filter hint */}
         {isClickable && (
           <div className="mt-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <span className="text-[10px] font-medium text-teal-600">Click to filter</span>
+            <span className="text-[10px] font-medium text-green-600">
+              Click to filter
+            </span>
           </div>
         )}
       </div>

@@ -24,7 +24,9 @@ const _ispublicdecorator = require("../common/decorators/is-public.decorator");
 const _jwtauthguard = require("../common/guards/jwt-auth.guard");
 const _rolesguard = require("../common/guards/roles.guard");
 const _rolesdecorator = require("../common/decorators/roles.decorator");
+const _permissionsdecorator = require("../common/decorators/permissions.decorator");
 const _role = require("../common/types/role");
+const _permission = require("../common/types/permission");
 const _ticketstatus = require("../common/types/ticket-status");
 const _currentuserdecorator = require("../common/decorators/current-user.decorator");
 const _trackingtokenguard = require("../common/guards/tracking-token.guard");
@@ -72,7 +74,7 @@ let TicketsController = class TicketsController {
         };
     }
     /**
-   * Protected endpoint: intake officer logs a complaint on behalf of a citizen.
+   * Protected endpoint: an Admin (with INTAKE) logs a complaint on behalf of a citizen.
    */ async createIntake(dto, files, user) {
         const stored = await this.persistFiles(files);
         const result = await this.ticketsService.create(dto, stored, user.id);
@@ -164,7 +166,7 @@ let TicketsController = class TicketsController {
         return this.ticketsService.reopen(code, payload.citizenId, dto);
     }
     /**
-   * Archive a closed ticket (SUPER_ADMIN only).
+   * Archive a closed ticket (Super Admin / ADMIN with COMPLAINTS).
    */ async archive(id) {
         return this.ticketsService.archive(id);
     }
@@ -270,7 +272,8 @@ _ts_decorate([
 ], TicketsController.prototype, "createPublic", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.INTAKE_OFFICER, _role.Role.ADMIN_OFFICER, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.INTAKE),
     (0, _common.Post)('intake'),
     (0, _common.UseInterceptors)((0, _platformexpress.FilesInterceptor)('attachments', MAX_FILES, {
         limits: {
@@ -294,7 +297,7 @@ _ts_decorate([
 ], TicketsController.prototype, "createIntake", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.SUPER_ADMIN, _role.Role.INTAKE_OFFICER, _role.Role.SCHEDULE_OFFICER, _role.Role.ASSISTANT_DIRECTOR, _role.Role.DEPUTY_DIRECTOR, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_STAFF, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
     (0, _common.Get)(),
     (0, _swagger.ApiOperation)({
         summary: 'List tickets with filters (staff)'
@@ -339,7 +342,8 @@ _ts_decorate([
 ], TicketsController.prototype, "list", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.INTAKE, _permission.Permission.SCHEDULE),
     (0, _common.Patch)(':id/triage'),
     (0, _swagger.ApiOperation)({
         summary: 'Triage a ticket (Admin Officer / Super Admin)'
@@ -403,7 +407,7 @@ _ts_decorate([
 ], TicketsController.prototype, "detail", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SCHEDULE_OFFICER, _role.Role.ASSISTANT_DIRECTOR, _role.Role.DEPUTY_DIRECTOR, _role.Role.DIRECTOR, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_STAFF, _role.Role.DEPARTMENT_HOD),
     (0, _common.Patch)(':id/start'),
     (0, _swagger.ApiOperation)({
         summary: 'Start investigation (officer)'
@@ -419,7 +423,7 @@ _ts_decorate([
 ], TicketsController.prototype, "start", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SCHEDULE_OFFICER, _role.Role.ASSISTANT_DIRECTOR, _role.Role.DEPUTY_DIRECTOR, _role.Role.DIRECTOR, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_STAFF, _role.Role.DEPARTMENT_HOD),
     (0, _common.Post)(':id/minutes'),
     (0, _swagger.ApiOperation)({
         summary: 'Post an investigation minute (officer)'
@@ -437,7 +441,7 @@ _ts_decorate([
 ], TicketsController.prototype, "postMinute", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SCHEDULE_OFFICER, _role.Role.ASSISTANT_DIRECTOR, _role.Role.DEPUTY_DIRECTOR, _role.Role.DIRECTOR, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_STAFF, _role.Role.DEPARTMENT_HOD),
     (0, _common.Post)(':id/request-info'),
     (0, _swagger.ApiOperation)({
         summary: 'Request info from citizen (officer)'
@@ -455,7 +459,7 @@ _ts_decorate([
 ], TicketsController.prototype, "requestInfo", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SCHEDULE_OFFICER, _role.Role.ASSISTANT_DIRECTOR, _role.Role.DEPUTY_DIRECTOR, _role.Role.DIRECTOR, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_STAFF, _role.Role.DEPARTMENT_HOD),
     (0, _common.Patch)(':id/request-approval'),
     (0, _swagger.ApiOperation)({
         summary: 'Request departmental approval (officer)'
@@ -491,7 +495,7 @@ _ts_decorate([
 ], TicketsController.prototype, "replyInfo", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SCHEDULE_OFFICER, _role.Role.ASSISTANT_DIRECTOR, _role.Role.DEPUTY_DIRECTOR, _role.Role.DIRECTOR, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.DEPARTMENT_STAFF, _role.Role.DEPARTMENT_HOD),
     (0, _common.Post)(':id/resolution'),
     (0, _swagger.ApiOperation)({
         summary: 'Submit a resolution (officer)'
@@ -549,10 +553,11 @@ _ts_decorate([
 ], TicketsController.prototype, "reopen", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.COMPLAINTS),
     (0, _common.Post)(':id/archive'),
     (0, _swagger.ApiOperation)({
-        summary: 'Archive a closed ticket (Super Admin)'
+        summary: 'Archive a closed ticket (admin)'
     }),
     _ts_param(0, (0, _common.Param)('id')),
     _ts_metadata("design:type", Function),
@@ -563,7 +568,8 @@ _ts_decorate([
 ], TicketsController.prototype, "archive", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.COMPLAINTS),
     (0, _common.Get)('admin/reopened'),
     (0, _swagger.ApiOperation)({
         summary: 'List reopened tickets (admin)'
@@ -581,7 +587,7 @@ _ts_decorate([
 ], TicketsController.prototype, "reopened", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.AUDITOR),
     (0, _common.Get)('admin/archive'),
     (0, _swagger.ApiOperation)({
         summary: 'List archived tickets (admin/auditor)'
@@ -601,7 +607,7 @@ _ts_decorate([
 ], TicketsController.prototype, "archived", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.AUDITOR),
     (0, _common.Get)('admin/all'),
     (0, _swagger.ApiOperation)({
         summary: 'List all tickets across departments with full activity timeline (Super Admin / Auditor)'
@@ -658,7 +664,7 @@ _ts_decorate([
 ], TicketsController.prototype, "adminAll", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SUPER_ADMIN, _role.Role.ADMIN_OFFICER, _role.Role.DIRECTOR, _role.Role.PERMANENT_SECRETARY, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.AUDITOR),
     (0, _common.Get)('department/:departmentId'),
     (0, _swagger.ApiOperation)({
         summary: 'List tickets scoped to a department, with assignee info and status/priority stats'

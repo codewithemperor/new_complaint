@@ -170,7 +170,16 @@ let TicketsService = class TicketsService {
             }
         });
         if (!ticket) throw new _common.NotFoundException('Ticket not found');
-        this.stateMachine.assertCanTransition(ticket.status, _ticketstatus.TicketStatus.TRIAGED);
+        // A re-assignment of an already-triaged ticket (departmentId provided, ticket
+        // past ACKNOWLEDGED) skips the forward-transition check so admins/HODs can
+        // move an in-flight ticket between departments.
+        const isReassign = !!dto.departmentId && ![
+            'ACKNOWLEDGED',
+            'SUBMITTED'
+        ].includes(ticket.status);
+        if (!isReassign) {
+            this.stateMachine.assertCanTransition(ticket.status, _ticketstatus.TicketStatus.TRIAGED);
+        }
         let routingResult;
         if (dto.departmentId && dto.overrideOfficerId) {
             routingResult = {
@@ -181,7 +190,7 @@ let TicketsService = class TicketsService {
             const fallbackOfficer = await this.prisma.user.findFirst({
                 where: {
                     departmentId: dto.departmentId,
-                    role: 'SCHEDULE_OFFICER',
+                    role: 'DEPARTMENT_STAFF',
                     isActive: true
                 }
             });
@@ -190,14 +199,14 @@ let TicketsService = class TicketsService {
                 officerId: fallbackOfficer?.id ?? (await this.prisma.user.findFirst({
                     where: {
                         departmentId: dto.departmentId,
-                        role: 'DIRECTOR',
+                        role: 'DEPARTMENT_HOD',
                         isActive: true
                     }
                 }))?.id
             };
         } else {
             const resolved = await this.routingService.resolve({
-                category: dto.category,
+                category: dto.category ?? ticket.category ?? '',
                 priority: dto.priority,
                 lga: ticket.lga ?? undefined
             });
@@ -213,9 +222,9 @@ let TicketsService = class TicketsService {
                     id: ticketId
                 },
                 data: {
-                    status: 'TRIAGED',
-                    category: dto.category,
-                    priority: dto.priority,
+                    status: isReassign ? ticket.status : 'TRIAGED',
+                    category: dto.category ?? ticket.category,
+                    priority: dto.priority ?? ticket.priority,
                     sensitivity: dto.sensitivity ?? ticket.sensitivity,
                     triagedAt: now,
                     triagedById: triagedBy.id
@@ -224,9 +233,9 @@ let TicketsService = class TicketsService {
             await tx.ticketMovement.create({
                 data: {
                     ticketId,
-                    type: _ticketstatus.MovementType.ROUTED,
+                    type: isReassign ? _ticketstatus.MovementType.REASSIGNED : _ticketstatus.MovementType.ROUTED,
                     fromUserId: triagedBy.id,
-                    note: dto.triageNote ?? `Triaged as ${dto.category} / ${dto.priority}`
+                    note: dto.triageNote ?? (isReassign ? `Reassigned to department` : `Triaged as ${dto.category ?? ticket.category} / ${dto.priority ?? ticket.priority}`)
                 }
             });
             await this.routingService.assign(tx, ticketId, routingResult.departmentId, routingResult.officerId, triagedBy.id, dto.overrideOfficerId ? 'Manual assignment override' : undefined);
@@ -557,10 +566,10 @@ let TicketsService = class TicketsService {
     // Investigation (Milestone 4 — Phase 3)
     // ─────────────────────────────────────────────────────────────────────────
     /**
-   * Ownership check for officer endpoints. The assigned officer, plus any
-   * superior (DIRECTOR / DEPUTY_DIRECTOR / ASSISTANT_DIRECTOR) in the ticket's
-   * own department, may act on it. SUPER_ADMIN bypasses. Also enforces the
-   * closed-ticket freeze (no writes once CLOSED). Throws if not.
+   * Ownership check for officer endpoints. The assigned officer, plus the
+   * DEPARTMENT_HOD in the ticket's own department, may act on it. A Super Admin
+   * bypasses. Also enforces the closed-ticket freeze (no writes once CLOSED).
+   * Throws if not.
    */ async assertCanAct(ticketId, user) {
         const ticket = await this.prisma.ticket.findUnique({
             where: {
@@ -573,19 +582,14 @@ let TicketsService = class TicketsService {
             }
         });
         if (!ticket) throw new _common.NotFoundException('Ticket not found');
-        // Closed-ticket freeze applies to everyone (officer + superior); only
-        // SUPER_ADMIN archive (a separate path) may touch a closed ticket.
+        // Closed-ticket freeze applies to everyone (officer + HOD); only
+        // Super Admin archive (a separate path) may touch a closed ticket.
         this.assertNotFrozen(ticket.status);
-        if (user.role === _role.Role.SUPER_ADMIN) return;
+        if (user.isSuperAdmin) return;
         const isAssignee = ticket.assignedOfficerId === user.id;
-        // Superiors in the same department may also act (oversight).
-        const superiorRoles = [
-            _role.Role.DIRECTOR,
-            _role.Role.DEPUTY_DIRECTOR,
-            _role.Role.ASSISTANT_DIRECTOR
-        ];
-        const isSuperiorInDept = superiorRoles.includes(user.role) && !!ticket.departmentId && ticket.departmentId === user.departmentId;
-        if (!isAssignee && !isSuperiorInDept) {
+        // The department HOD may also act (oversight).
+        const isHodInDept = user.role === _role.Role.DEPARTMENT_HOD && !!ticket.departmentId && ticket.departmentId === user.departmentId;
+        if (!isAssignee && !isHodInDept) {
             throw new _common.ForbiddenException('You are not assigned to this ticket.');
         }
     }
@@ -779,7 +783,7 @@ let TicketsService = class TicketsService {
         const hod = await this.prisma.user.findFirst({
             where: {
                 departmentId: ticket.departmentId,
-                role: _role.Role.DIRECTOR,
+                role: _role.Role.DEPARTMENT_HOD,
                 isActive: true
             }
         });
@@ -797,7 +801,7 @@ let TicketsService = class TicketsService {
                 data: {
                     ticketId: id,
                     requestedById: user.id,
-                    approverRole: 'DIRECTOR',
+                    approverRole: 'DEPARTMENT_HOD',
                     currentApproverId: hod?.id ?? null,
                     status: 'PENDING'
                 }
@@ -1398,10 +1402,19 @@ let TicketsService = class TicketsService {
                 where
             })
         ]);
-        // Rename `auditEvents` → `events` to match the API contract.
+        // Map each AuditEvent into the API contract the timeline UI expects:
+        // `eventType` → `type`, the nested `actor` is flattened to
+        // `actorName` / `actorRole`, and `meta` → `note`.
         const items = rawItems.map(({ auditEvents, ...rest })=>({
                 ...rest,
-                events: auditEvents
+                events: (auditEvents ?? []).map((e)=>({
+                        id: e.id,
+                        type: e.eventType,
+                        note: e.meta ?? null,
+                        createdAt: e.createdAt,
+                        actorName: e.actor?.fullName ?? null,
+                        actorRole: e.actor?.role ?? null
+                    }))
             }));
         const totalPages = total === 0 ? 0 : Math.ceil(total / safePageSize);
         return {

@@ -1,0 +1,8 @@
+-- Placeholder migration. The actual schema is applied via `prisma db push`
+-- (the DB is a fresh dev instance) and this migration is recorded as applied
+-- via `prisma migrate resolve --applied` to keep the migration history in sync.
+--
+-- Role enum: simplified to DEPARTMENT_STAFF, DEPARTMENT_HOD,
+--   PERMANENT_SECRETARY, COMMISSIONER, ADMIN, AUDITOR.
+-- ApproverRole: DIRECTOR → DEPARTMENT_HOD.
+-- New: Permission enum, UserPermission table, User.isSuperAdmin.

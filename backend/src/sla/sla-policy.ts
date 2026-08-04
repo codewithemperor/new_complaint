@@ -102,12 +102,12 @@ export class SlaPolicy implements OnModuleInit {
     switch (priority) {
       case Priority.P1:
       case Priority.P2:
-        return [Role.DIRECTOR, Role.PERMANENT_SECRETARY, Role.COMMISSIONER];
+        return [Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY, Role.COMMISSIONER];
       case Priority.P3:
-        return [Role.DIRECTOR, Role.PERMANENT_SECRETARY];
+        return [Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY];
       case Priority.P4:
       default:
-        return [Role.DIRECTOR];
+        return [Role.DEPARTMENT_HOD];
     }
   }
 

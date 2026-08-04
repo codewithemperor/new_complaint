@@ -2,16 +2,29 @@
 // Keep in sync with backend/src DTOs.
 
 export type Role =
-  | "INTAKE_OFFICER"
-  | "ADMIN_OFFICER"
-  | "SCHEDULE_OFFICER"
-  | "ASSISTANT_DIRECTOR"
-  | "DEPUTY_DIRECTOR"
-  | "DIRECTOR"
+  | "DEPARTMENT_STAFF"
+  | "DEPARTMENT_HOD"
   | "PERMANENT_SECRETARY"
   | "COMMISSIONER"
-  | "SUPER_ADMIN"
+  | "ADMIN"
   | "AUDITOR";
+
+/**
+ * Granular module permissions assignable to ADMIN users. A Super Admin (ADMIN
+ * with isSuperAdmin = true) bypasses all checks; ALL grants every module.
+ */
+export type Permission =
+  | "ALL"
+  | "INTAKE"
+  | "SCHEDULE"
+  | "COMPLAINTS"
+  | "REPORTS"
+  | "USERS"
+  | "DEPARTMENTS"
+  | "ROUTING"
+  | "SLA"
+  | "AUDIT"
+  | "APPROVALS";
 
 export interface User {
   id: string;
@@ -22,6 +35,8 @@ export interface User {
   phone?: string | null;
   departmentId?: string | null;
   isActive: boolean;
+  isSuperAdmin: boolean;
+  permissions: Permission[];
   lastLoginAt?: string | null;
 }
 
@@ -48,6 +63,8 @@ export interface StaffUser {
   departmentId?: string | null;
   department?: { id: string; name: string; code: string } | null;
   isActive: boolean;
+  isSuperAdmin: boolean;
+  permissions: Permission[];
   lastLoginAt?: string | null;
 }
 
@@ -88,6 +105,19 @@ export interface Ticket {
     toUser?: { fullName: string; role: string } | null;
   })[];
   approvalRequests?: ApprovalRequest[];
+  // Attached evidence/resolution documents (staff detail view).
+  attachments?: TicketAttachment[];
+}
+
+/** An uploaded file attached to a ticket (evidence or resolution). */
+export interface TicketAttachment {
+  id: string;
+  filename: string;
+  storedPath: string;
+  mimetype: string;
+  sizeBytes?: number;
+  kind?: string;
+  uploadedAt?: string;
 }
 
 /** An append-only investigation minute (digital minute sheet). */

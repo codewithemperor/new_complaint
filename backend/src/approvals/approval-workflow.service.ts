@@ -259,15 +259,14 @@ export class ApprovalWorkflowService {
 
   /**
    * The caller must be the request's currentApprover. For the PS tier, an
-   * active delegate may also act. SUPER_ADMIN bypasses.
+   * active delegate may also act. A Super Admin bypasses.
    */
   private async assertApprover(
     request: { id: string; approverRole: string; currentApproverId: string | null },
     ticket: { departmentId: string | null },
     user: AuthenticatedUser,
   ): Promise<void> {
-    const { Role } = await import('../common/types/role');
-    if (user.role === Role.SUPER_ADMIN) return;
+    if (user.isSuperAdmin) return;
 
     if (request.currentApproverId === user.id) return;
 
@@ -321,19 +320,30 @@ export class ApprovalWorkflowService {
   /**
    * List approval requests for an approver's inbox. Filters by the caller's
    * tier (role) and optional status. Eager-loads ticket + officer for display.
+   *
+   * A Super Admin sees every tier in a single call (the approverRole /
+   * currentApproverId filters are ignored), so the admin oversight view needs
+   * only one request instead of one per tier.
    */
-  async findInbox(filters: {
-    approverRole?: ApproverRole;
-    status?: string;
-    currentApproverId?: string;
-    page?: number;
-    pageSize?: number;
-  }) {
+  async findInbox(
+    filters: {
+      approverRole?: ApproverRole;
+      status?: string;
+      currentApproverId?: string;
+      page?: number;
+      pageSize?: number;
+    },
+    user?: AuthenticatedUser,
+  ) {
     const { approverRole, status, currentApproverId, page = 1, pageSize = 20 } = filters;
     const where: Record<string, unknown> = {};
-    if (approverRole) where.approverRole = approverRole;
+    // Super Admins oversee all tiers — skip the per-tier scoping entirely.
+    const isSuperAdmin = !!user?.isSuperAdmin;
+    if (!isSuperAdmin) {
+      if (approverRole) where.approverRole = approverRole;
+      if (currentApproverId) where.currentApproverId = currentApproverId;
+    }
     if (status) where.status = status;
-    if (currentApproverId) where.currentApproverId = currentApproverId;
 
     const [items, total] = await Promise.all([
       this.prisma.approvalRequest.findMany({

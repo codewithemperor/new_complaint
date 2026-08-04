@@ -7,7 +7,16 @@
  * local enum is what DTOs and decorators reference; the Prisma enum is what the
  * DB stores. They are kept in sync manually (one value per role).
  *
- * See planning/02-roles-rbac.md for the full role-action matrix.
+ * Simplified role model:
+ *  - ADMIN handles intake, scheduling, and general admin. Granular module
+ *    access is controlled via the Permission enum + UserPermission rows.
+ *  - A Super Admin is an ADMIN user with isSuperAdmin = true (bypasses all
+ *    permission checks). There is no separate SUPER_ADMIN role.
+ *
+ * Escalation hierarchy (top-down):
+ *   1. ADMIN → 2. DEPARTMENT_STAFF → 3. DEPARTMENT_HOD →
+ *   4. PERMANENT_SECRETARY → 5. COMMISSIONER
+ * AUDITOR has read-only access to all complaints and escalations.
  */ "use strict";
 Object.defineProperty(exports, "__esModule", {
     value: true
@@ -19,15 +28,11 @@ Object.defineProperty(exports, "Role", {
     }
 });
 var Role = /*#__PURE__*/ function(Role) {
-    Role["INTAKE_OFFICER"] = "INTAKE_OFFICER";
-    Role["ADMIN_OFFICER"] = "ADMIN_OFFICER";
-    Role["SCHEDULE_OFFICER"] = "SCHEDULE_OFFICER";
-    Role["ASSISTANT_DIRECTOR"] = "ASSISTANT_DIRECTOR";
-    Role["DEPUTY_DIRECTOR"] = "DEPUTY_DIRECTOR";
-    Role["DIRECTOR"] = "DIRECTOR";
+    Role["DEPARTMENT_STAFF"] = "DEPARTMENT_STAFF";
+    Role["DEPARTMENT_HOD"] = "DEPARTMENT_HOD";
     Role["PERMANENT_SECRETARY"] = "PERMANENT_SECRETARY";
     Role["COMMISSIONER"] = "COMMISSIONER";
-    Role["SUPER_ADMIN"] = "SUPER_ADMIN";
+    Role["ADMIN"] = "ADMIN";
     Role["AUDITOR"] = "AUDITOR";
     return Role;
 }({});

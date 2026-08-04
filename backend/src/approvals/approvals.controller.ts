@@ -38,7 +38,7 @@ export class ApprovalsController {
   // ── Approval decisions ──────────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.DIRECTOR, Role.PERMANENT_SECRETARY, Role.COMMISSIONER, Role.SUPER_ADMIN)
+  @Roles(Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY, Role.COMMISSIONER)
   @Post('tickets/:id/approve')
   @ApiOperation({ summary: 'Approve at the current tier' })
   async approve(
@@ -50,7 +50,7 @@ export class ApprovalsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.DIRECTOR, Role.PERMANENT_SECRETARY, Role.COMMISSIONER, Role.SUPER_ADMIN)
+  @Roles(Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY, Role.COMMISSIONER)
   @Post('tickets/:id/return')
   @ApiOperation({ summary: 'Return to officer with comments' })
   async return(
@@ -62,9 +62,9 @@ export class ApprovalsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.DIRECTOR, Role.PERMANENT_SECRETARY, Role.SUPER_ADMIN)
+  @Roles(Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY)
   @Post('tickets/:id/escalate')
-  @ApiOperation({ summary: 'Escalate to the next approval tier' })
+  @ApiOperation({ summary: 'Escalate to the next approval tier (HOD→PS, PS→Commissioner)' })
   async escalate(
     @Param('id') id: string,
     @Body() dto: EscalateDto,
@@ -74,7 +74,7 @@ export class ApprovalsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.PERMANENT_SECRETARY, Role.COMMISSIONER, Role.SUPER_ADMIN)
+  @Roles(Role.PERMANENT_SECRETARY, Role.COMMISSIONER)
   @Post('tickets/:id/refer')
   @ApiOperation({ summary: 'Refer externally (PS / Commissioner)' })
   async refer(
@@ -88,7 +88,7 @@ export class ApprovalsController {
   // ── Approver inbox ───────────────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.DIRECTOR, Role.PERMANENT_SECRETARY, Role.COMMISSIONER, Role.SUPER_ADMIN)
+  @Roles(Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY, Role.COMMISSIONER, Role.ADMIN)
   @Get('approval-requests')
   @ApiOperation({ summary: 'List approval requests for an approver inbox' })
   @ApiQuery({ name: 'approverRole', required: false })
@@ -99,20 +99,24 @@ export class ApprovalsController {
     @Query('currentApproverId') currentApproverId?: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @CurrentUser() user?: AuthenticatedUser,
   ) {
-    return this.workflow.findInbox({
-      approverRole: approverRole as any,
-      status,
-      currentApproverId: currentApproverId === 'me' ? undefined : currentApproverId,
-      page: page ? parseInt(page, 10) : undefined,
-      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
-    });
+    return this.workflow.findInbox(
+      {
+        approverRole: approverRole as any,
+        status,
+        currentApproverId: currentApproverId === 'me' ? undefined : currentApproverId,
+        page: page ? parseInt(page, 10) : undefined,
+        pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
+      },
+      user,
+    );
   }
 
   // ── Delegations (PS only) ─────────────────────────────────────────────────
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.PERMANENT_SECRETARY, Role.SUPER_ADMIN)
+  @Roles(Role.PERMANENT_SECRETARY)
   @Post('delegations')
   @ApiOperation({ summary: 'Create a delegation (PS only)' })
   async createDelegation(
@@ -123,7 +127,7 @@ export class ApprovalsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.PERMANENT_SECRETARY, Role.SUPER_ADMIN, Role.DIRECTOR)
+  @Roles(Role.PERMANENT_SECRETARY, Role.DEPARTMENT_HOD)
   @Get('delegations')
   @ApiOperation({ summary: 'List delegations' })
   async listDelegations(
@@ -137,7 +141,7 @@ export class ApprovalsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.PERMANENT_SECRETARY, Role.SUPER_ADMIN)
+  @Roles(Role.PERMANENT_SECRETARY)
   @Post('delegations/:id/revoke')
   @ApiOperation({ summary: 'Revoke a delegation (PS only)' })
   async revokeDelegation(

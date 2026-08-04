@@ -12,6 +12,7 @@ const _common = require("@nestjs/common");
 const _bcrypt = /*#__PURE__*/ _interop_require_wildcard(require("bcrypt"));
 const _prismaservice = require("../prisma/prisma.service");
 const _role = require("../common/types/role");
+const _permission = require("../common/types/permission");
 function _getRequireWildcardCache(nodeInterop) {
     if (typeof WeakMap !== "function") return null;
     var cacheBabelInterop = new WeakMap();
@@ -69,6 +70,13 @@ let UsersService = class UsersService {
         return this.prisma.user.findUnique({
             where: {
                 id
+            },
+            include: {
+                permissions: {
+                    select: {
+                        permission: true
+                    }
+                }
             }
         });
     }
@@ -76,10 +84,17 @@ let UsersService = class UsersService {
         return this.prisma.user.findUnique({
             where: {
                 email
+            },
+            include: {
+                permissions: {
+                    select: {
+                        permission: true
+                    }
+                }
             }
         });
     }
-    /** Returns a user-safe record (no passwordHash). */ findPublicById(id) {
+    /** Returns a user-safe record (no passwordHash), including permissions. */ findPublicById(id) {
         return this.prisma.user.findUnique({
             where: {
                 id
@@ -93,7 +108,13 @@ let UsersService = class UsersService {
                 phone: true,
                 departmentId: true,
                 isActive: true,
-                lastLoginAt: true
+                isSuperAdmin: true,
+                lastLoginAt: true,
+                permissions: {
+                    select: {
+                        permission: true
+                    }
+                }
             }
         });
     }
@@ -138,7 +159,13 @@ let UsersService = class UsersService {
                             }
                         },
                         isActive: true,
-                        lastLoginAt: true
+                        isSuperAdmin: true,
+                        lastLoginAt: true,
+                        permissions: {
+                            select: {
+                                permission: true
+                            }
+                        }
                     }
                 }),
                 tx.user.count({
@@ -163,6 +190,7 @@ let UsersService = class UsersService {
             throw new _common.ConflictException('A user with this email already exists.');
         }
         const passwordHash = await _bcrypt.hash(dto.password, BCRYPT_COST);
+        const permissions = (dto.permissions ?? []).filter((p)=>p !== _permission.Permission.ALL);
         return this.prisma.user.create({
             data: {
                 email: dto.email,
@@ -171,7 +199,13 @@ let UsersService = class UsersService {
                 passwordHash,
                 designation: dto.designation,
                 phone: dto.phone,
-                departmentId: dto.departmentId
+                departmentId: dto.departmentId,
+                isSuperAdmin: dto.role === _role.Role.ADMIN ? dto.isSuperAdmin ?? false : false,
+                permissions: dto.role === _role.Role.ADMIN && permissions.length ? {
+                    create: permissions.map((permission)=>({
+                            permission
+                        }))
+                } : undefined
             },
             select: {
                 id: true,
@@ -181,7 +215,13 @@ let UsersService = class UsersService {
                 designation: true,
                 phone: true,
                 departmentId: true,
-                isActive: true
+                isActive: true,
+                isSuperAdmin: true,
+                permissions: {
+                    select: {
+                        permission: true
+                    }
+                }
             }
         });
     }
@@ -197,31 +237,57 @@ let UsersService = class UsersService {
         if (dto.password) {
             passwordHash = await _bcrypt.hash(dto.password, BCRYPT_COST);
         }
-        return this.prisma.user.update({
-            where: {
-                id
-            },
-            data: {
-                fullName: dto.fullName,
-                role: dto.role,
-                designation: dto.designation,
-                phone: dto.phone,
-                departmentId: dto.departmentId,
-                isActive: dto.isActive,
-                ...passwordHash ? {
-                    passwordHash
-                } : {}
-            },
-            select: {
-                id: true,
-                email: true,
-                fullName: true,
-                role: true,
-                designation: true,
-                phone: true,
-                departmentId: true,
-                isActive: true
+        return this.prisma.$transaction(async (tx)=>{
+            // Replace module permissions if a new set was provided for an ADMIN user.
+            if (dto.permissions !== undefined && user.role === _role.Role.ADMIN) {
+                const perms = dto.permissions.filter((p)=>p !== _permission.Permission.ALL);
+                await tx.userPermission.deleteMany({
+                    where: {
+                        userId: id
+                    }
+                });
+                if (perms.length) {
+                    await tx.userPermission.createMany({
+                        data: perms.map((permission)=>({
+                                userId: id,
+                                permission
+                            }))
+                    });
+                }
             }
+            return tx.user.update({
+                where: {
+                    id
+                },
+                data: {
+                    fullName: dto.fullName,
+                    role: dto.role,
+                    designation: dto.designation,
+                    phone: dto.phone,
+                    departmentId: dto.departmentId,
+                    isActive: dto.isActive,
+                    isSuperAdmin: dto.isSuperAdmin !== undefined && user.role === _role.Role.ADMIN ? dto.isSuperAdmin : undefined,
+                    ...passwordHash ? {
+                        passwordHash
+                    } : {}
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    fullName: true,
+                    role: true,
+                    designation: true,
+                    phone: true,
+                    departmentId: true,
+                    isActive: true,
+                    isSuperAdmin: true,
+                    permissions: {
+                        select: {
+                            permission: true
+                        }
+                    }
+                }
+            });
         });
     }
     /** Soft-deactivate a user (isActive = false). Never hard-deletes. */ async deactivate(id) {
@@ -231,7 +297,7 @@ let UsersService = class UsersService {
             }
         });
         if (!user) throw new _common.NotFoundException('User not found.');
-        if (user.role === _role.Role.SUPER_ADMIN) {
+        if (user.isSuperAdmin) {
             throw new _common.BadRequestException('Super Admin accounts cannot be deactivated.');
         }
         return this.prisma.user.update({

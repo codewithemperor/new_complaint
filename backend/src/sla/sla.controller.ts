@@ -11,7 +11,9 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Permissions } from '../common/decorators/permissions.decorator';
 import { Role } from '../common/types/role';
+import { Permission } from '../common/types/permission';
 import { PrismaService } from '../prisma/prisma.service';
 import { SlaPolicy } from './sla-policy';
 import { SlaClockService } from './sla-clock.service';
@@ -36,7 +38,7 @@ export class SlaController {
 
   /** Active tickets with SLA data for the breach dashboard. */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN_OFFICER, Role.SUPER_ADMIN, Role.AUDITOR)
+  @Roles(Role.ADMIN, Role.AUDITOR)
   @Get('breaching')
   @ApiOperation({ summary: 'SLA breach dashboard (admin)' })
   async breaching(@Query('view') view?: string) {
@@ -78,18 +80,28 @@ export class SlaController {
     return { items: result, total: result.length };
   }
 
-  /** The SLA config matrix. */
+  /** The SLA config matrix (escalationChain parsed to an array for the UI). */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN_OFFICER, Role.SUPER_ADMIN, Role.AUDITOR)
+  @Roles(Role.ADMIN, Role.AUDITOR)
   @Get('config')
   @ApiOperation({ summary: 'SLA config matrix (admin)' })
   async config() {
-    return this.prisma.slaConfig.findMany({ orderBy: { priority: 'asc' } });
+    const rows = await this.prisma.slaConfig.findMany({ orderBy: { priority: 'asc' } });
+    // escalationChain is stored as a JSON string; parse it so the client can
+    // treat it as an array directly.
+    return rows.map((r) => ({
+      ...r,
+      escalationChain:
+        typeof r.escalationChain === 'string'
+          ? JSON.parse(r.escalationChain as string)
+          : r.escalationChain,
+    }));
   }
 
-  /** Edit one priority's SLA config (Super Admin). Invalidates the cache. */
+  /** Edit one priority's SLA config (Super Admin / ADMIN with SLA). Invalidates the cache. */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN)
+  @Permissions(Permission.SLA)
   @Patch('config/:priority')
   @ApiOperation({ summary: 'Update SLA config for a priority (Super Admin)' })
   async updateConfig(

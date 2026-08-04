@@ -11,16 +11,17 @@ import { CreateDelegationDto } from './dtos/create-delegation.dto';
 /**
  * DelegationsService — PS-only time-boxed delegation of approval authority.
  *
- * Only a PERMANENT_SECRETARY may create a delegation, and only to a DIRECTOR
- * (delegating downward to someone who can hold the schedule-officer-level
- * sign-off in the PS's absence). Resolution happens in EscalationService.
+ * Only a PERMANENT_SECRETARY may create a delegation, and only to a
+ * DEPARTMENT_HOD (delegating downward to someone who can hold the
+ * department-level sign-off in the PS's absence). Resolution happens in
+ * EscalationService.
  */
 @Injectable()
 export class DelegationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateDelegationDto, user: { id: string; role: Role }) {
-    if (user.role !== Role.PERMANENT_SECRETARY && user.role !== Role.SUPER_ADMIN) {
+  async create(dto: CreateDelegationDto, user: { id: string; role: Role; isSuperAdmin?: boolean }) {
+    if (user.role !== Role.PERMANENT_SECRETARY && !user.isSuperAdmin) {
       throw new ForbiddenException('Only the Permanent Secretary may delegate approval authority.');
     }
 
@@ -32,8 +33,8 @@ export class DelegationsService {
 
     const delegate = await this.prisma.user.findUnique({ where: { id: dto.delegateId } });
     if (!delegate) throw new NotFoundException('Delegate user not found.');
-    if (delegate.role !== Role.DIRECTOR) {
-      throw new BadRequestException('Delegation target must be a Director (HOD).');
+    if (delegate.role !== Role.DEPARTMENT_HOD) {
+      throw new BadRequestException('Delegation target must be a Department HOD.');
     }
 
     return this.prisma.delegation.create({
@@ -69,10 +70,10 @@ export class DelegationsService {
     });
   }
 
-  async revoke(id: string, user: { id: string; role: Role }) {
+  async revoke(id: string, user: { id: string; role: Role; isSuperAdmin?: boolean }) {
     const delegation = await this.prisma.delegation.findUnique({ where: { id } });
     if (!delegation) throw new NotFoundException('Delegation not found.');
-    if (delegation.delegatorId !== user.id && user.role !== Role.SUPER_ADMIN) {
+    if (delegation.delegatorId !== user.id && !user.isSuperAdmin) {
       throw new ForbiddenException('You may only revoke your own delegations.');
     }
     return this.prisma.delegation.update({

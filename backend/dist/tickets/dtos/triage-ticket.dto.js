@@ -31,10 +31,12 @@ function _ts_metadata(metadataKey, metadataValue) {
 let TriageTicketDto = class TriageTicketDto {
 };
 _ts_decorate([
+    (0, _classvalidator.IsOptional)(),
     (0, _classvalidator.IsString)(),
     _ts_metadata("design:type", String)
 ], TriageTicketDto.prototype, "category", void 0);
 _ts_decorate([
+    (0, _classvalidator.IsOptional)(),
     (0, _classvalidator.IsEnum)(_ticketstatus.Priority),
     _ts_metadata("design:type", typeof _ticketstatus.Priority === "undefined" ? Object : _ticketstatus.Priority)
 ], TriageTicketDto.prototype, "priority", void 0);

@@ -90,11 +90,11 @@ const STATUS_COLORS: Record<string, string> = {
   SUBMITTED: "bg-neutral-100 text-neutral-600 border-neutral-200",
   ACKNOWLEDGED: "bg-cyan-50 text-cyan-700 border-cyan-200",
   TRIAGED: "bg-violet-50 text-violet-700 border-violet-200",
-  ASSIGNED: "bg-teal-50 text-teal-700 border-teal-200",
+  ASSIGNED: "bg-green-50 text-green-700 border-green-200",
   IN_PROGRESS: "bg-amber-50 text-amber-700 border-amber-200",
   PENDING_APPROVAL: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  RESOLVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  APPROVED: "bg-green-50 text-green-700 border-green-200",
+  RESOLVED: "bg-green-50 text-green-700 border-green-200",
   CLOSED: "bg-neutral-100 text-neutral-600 border-neutral-200",
   REOPENED: "bg-orange-50 text-orange-700 border-orange-200",
   ESCALATED: "bg-red-50 text-red-700 border-red-200",
@@ -104,11 +104,11 @@ const STATUS_DOT_COLORS: Record<string, string> = {
   SUBMITTED: "bg-neutral-400",
   ACKNOWLEDGED: "bg-cyan-400",
   TRIAGED: "bg-violet-400",
-  ASSIGNED: "bg-teal-400",
+  ASSIGNED: "bg-green-400",
   IN_PROGRESS: "bg-amber-400",
   PENDING_APPROVAL: "bg-yellow-400",
-  APPROVED: "bg-emerald-500",
-  RESOLVED: "bg-emerald-500",
+  APPROVED: "bg-green-500",
+  RESOLVED: "bg-green-500",
   CLOSED: "bg-neutral-400",
   REOPENED: "bg-orange-400",
   ESCALATED: "bg-red-400",
@@ -131,7 +131,7 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 const PRIORITY_COLORS: Record<string, string> = {
   CRITICAL: "bg-red-50 text-red-700 border-red-200",
   HIGH: "bg-amber-50 text-amber-700 border-amber-200",
-  MEDIUM: "bg-teal-50 text-teal-700 border-teal-200",
+  MEDIUM: "bg-green-50 text-green-700 border-green-200",
   LOW: "bg-neutral-50 text-neutral-600 border-neutral-200",
 };
 
@@ -166,11 +166,11 @@ const MOVEMENT_ICONS: Record<string, React.ReactNode> = {
 const MOVEMENT_DOT_COLORS: Record<string, string> = {
   SUBMITTED: "bg-neutral-400",
   ROUTED: "bg-violet-400",
-  ASSIGNED: "bg-teal-400",
-  REASSIGNED: "bg-teal-400",
+  ASSIGNED: "bg-green-400",
+  REASSIGNED: "bg-green-400",
   RETURNED: "bg-amber-400",
   ESCALATED: "bg-red-400",
-  APPROVED: "bg-emerald-500",
+  APPROVED: "bg-green-500",
   REFERRED: "bg-cyan-400",
   REOPENED: "bg-orange-400",
   CLOSED: "bg-neutral-400",
@@ -189,13 +189,17 @@ const PIPELINE_STEPS = [
 ] as const;
 
 function getStepIndex(status: string): number {
-  return PIPELINE_STEPS.indexOf(status as typeof PIPELINE_STEPS[number]);
+  return PIPELINE_STEPS.indexOf(status as (typeof PIPELINE_STEPS)[number]);
 }
 
 /** Mask a string for privacy */
 function maskString(str: string, visibleChars = 2): string {
   if (str.length <= visibleChars * 2) return str;
-  return str.slice(0, visibleChars) + "•".repeat(Math.min(str.length - visibleChars * 2, 8)) + str.slice(-visibleChars);
+  return (
+    str.slice(0, visibleChars) +
+    "•".repeat(Math.min(str.length - visibleChars * 2, 8)) +
+    str.slice(-visibleChars)
+  );
 }
 
 function maskEmail(email: string): string {
@@ -206,21 +210,43 @@ function maskEmail(email: string): string {
 
 function maskPhone(phone: string): string {
   if (phone.length <= 4) return phone;
-  return phone.slice(0, 4) + "•".repeat(Math.min(phone.length - 4, 6)) + phone.slice(-2);
+  return (
+    phone.slice(0, 4) +
+    "•".repeat(Math.min(phone.length - 4, 6)) +
+    phone.slice(-2)
+  );
 }
 
-function getEstimatedResolution(createdAt: string, priority?: string | null): Date | null {
+function getEstimatedResolution(
+  createdAt: string,
+  priority?: string | null,
+): Date | null {
   const created = new Date(createdAt);
   const hoursMap: Record<string, number> = {
-    P1: 48, P2: 168, P3: 336, P4: 672,
+    P1: 48,
+    P2: 168,
+    P3: 336,
+    P4: 672,
   };
   const hours = hoursMap[priority ?? "P3"] ?? 336;
   return new Date(created.getTime() + hours * 60 * 60 * 1000);
 }
 
 /** Floating background element component */
-function FloatingElement({ delay, duration, size, x, y, color }: {
-  delay: number; duration: number; size: number; x: string; y: string; color: string;
+function FloatingElement({
+  delay,
+  duration,
+  size,
+  x,
+  y,
+  color,
+}: {
+  delay: number;
+  duration: number;
+  size: number;
+  x: string;
+  y: string;
+  color: string;
 }) {
   return (
     <motion.div
@@ -258,7 +284,9 @@ export default function TrackTicketPage() {
   const [error, setError] = useState<string | null>(null);
   const [ticketCopied, setTicketCopied] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
-  const [hoveredTimelineIdx, setHoveredTimelineIdx] = useState<number | null>(null);
+  const [hoveredTimelineIdx, setHoveredTimelineIdx] = useState<number | null>(
+    null,
+  );
 
   // Info-reply state.
   const [replyBody, setReplyBody] = useState("");
@@ -313,7 +341,9 @@ export default function TrackTicketPage() {
       setReplySent(true);
       fetchTicket();
     } catch (err) {
-      setReplyError(err instanceof ApiError ? err.message : "Failed to send reply.");
+      setReplyError(
+        err instanceof ApiError ? err.message : "Failed to send reply.",
+      );
     } finally {
       setReplying(false);
     }
@@ -325,7 +355,9 @@ export default function TrackTicketPage() {
       await navigator.clipboard.writeText(ticket.ticketCode);
       setTicketCopied(true);
       setTimeout(() => setTicketCopied(false), 2000);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   async function handleShare() {
@@ -335,7 +367,9 @@ export default function TrackTicketPage() {
       await navigator.clipboard.writeText(url);
       setShareCopied(true);
       setTimeout(() => setShareCopied(false), 2000);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   function handleDownloadReport() {
@@ -354,8 +388,10 @@ export default function TrackTicketPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50">
         <div className="flex items-center gap-3">
-          <Loader2 size={24} className="animate-spin text-emerald-600" />
-          <p className="text-sm text-neutral-500">Loading complaint status...</p>
+          <Loader2 size={24} className="animate-spin text-green-600" />
+          <p className="text-sm text-neutral-500">
+            Loading complaint status...
+          </p>
         </div>
       </div>
     );
@@ -367,14 +403,28 @@ export default function TrackTicketPage() {
         {/* Floating elements */}
         <div className="fixed inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-neutral-50" />
-          <FloatingElement delay={0} duration={6} size={100} x="30%" y="30%" color="#059669" />
-          <FloatingElement delay={1} duration={8} size={80} x="60%" y="50%" color="#14b8a6" />
+          <FloatingElement
+            delay={0}
+            duration={6}
+            size={100}
+            x="30%"
+            y="30%"
+            color="#059669"
+          />
+          <FloatingElement
+            delay={1}
+            duration={8}
+            size={80}
+            x="60%"
+            y="50%"
+            color="#22c55e"
+          />
         </div>
         <div className="flex min-h-screen items-center justify-center px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md rounded-xl border border-red-200 bg-white shadow-sm"
+            className="w-full max-w-md rounded-xl border border-red-200 bg-neutral-50 shadow-sm"
           >
             <div className="p-6">
               <div className="flex items-start gap-3">
@@ -382,7 +432,9 @@ export default function TrackTicketPage() {
                   <AlertCircle size={20} className="text-red-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-neutral-900">Cannot Track Complaint</h3>
+                  <h3 className="text-lg font-semibold text-neutral-900">
+                    Cannot Track Complaint
+                  </h3>
                   <p className="mt-2 text-sm text-red-700">{error}</p>
                   <ul className="mt-3 space-y-1">
                     <li className="flex items-center gap-1.5 text-xs text-red-600">
@@ -391,7 +443,8 @@ export default function TrackTicketPage() {
                     </li>
                     <li className="flex items-center gap-1.5 text-xs text-red-600">
                       <span className="h-1 w-1 rounded-full bg-red-400" />
-                      Try using the track page with your ticket code and passcode
+                      Try using the track page with your ticket code and
+                      passcode
                     </li>
                     <li className="flex items-center gap-1.5 text-xs text-red-600">
                       <span className="h-1 w-1 rounded-full bg-red-400" />
@@ -402,7 +455,7 @@ export default function TrackTicketPage() {
               </div>
               <Link
                 href="/track"
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
               >
                 <ArrowLeft size={14} />
                 Go to Track Page
@@ -417,10 +470,13 @@ export default function TrackTicketPage() {
   if (!ticket) return null;
 
   const statusLabel = STATUS_LABELS[ticket.status] ?? ticket.status;
-  const statusColor = STATUS_COLORS[ticket.status] ?? "bg-neutral-100 text-neutral-600 border-neutral-200";
+  const statusColor =
+    STATUS_COLORS[ticket.status] ??
+    "bg-neutral-100 text-neutral-600 border-neutral-200";
   const statusDotColor = STATUS_DOT_COLORS[ticket.status] ?? "bg-neutral-400";
   const statusIcon = STATUS_ICONS[ticket.status] ?? <Circle size={14} />;
-  const isResolvedOrClosed = ticket.status === "RESOLVED" || ticket.status === "CLOSED";
+  const isResolvedOrClosed =
+    ticket.status === "RESOLVED" || ticket.status === "CLOSED";
 
   // Progress info
   let idx = getStepIndex(ticket.status);
@@ -439,9 +495,17 @@ export default function TrackTicketPage() {
     const now = new Date();
     const dueAt = ticket.slaDueAt ? new Date(ticket.slaDueAt) : null;
     const remaining = dueAt ? dueAt.getTime() - now.getTime() : null;
-    const hoursRemaining = remaining ? Math.max(0, Math.round(remaining / (1000 * 60 * 60))) : null;
-    const isBreached = ticket.slaBreached ?? (remaining !== null && remaining < 0);
-    return { targetHours: ticket.slaTargetHours, dueAt, hoursRemaining, isBreached };
+    const hoursRemaining = remaining
+      ? Math.max(0, Math.round(remaining / (1000 * 60 * 60)))
+      : null;
+    const isBreached =
+      ticket.slaBreached ?? (remaining !== null && remaining < 0);
+    return {
+      targetHours: ticket.slaTargetHours,
+      dueAt,
+      hoursRemaining,
+      isBreached,
+    };
   })();
 
   const estimatedResolution = (() => {
@@ -454,17 +518,51 @@ export default function TrackTicketPage() {
       {/* Floating elements */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-neutral-50" />
-        <svg className="absolute inset-0 h-full w-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          className="absolute inset-0 h-full w-full opacity-[0.03]"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <defs>
-            <pattern id="ticketGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1" />
+            <pattern
+              id="ticketGrid"
+              width="40"
+              height="40"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M 40 0 L 0 0 0 40"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#ticketGrid)" />
         </svg>
-        <FloatingElement delay={0} duration={6} size={120} x="10%" y="20%" color="#059669" />
-        <FloatingElement delay={1} duration={8} size={80} x="70%" y="15%" color="#14b8a6" />
-        <FloatingElement delay={2} duration={7} size={100} x="80%" y="60%" color="#10b981" />
+        <FloatingElement
+          delay={0}
+          duration={6}
+          size={120}
+          x="10%"
+          y="20%"
+          color="#059669"
+        />
+        <FloatingElement
+          delay={1}
+          duration={8}
+          size={80}
+          x="70%"
+          y="15%"
+          color="#22c55e"
+        />
+        <FloatingElement
+          delay={2}
+          duration={7}
+          size={100}
+          x="80%"
+          y="60%"
+          color="#10b981"
+        />
       </div>
 
       <div className="mx-auto max-w-lg px-4 pb-8 pt-8">
@@ -475,9 +573,19 @@ export default function TrackTicketPage() {
           transition={{ duration: 0.4 }}
           className="mb-6 text-center"
         >
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold relative overflow-hidden ${statusColor}`}>
-            <span className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 4px, currentColor 4px, currentColor 5px)" }} />
-            <span className={`relative h-2 w-2 rounded-full ${statusDotColor} ${!isResolvedOrClosed ? "animate-pulse" : ""}`} />
+          <span
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold relative overflow-hidden ${statusColor}`}
+          >
+            <span
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(45deg, transparent, transparent 4px, currentColor 4px, currentColor 5px)",
+              }}
+            />
+            <span
+              className={`relative h-2 w-2 rounded-full ${statusDotColor} ${!isResolvedOrClosed ? "animate-pulse" : ""}`}
+            />
             <span className="relative">{statusIcon}</span>
             <span className="relative">{statusLabel}</span>
           </span>
@@ -490,10 +598,14 @@ export default function TrackTicketPage() {
             </p>
             <button
               onClick={handleCopyTicketCode}
-              className="flex items-center gap-1 rounded-md border border-neutral-200 bg-white px-2 py-0.5 text-xs text-neutral-500 transition-all hover:border-emerald-300 hover:text-emerald-600"
+              className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs text-neutral-500 transition-all hover:border-green-300 hover:text-green-600"
               title="Copy ticket code"
             >
-              {ticketCopied ? <Check size={10} className="text-emerald-600" /> : <Copy size={10} />}
+              {ticketCopied ? (
+                <Check size={10} className="text-green-600" />
+              ) : (
+                <Copy size={10} />
+              )}
               {ticketCopied ? "Copied" : "Copy"}
             </button>
           </div>
@@ -504,10 +616,12 @@ export default function TrackTicketPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="mb-4 rounded-xl border border-neutral-200 bg-white p-4"
+          className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4"
         >
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium text-neutral-600">Progress</span>
+            <span className="text-xs font-medium text-neutral-600">
+              Progress
+            </span>
             <span className="text-xs font-medium text-neutral-500">
               {idx + 1} / {PIPELINE_STEPS.length} steps
             </span>
@@ -517,12 +631,14 @@ export default function TrackTicketPage() {
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className={`h-full rounded-full ${isResolvedOrClosed ? "bg-emerald-500" : "bg-emerald-500"}`}
+              className={`h-full rounded-full ${isResolvedOrClosed ? "bg-green-500" : "bg-green-500"}`}
             />
           </div>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[10px] text-neutral-400">Submitted</span>
-            <span className="text-[10px] font-semibold text-emerald-600">{progressPercent}%</span>
+            <span className="text-[10px] font-semibold text-green-600">
+              {progressPercent}%
+            </span>
             <span className="text-[10px] text-neutral-400">Resolved</span>
           </div>
         </motion.div>
@@ -538,27 +654,48 @@ export default function TrackTicketPage() {
                 ? "border-red-200 bg-red-50"
                 : slaInfo.hoursRemaining !== null && slaInfo.hoursRemaining < 24
                   ? "border-amber-200 bg-amber-50"
-                  : "border-emerald-200 bg-emerald-50"
+                  : "border-green-200 bg-green-50"
             }`}
           >
-            <Timer size={18} className={`shrink-0 ${
-              slaInfo.isBreached ? "text-red-600" : slaInfo.hoursRemaining !== null && slaInfo.hoursRemaining < 24 ? "text-amber-600" : "text-emerald-600"
-            }`} />
+            <Timer
+              size={18}
+              className={`shrink-0 ${
+                slaInfo.isBreached
+                  ? "text-red-600"
+                  : slaInfo.hoursRemaining !== null &&
+                      slaInfo.hoursRemaining < 24
+                    ? "text-amber-600"
+                    : "text-green-600"
+              }`}
+            />
             <div>
-              <p className={`text-xs font-medium ${
-                slaInfo.isBreached ? "text-red-700" : slaInfo.hoursRemaining !== null && slaInfo.hoursRemaining < 24 ? "text-amber-700" : "text-emerald-700"
-              }`}>
+              <p
+                className={`text-xs font-medium ${
+                  slaInfo.isBreached
+                    ? "text-red-700"
+                    : slaInfo.hoursRemaining !== null &&
+                        slaInfo.hoursRemaining < 24
+                      ? "text-amber-700"
+                      : "text-green-700"
+                }`}
+              >
                 {slaInfo.isBreached ? "SLA Breached" : "SLA Target"}
               </p>
-              <p className={`text-sm ${
-                slaInfo.isBreached ? "text-red-800" : slaInfo.hoursRemaining !== null && slaInfo.hoursRemaining < 24 ? "text-amber-800" : "text-emerald-800"
-              }`}>
+              <p
+                className={`text-sm ${
+                  slaInfo.isBreached
+                    ? "text-red-800"
+                    : slaInfo.hoursRemaining !== null &&
+                        slaInfo.hoursRemaining < 24
+                      ? "text-amber-800"
+                      : "text-green-800"
+                }`}
+              >
                 {slaInfo.isBreached
                   ? "Resolution is overdue"
                   : slaInfo.hoursRemaining !== null
                     ? `${slaInfo.hoursRemaining} hours remaining`
-                    : `${slaInfo.targetHours} hour target`
-                }
+                    : `${slaInfo.targetHours} hour target`}
               </p>
             </div>
           </motion.div>
@@ -574,10 +711,15 @@ export default function TrackTicketPage() {
           >
             <CalendarClock size={18} className="shrink-0 text-amber-600" />
             <div>
-              <p className="text-xs font-medium text-amber-700">Estimated Resolution</p>
+              <p className="text-xs font-medium text-amber-700">
+                Estimated Resolution
+              </p>
               <p className="text-sm text-amber-800">
                 {estimatedResolution.toLocaleDateString(undefined, {
-                  weekday: "long", year: "numeric", month: "long", day: "numeric",
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 })}
               </p>
             </div>
@@ -589,7 +731,7 @@ export default function TrackTicketPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-xl border border-neutral-200 bg-white/80 shadow-sm backdrop-blur-md"
+          className="rounded-xl border border-neutral-200 bg-neutral-50/80 shadow-sm backdrop-blur-md"
         >
           <div className="space-y-5 p-6">
             {/* Subject */}
@@ -598,7 +740,9 @@ export default function TrackTicketPage() {
                 <FileText size={12} />
                 Subject
               </div>
-              <p className="text-sm font-medium text-neutral-800">{ticket.subject}</p>
+              <p className="text-sm font-medium text-neutral-800">
+                {ticket.subject}
+              </p>
             </div>
 
             {/* Category & Priority */}
@@ -618,7 +762,9 @@ export default function TrackTicketPage() {
                     <AlertTriangle size={12} />
                     Priority
                   </div>
-                  <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${PRIORITY_COLORS[ticket.priority] ?? "bg-neutral-50 text-neutral-600 border-neutral-200"}`}>
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${PRIORITY_COLORS[ticket.priority] ?? "bg-neutral-50 text-neutral-600 border-neutral-200"}`}
+                  >
                     {ticket.priority}
                   </span>
                 </div>
@@ -629,25 +775,33 @@ export default function TrackTicketPage() {
             {ticket.departmentName && (
               <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100">
-                    <Building2 size={16} className="text-teal-600" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                    <Building2 size={16} className="text-green-600" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium uppercase text-neutral-400">Department</p>
-                    <p className="text-sm font-medium text-neutral-700">{ticket.departmentName}</p>
+                    <p className="text-xs font-medium uppercase text-neutral-400">
+                      Department
+                    </p>
+                    <p className="text-sm font-medium text-neutral-700">
+                      {ticket.departmentName}
+                    </p>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Citizen Info Section (masked for privacy) */}
-            {(ticket.citizenName || ticket.citizenEmail || ticket.citizenPhone) && (
+            {(ticket.citizenName ||
+              ticket.citizenEmail ||
+              ticket.citizenPhone) && (
               <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100">
                     <UserCircle size={16} className="text-violet-600" />
                   </div>
-                  <p className="text-xs font-medium uppercase text-neutral-400">Complainant</p>
+                  <p className="text-xs font-medium uppercase text-neutral-400">
+                    Complainant
+                  </p>
                 </div>
                 <div className="space-y-1 pl-10">
                   {ticket.citizenName && (
@@ -681,7 +835,9 @@ export default function TrackTicketPage() {
               <div className="mb-1 text-xs font-medium uppercase text-neutral-400">
                 Description
               </div>
-              <p className="whitespace-pre-wrap text-sm text-neutral-700">{ticket.description}</p>
+              <p className="whitespace-pre-wrap text-sm text-neutral-700">
+                {ticket.description}
+              </p>
             </div>
 
             {/* Submitted date */}
@@ -697,12 +853,14 @@ export default function TrackTicketPage() {
 
             {/* Resolution */}
             {ticket.resolutionText && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase text-emerald-600">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase text-green-600">
                   <CheckCircle2 size={14} />
                   Resolution
                 </div>
-                <p className="mt-1 text-sm text-neutral-700">{ticket.resolutionText}</p>
+                <p className="mt-1 text-sm text-neutral-700">
+                  {ticket.resolutionText}
+                </p>
               </div>
             )}
 
@@ -715,7 +873,10 @@ export default function TrackTicketPage() {
                 </div>
                 <ul className="mt-1 space-y-1">
                   {ticket.attachments.map((a, i) => (
-                    <li key={i} className="flex items-center gap-1.5 text-sm text-neutral-600">
+                    <li
+                      key={i}
+                      className="flex items-center gap-1.5 text-sm text-neutral-600"
+                    >
                       <Paperclip size={12} className="text-neutral-400" />
                       {a.filename}
                     </li>
@@ -731,10 +892,12 @@ export default function TrackTicketPage() {
                   <AlertCircle size={14} />
                   Information Requested
                 </div>
-                <p className="mb-3 text-sm text-neutral-700">{ticket.infoRequest.text}</p>
+                <p className="mb-3 text-sm text-neutral-700">
+                  {ticket.infoRequest.text}
+                </p>
 
                 {replySent ? (
-                  <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-700">
+                  <div className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-700">
                     <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
                     Thank you — your response has been sent.
                   </div>
@@ -744,7 +907,7 @@ export default function TrackTicketPage() {
                       value={replyBody}
                       onChange={(e) => setReplyBody(e.target.value)}
                       rows={3}
-                      className="w-full resize-y rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                      className="w-full resize-y rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-sm outline-none transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/30"
                       placeholder="Type your response here..."
                     />
                     {replyError && (
@@ -754,7 +917,7 @@ export default function TrackTicketPage() {
                       </div>
                     )}
                     <button
-                      className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-emerald-700 hover:shadow-md mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-green-700 hover:shadow-md mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
                       onClick={handleReply}
                       disabled={replying || !replyBody.trim()}
                     >
@@ -784,24 +947,31 @@ export default function TrackTicketPage() {
                 </div>
                 <div className="space-y-3">
                   {ticket.minutes.map((m, i) => (
-                    <div key={i} className="rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
+                    <div
+                      key={i}
+                      className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 shadow-sm"
+                    >
                       <div className="mb-2 flex items-center justify-between">
                         <span className="flex items-center gap-1.5 text-xs font-medium text-neutral-700">
-                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-50">
-                            <User size={10} className="text-teal-600" />
+                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-50">
+                            <User size={10} className="text-green-600" />
                           </div>
                           {m.author?.fullName ?? "Officer"}
                           {m.author?.designation ? (
-                            <span className="text-neutral-400">· {m.author.designation}</span>
+                            <span className="text-neutral-400">
+                              · {m.author.designation}
+                            </span>
                           ) : null}
                         </span>
                         <span className="text-xs text-neutral-400">
                           {new Date(m.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="whitespace-pre-wrap text-sm text-neutral-700 leading-relaxed">{m.body}</p>
+                      <p className="whitespace-pre-wrap text-sm text-neutral-700 leading-relaxed">
+                        {m.body}
+                      </p>
                       {m.isResolutionDraft && (
-                        <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+                        <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-600">
                           <CheckCircle2 size={10} />
                           Resolution draft
                         </span>
@@ -823,7 +993,7 @@ export default function TrackTicketPage() {
                   <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-neutral-200" />
                   {ticket.timeline.length > 1 && (
                     <div
-                      className="absolute left-[15px] top-2 w-0.5 bg-emerald-400"
+                      className="absolute left-[15px] top-2 w-0.5 bg-green-400"
                       style={{
                         height: `calc(${((ticket.timeline.length - 1) / ticket.timeline.length) * 100}% - 8px)`,
                       }}
@@ -832,9 +1002,12 @@ export default function TrackTicketPage() {
 
                   <div className="space-y-0">
                     {ticket.timeline.map((entry, i) => {
-                      const icon = MOVEMENT_ICONS[entry.type] ?? <Circle size={14} />;
+                      const icon = MOVEMENT_ICONS[entry.type] ?? (
+                        <Circle size={14} />
+                      );
                       const label = MOVEMENT_LABELS[entry.type] ?? entry.type;
-                      const dotColor = MOVEMENT_DOT_COLORS[entry.type] ?? "bg-neutral-400";
+                      const dotColor =
+                        MOVEMENT_DOT_COLORS[entry.type] ?? "bg-neutral-400";
                       const isLast = i === ticket.timeline.length - 1;
                       return (
                         <motion.div
@@ -846,18 +1019,26 @@ export default function TrackTicketPage() {
                           onMouseEnter={() => setHoveredTimelineIdx(i)}
                           onMouseLeave={() => setHoveredTimelineIdx(null)}
                         >
-                          <div className={`relative z-10 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border-2 border-white text-white shadow-sm transition-all duration-200 ${dotColor} ${isLast ? "ring-2 ring-emerald-200" : ""}`}>
+                          <div
+                            className={`relative z-10 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full border-2 border-white text-white shadow-sm transition-all duration-200 ${dotColor} ${isLast ? "ring-2 ring-green-200" : ""}`}
+                          >
                             {icon}
                             {isLast && !isResolvedOrClosed && (
-                              <span className="absolute inset-0 rounded-full animate-ping bg-emerald-400 opacity-20" />
+                              <span className="absolute inset-0 rounded-full animate-ping bg-green-400 opacity-20" />
                             )}
                           </div>
                           <div className="min-w-0 flex-1 pt-0.5">
-                            <p className="text-sm font-medium text-neutral-800">{label}</p>
+                            <p className="text-sm font-medium text-neutral-800">
+                              {label}
+                            </p>
                             {entry.note && (
-                              <p className="mt-0.5 text-xs text-neutral-500">{entry.note}</p>
+                              <p className="mt-0.5 text-xs text-neutral-500">
+                                {entry.note}
+                              </p>
                             )}
-                            <div className={`mt-0.5 transition-all duration-200 ${hoveredTimelineIdx === i ? "opacity-100" : "opacity-60"}`}>
+                            <div
+                              className={`mt-0.5 transition-all duration-200 ${hoveredTimelineIdx === i ? "opacity-100" : "opacity-60"}`}
+                            >
                               <p className="text-xs text-neutral-400">
                                 {new Date(entry.createdAt).toLocaleString()}
                               </p>
@@ -873,19 +1054,22 @@ export default function TrackTicketPage() {
 
             {/* Submit Feedback link for resolved tickets */}
             {isResolvedOrClosed && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                    <MessageSquare size={16} className="text-emerald-600" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
+                    <MessageSquare size={16} className="text-green-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-emerald-800">Your complaint has been resolved</p>
-                    <p className="mt-1 text-xs text-emerald-700">
-                      We value your feedback. Let us know how we handled your complaint.
+                    <p className="text-sm font-medium text-green-800">
+                      Your complaint has been resolved
+                    </p>
+                    <p className="mt-1 text-xs text-green-700">
+                      We value your feedback. Let us know how we handled your
+                      complaint.
                     </p>
                     <Link
                       href="/#feedback"
-                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-700"
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700"
                     >
                       <MessageSquare size={12} />
                       Submit Feedback
@@ -899,7 +1083,7 @@ export default function TrackTicketPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => window.print()}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50"
               >
                 <Printer size={14} />
                 Print
@@ -907,7 +1091,9 @@ export default function TrackTicketPage() {
               <button
                 onClick={handleShare}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2 text-sm font-medium transition-all duration-200 ${
-                  shareCopied ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50"
+                  shareCopied
+                    ? "border-green-200 bg-green-50 text-green-700"
+                    : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
                 <Share2 size={14} />
@@ -915,7 +1101,7 @@ export default function TrackTicketPage() {
               </button>
               <button
                 onClick={handleDownloadReport}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-50"
               >
                 <Download size={14} />
                 Download
@@ -924,7 +1110,7 @@ export default function TrackTicketPage() {
 
             <Link
               href="/track"
-              className="block w-full rounded-lg border border-neutral-300 bg-white py-2.5 text-center text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              className="block w-full rounded-lg border border-neutral-300 bg-neutral-50 py-2.5 text-center text-sm font-medium text-neutral-700 hover:bg-neutral-50"
             >
               <ArrowLeft size={14} className="inline mr-1" />
               Back to Track Page
@@ -932,7 +1118,7 @@ export default function TrackTicketPage() {
 
             <Link
               href="/report"
-              className="block w-full rounded-lg bg-emerald-600 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+              className="block w-full rounded-lg bg-green-600 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-green-700"
             >
               <Plus size={14} className="inline mr-1" />
               Submit New Complaint
@@ -945,32 +1131,38 @@ export default function TrackTicketPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
-          className="mt-6 rounded-xl border border-neutral-200 bg-white p-5"
+          className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-5"
         >
-          <h3 className="mb-3 text-sm font-semibold text-neutral-800">Contact Support</h3>
+          <h3 className="mb-3 text-sm font-semibold text-neutral-800">
+            Contact Support
+          </h3>
           <div className="space-y-3">
             <a
               href="mailto:support@kwaramoc.kw.gov.ng"
-              className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-emerald-600"
+              className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-green-600"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
-                <Mail size={16} className="text-emerald-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
+                <Mail size={16} className="text-green-600" />
               </div>
               <div>
                 <p className="font-medium text-neutral-700">Email Support</p>
-                <p className="text-xs text-neutral-500">support@kwaramoc.kw.gov.ng</p>
+                <p className="text-xs text-neutral-500">
+                  support@kwaramoc.kw.gov.ng
+                </p>
               </div>
             </a>
             <a
               href="tel:+2340000000000"
-              className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-emerald-600"
+              className="flex items-center gap-3 text-sm text-neutral-600 transition-colors hover:text-green-600"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
-                <Phone size={16} className="text-emerald-600" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
+                <Phone size={16} className="text-green-600" />
               </div>
               <div>
                 <p className="font-medium text-neutral-700">Phone Support</p>
-                <p className="text-xs text-neutral-500">+234 000 000 0000 (Mon-Fri, 8am-4pm)</p>
+                <p className="text-xs text-neutral-500">
+                  +234 000 000 0000 (Mon-Fri, 8am-4pm)
+                </p>
               </div>
             </a>
           </div>

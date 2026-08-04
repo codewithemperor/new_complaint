@@ -6,16 +6,16 @@ import { api, ApiError } from "@/lib/api";
 import type { ApprovalRequest, PaginatedResponse } from "@/lib/types";
 
 const inputClass =
-  "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600";
+  "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600";
 
 /** Which decision buttons to show, keyed by tier. */
-export type Tier = "DIRECTOR" | "PERMANENT_SECRETARY" | "COMMISSIONER";
+export type Tier = "DEPARTMENT_HOD" | "PERMANENT_SECRETARY" | "COMMISSIONER";
 
 const TIER_ACTIONS: Record<
   Tier,
   { label: string; value: "approve" | "return" | "escalate" | "refer" }[]
 > = {
-  DIRECTOR: [
+  DEPARTMENT_HOD: [
     { label: "Approve", value: "approve" },
     { label: "Return", value: "return" },
     { label: "Escalate to PS", value: "escalate" },
@@ -43,10 +43,13 @@ export function ApprovalInbox({
   tier,
   title,
   inboxRoute,
+  allTiers = false,
 }: {
   tier: Tier;
   title: string;
   inboxRoute: string;
+  /** When true, fetch all pending approvals across every tier (Super Admin). */
+  allTiers?: boolean;
 }) {
   const [requests, setRequests] = useState<ApprovalRequest[]>([]);
   const [total, setTotal] = useState(0);
@@ -65,18 +68,25 @@ export function ApprovalInbox({
     setLoading(true);
     setError(null);
     try {
+      // Super Admin (allTiers) issues a single unscoped call; the backend
+      // ignores the approverRole filter for super admins and returns every tier.
+      const scope = allTiers
+        ? "status=PENDING"
+        : `approverRole=${tier}&status=PENDING`;
       const data = await api.get<PaginatedResponse<ApprovalRequest>>(
-        `/approval-requests?approverRole=${tier}&status=PENDING&page=1&pageSize=50`,
+        `/approval-requests?${scope}&page=1&pageSize=50`,
       );
       setRequests(data.items);
       setTotal(data.total);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to load approvals.");
+      setError(
+        err instanceof ApiError ? err.message : "Failed to load approvals.",
+      );
       setRequests([]);
     } finally {
       setLoading(false);
     }
-  }, [tier]);
+  }, [tier, allTiers]);
 
   useEffect(() => {
     fetchRequests();
@@ -107,11 +117,22 @@ export function ApprovalInbox({
     try {
       const body: Record<string, unknown> = {};
       if (comment.trim()) {
-        body[action === "approve" ? "comment" : action === "refer" ? "reason" : action === "escalate" ? "reason" : "comment"] = comment;
+        body[
+          action === "approve"
+            ? "comment"
+            : action === "refer"
+              ? "reason"
+              : action === "escalate"
+                ? "reason"
+                : "comment"
+        ] = comment;
       }
       if (action === "refer") body.referredBody = referredBody;
 
-      await api.post(`/tickets/${selected.ticket?.id ?? selected.id}/${action}`, body);
+      await api.post(
+        `/tickets/${selected.ticket?.id ?? selected.id}/${action}`,
+        body,
+      );
       setSelected(null);
       fetchRequests();
     } catch (err) {
@@ -131,7 +152,11 @@ export function ApprovalInbox({
             {total} item{total !== 1 ? "s" : ""} awaiting your action
           </p>
         </div>
-        <button className="rounded-lg px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:opacity-60 disabled:cursor-not-allowed" onClick={fetchRequests} disabled={loading}>
+        <button
+          className="rounded-lg px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:opacity-60 disabled:cursor-not-allowed"
+          onClick={fetchRequests}
+          disabled={loading}
+        >
           {loading ? "Loading…" : "Refresh"}
         </button>
       </div>
@@ -143,7 +168,7 @@ export function ApprovalInbox({
       )}
 
       {requests.length === 0 && !loading ? (
-        <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 shadow-sm">
           <div className="p-6">
             <p className="py-8 text-center text-neutral-500">
               No items awaiting your action.
@@ -151,7 +176,7 @@ export function ApprovalInbox({
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-neutral-200 bg-white shadow-sm">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 shadow-sm">
           <div className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -170,7 +195,7 @@ export function ApprovalInbox({
                       key={r.id}
                       className="border-b border-neutral-100 hover:bg-neutral-50"
                     >
-                      <td className="px-4 py-3 font-mono text-xs text-teal-700">
+                      <td className="px-4 py-3 font-mono text-xs text-green-700">
                         {r.ticket?.ticketCode ?? "—"}
                       </td>
                       <td className="max-w-[260px] truncate px-4 py-3 font-medium text-neutral-800">
@@ -189,7 +214,10 @@ export function ApprovalInbox({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <button className="rounded-lg bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-teal-700" onClick={() => openModal(r)}>
+                        <button
+                          className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-700"
+                          onClick={() => openModal(r)}
+                        >
                           Review
                         </button>
                       </td>
@@ -205,48 +233,76 @@ export function ApprovalInbox({
       {/* Decision modal */}
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelected(null)} />
-          <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-white p-0 shadow-2xl">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setSelected(null)}
+          />
+          <div className="relative z-10 w-full max-w-2xl rounded-2xl bg-neutral-50 p-0 shadow-2xl">
             <div className="p-6">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-neutral-900">Review Approval Request</h2>
-                <button onClick={() => setSelected(null)} className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100">
+                <h2 className="text-lg font-semibold text-neutral-900">
+                  Review Approval Request
+                </h2>
+                <button
+                  onClick={() => setSelected(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100"
+                >
                   <X size={18} />
                 </button>
               </div>
               <div className="max-h-[70vh] space-y-4 overflow-y-auto">
                 <p className="text-sm text-neutral-500">
-                  <span className="font-mono">{selected.ticket?.ticketCode}</span> —{" "}
-                  {selected.ticket?.subject}
+                  <span className="font-mono">
+                    {selected.ticket?.ticketCode}
+                  </span>{" "}
+                  — {selected.ticket?.subject}
                 </p>
                 {/* Ticket meta */}
                 <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-3">
                   <div>
-                    <p className="text-xs uppercase text-neutral-400">Department</p>
-                    <p className="text-neutral-700">{selected.ticket?.department?.name ?? "—"}</p>
+                    <p className="text-xs uppercase text-neutral-400">
+                      Department
+                    </p>
+                    <p className="text-neutral-700">
+                      {selected.ticket?.department?.name ?? "—"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase text-neutral-400">Officer</p>
-                    <p className="text-neutral-700">{selected.ticket?.assignedOfficer?.fullName ?? "—"}</p>
+                    <p className="text-xs uppercase text-neutral-400">
+                      Officer
+                    </p>
+                    <p className="text-neutral-700">
+                      {selected.ticket?.assignedOfficer?.fullName ?? "—"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs uppercase text-neutral-400">Priority</p>
-                    <p className="text-neutral-700">{selected.ticket?.priority ?? "—"}</p>
+                    <p className="text-xs uppercase text-neutral-400">
+                      Priority
+                    </p>
+                    <p className="text-neutral-700">
+                      {selected.ticket?.priority ?? "—"}
+                    </p>
                   </div>
                 </div>
 
                 {/* Executive summary */}
                 {selected.ticket?.minutes?.[0]?.body && (
                   <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-                    <p className="mb-1 text-xs font-semibold uppercase text-neutral-500">Officer Summary</p>
-                    <p className="text-sm text-neutral-700">{selected.ticket.minutes[0].body}</p>
+                    <p className="mb-1 text-xs font-semibold uppercase text-neutral-500">
+                      Officer Summary
+                    </p>
+                    <p className="text-sm text-neutral-700">
+                      {selected.ticket.minutes[0].body}
+                    </p>
                   </div>
                 )}
 
                 {/* External body (shown only when referring) */}
                 {referMode && (
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-neutral-700">External body name *</label>
+                    <label className="mb-1 block text-sm font-medium text-neutral-700">
+                      External body name *
+                    </label>
                     <input
                       value={referredBody}
                       onChange={(e) => setReferredBody(e.target.value)}
@@ -259,7 +315,10 @@ export function ApprovalInbox({
                 {/* Comment / directive */}
                 <div>
                   <label className="mb-1 block text-sm font-medium text-neutral-700">
-                    Comment / directive <span className="text-neutral-400">(required for return)</span>
+                    Comment / directive{" "}
+                    <span className="text-neutral-400">
+                      (required for return)
+                    </span>
                   </label>
                   <textarea
                     value={comment}
@@ -290,8 +349,8 @@ export function ApprovalInbox({
                         key={a.value}
                         className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                           isPrimary
-                            ? "bg-teal-600 text-white hover:bg-teal-700"
-                            : "border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
+                            ? "bg-green-600 text-white hover:bg-green-700"
+                            : "border border-neutral-300 bg-neutral-50 text-neutral-700 hover:bg-neutral-50"
                         }`}
                         disabled={submitting}
                         onClick={() => {
@@ -307,12 +366,18 @@ export function ApprovalInbox({
                           }
                         }}
                       >
-                        {referMode && a.value === "refer" ? "Confirm Refer" : a.label}
+                        {referMode && a.value === "refer"
+                          ? "Confirm Refer"
+                          : a.label}
                       </button>
                     );
                   })}
                 </div>
-                <button className="rounded-lg px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:opacity-60 disabled:cursor-not-allowed" onClick={() => setSelected(null)} disabled={submitting}>
+                <button
+                  className="rounded-lg px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                  onClick={() => setSelected(null)}
+                  disabled={submitting}
+                >
                   Cancel
                 </button>
               </div>

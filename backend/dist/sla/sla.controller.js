@@ -13,7 +13,9 @@ const _swagger = require("@nestjs/swagger");
 const _jwtauthguard = require("../common/guards/jwt-auth.guard");
 const _rolesguard = require("../common/guards/roles.guard");
 const _rolesdecorator = require("../common/decorators/roles.decorator");
+const _permissionsdecorator = require("../common/decorators/permissions.decorator");
 const _role = require("../common/types/role");
+const _permission = require("../common/types/permission");
 const _prismaservice = require("../prisma/prisma.service");
 const _slapolicy = require("./sla-policy");
 const _slaclockservice = require("./sla-clock.service");
@@ -99,14 +101,20 @@ let SlaController = class SlaController {
             total: result.length
         };
     }
-    /** The SLA config matrix. */ async config() {
-        return this.prisma.slaConfig.findMany({
+    /** The SLA config matrix (escalationChain parsed to an array for the UI). */ async config() {
+        const rows = await this.prisma.slaConfig.findMany({
             orderBy: {
                 priority: 'asc'
             }
         });
+        // escalationChain is stored as a JSON string; parse it so the client can
+        // treat it as an array directly.
+        return rows.map((r)=>({
+                ...r,
+                escalationChain: typeof r.escalationChain === 'string' ? JSON.parse(r.escalationChain) : r.escalationChain
+            }));
     }
-    /** Edit one priority's SLA config (Super Admin). Invalidates the cache. */ async updateConfig(priority, dto) {
+    /** Edit one priority's SLA config (Super Admin / ADMIN with SLA). Invalidates the cache. */ async updateConfig(priority, dto) {
         const updated = await this.prisma.slaConfig.upsert({
             where: {
                 priority: priority
@@ -131,7 +139,7 @@ let SlaController = class SlaController {
 };
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.AUDITOR),
     (0, _common.Get)('breaching'),
     (0, _swagger.ApiOperation)({
         summary: 'SLA breach dashboard (admin)'
@@ -145,7 +153,7 @@ _ts_decorate([
 ], SlaController.prototype, "breaching", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.ADMIN_OFFICER, _role.Role.SUPER_ADMIN, _role.Role.AUDITOR),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.AUDITOR),
     (0, _common.Get)('config'),
     (0, _swagger.ApiOperation)({
         summary: 'SLA config matrix (admin)'
@@ -156,7 +164,8 @@ _ts_decorate([
 ], SlaController.prototype, "config", null);
 _ts_decorate([
     (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
-    (0, _rolesdecorator.Roles)(_role.Role.SUPER_ADMIN),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN),
+    (0, _permissionsdecorator.Permissions)(_permission.Permission.SLA),
     (0, _common.Patch)('config/:priority'),
     (0, _swagger.ApiOperation)({
         summary: 'Update SLA config for a priority (Super Admin)'

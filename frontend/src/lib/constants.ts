@@ -1,17 +1,48 @@
-/** Static category list for the complaint form. Promote to a DB table if admins
- *  need to edit it later (M8 open question). */
-export const CATEGORIES = [
-  "INFRASTRUCTURE",
-  "HEALTH",
-  "EDUCATION",
-  "SECURITY",
-  "AGRICULTURE",
-  "WATER_SANITATION",
-  "ENVIRONMENT",
-  "LAND_HOUSING",
-  "TRANSPORT",
-  "OTHER",
+/**
+ * The seven complaint categories / departments. These mirror the seeded
+ * departments and are the single source of truth used by the landing page and
+ * the complaint submission flow.
+ */
+export const DEPARTMENTS = [
+  {
+    name: "Information Services",
+    description: "ICT, records and information management.",
+    icon: "server",
+  },
+  {
+    name: "Public Orientation",
+    description: "Public enquiries, orientation and citizen engagement.",
+    icon: "compass",
+  },
+  {
+    name: "Graphics",
+    description: "Design, printing and visual communications.",
+    icon: "palette",
+  },
+  {
+    name: "Culture and Tourism",
+    description: "Culture, arts, heritage and tourism.",
+    icon: "landmark",
+  },
+  {
+    name: "Finance & Supply",
+    description: "Finance, accounts and supply chain.",
+    icon: "wallet",
+  },
+  {
+    name: "Planning, Research and Statistics",
+    description: "Planning, research, monitoring and statistics.",
+    icon: "chart",
+  },
+  {
+    name: "Admin Department",
+    description: "Administration and human resources.",
+    icon: "building",
+  },
 ] as const;
+
+/** Category list (department names) for the complaint form. */
+export const CATEGORIES = DEPARTMENTS.map((d) => d.name) as readonly string[];
 
 export const LGAS = [
   "Asa",

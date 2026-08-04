@@ -18,7 +18,7 @@ import { ReportsService } from './reports.service';
 /**
  * AuditController — read-only audit log, CSV export, and performance reports.
  *
- * Accessible to ADMIN_OFFICER, senior approvers, SUPER_ADMIN, and AUDITOR.
+ * Accessible to ADMIN, senior approvers (HOD/PS/Commissioner), and AUDITOR.
  */
 @ApiTags('audit')
 @Controller()
@@ -30,8 +30,8 @@ export class AuditController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.ADMIN_OFFICER, Role.DIRECTOR, Role.PERMANENT_SECRETARY,
-    Role.COMMISSIONER, Role.SUPER_ADMIN, Role.AUDITOR,
+    Role.ADMIN, Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY,
+    Role.COMMISSIONER, Role.AUDITOR,
   )
   @Get('audit-events')
   @ApiOperation({ summary: 'List audit events (filtered/paginated)' })
@@ -54,8 +54,8 @@ export class AuditController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.ADMIN_OFFICER, Role.DIRECTOR, Role.PERMANENT_SECRETARY,
-    Role.COMMISSIONER, Role.SUPER_ADMIN, Role.AUDITOR,
+    Role.ADMIN, Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY,
+    Role.COMMISSIONER, Role.AUDITOR,
   )
   @Get('audit-events/export')
   @Header('Content-Type', 'text/csv')
@@ -77,8 +77,8 @@ export class AuditController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.ADMIN_OFFICER, Role.DIRECTOR, Role.PERMANENT_SECRETARY,
-    Role.COMMISSIONER, Role.SUPER_ADMIN, Role.AUDITOR,
+    Role.ADMIN, Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY,
+    Role.COMMISSIONER, Role.AUDITOR,
   )
   @Get('reports/overview')
   @ApiOperation({ summary: 'System-wide report totals' })
@@ -88,8 +88,8 @@ export class AuditController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.ADMIN_OFFICER, Role.DIRECTOR, Role.PERMANENT_SECRETARY,
-    Role.COMMISSIONER, Role.SUPER_ADMIN, Role.AUDITOR,
+    Role.ADMIN, Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY,
+    Role.COMMISSIONER, Role.AUDITOR,
   )
   @Get('reports/department-performance')
   @ApiOperation({ summary: 'Per-department performance metrics' })
@@ -105,8 +105,8 @@ export class AuditController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.ADMIN_OFFICER, Role.DIRECTOR, Role.PERMANENT_SECRETARY,
-    Role.COMMISSIONER, Role.SUPER_ADMIN, Role.AUDITOR,
+    Role.ADMIN, Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY,
+    Role.COMMISSIONER, Role.AUDITOR,
   )
   @Get('reports/officer-performance')
   @ApiOperation({ summary: 'Per-officer performance metrics' })
@@ -122,8 +122,8 @@ export class AuditController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.ADMIN_OFFICER, Role.DIRECTOR, Role.PERMANENT_SECRETARY,
-    Role.COMMISSIONER, Role.SUPER_ADMIN, Role.AUDITOR,
+    Role.ADMIN, Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY,
+    Role.COMMISSIONER, Role.AUDITOR,
   )
   @Get('reports/trend')
   @ApiOperation({ summary: 'Daily complaints trend over N days' })
@@ -133,8 +133,8 @@ export class AuditController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    Role.ADMIN_OFFICER, Role.DIRECTOR, Role.PERMANENT_SECRETARY,
-    Role.COMMISSIONER, Role.SUPER_ADMIN, Role.AUDITOR,
+    Role.ADMIN, Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY,
+    Role.COMMISSIONER, Role.AUDITOR,
   )
   @Get('reports/status-by-department')
   @ApiOperation({ summary: 'Ticket counts by department and status' })

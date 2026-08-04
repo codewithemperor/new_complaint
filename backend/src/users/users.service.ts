@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { Role } from '../common/types/role';
+import { Permission } from '../common/types/permission';
 
 const BCRYPT_COST = 12;
 
@@ -23,14 +24,20 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   findById(id: string) {
-    return this.prisma.user.findUnique({ where: { id } });
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: { permissions: { select: { permission: true } } },
+    });
   }
 
   findByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email } });
+    return this.prisma.user.findUnique({
+      where: { email },
+      include: { permissions: { select: { permission: true } } },
+    });
   }
 
-  /** Returns a user-safe record (no passwordHash). */
+  /** Returns a user-safe record (no passwordHash), including permissions. */
   findPublicById(id: string) {
     return this.prisma.user.findUnique({
       where: { id },
@@ -43,7 +50,9 @@ export class UsersService {
         phone: true,
         departmentId: true,
         isActive: true,
+        isSuperAdmin: true,
         lastLoginAt: true,
+        permissions: { select: { permission: true } },
       },
     });
   }
@@ -86,7 +95,9 @@ export class UsersService {
             departmentId: true,
             department: { select: { id: true, name: true, code: true } },
             isActive: true,
+            isSuperAdmin: true,
             lastLoginAt: true,
+            permissions: { select: { permission: true } },
           },
         }),
         tx.user.count({ where }),
@@ -104,6 +115,7 @@ export class UsersService {
       throw new ConflictException('A user with this email already exists.');
     }
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_COST);
+    const permissions = (dto.permissions ?? []).filter((p) => p !== Permission.ALL);
     return this.prisma.user.create({
       data: {
         email: dto.email,
@@ -113,10 +125,17 @@ export class UsersService {
         designation: dto.designation,
         phone: dto.phone,
         departmentId: dto.departmentId,
+        isSuperAdmin: dto.role === Role.ADMIN ? (dto.isSuperAdmin ?? false) : false,
+        permissions:
+          dto.role === Role.ADMIN && permissions.length
+            ? { create: permissions.map((permission) => ({ permission })) }
+            : undefined,
       },
       select: {
         id: true, email: true, fullName: true, role: true,
         designation: true, phone: true, departmentId: true, isActive: true,
+        isSuperAdmin: true,
+        permissions: { select: { permission: true } },
       },
     });
   }
@@ -132,21 +151,40 @@ export class UsersService {
       passwordHash = await bcrypt.hash(dto.password, BCRYPT_COST);
     }
 
-    return this.prisma.user.update({
-      where: { id },
-      data: {
-        fullName: dto.fullName,
-        role: dto.role,
-        designation: dto.designation,
-        phone: dto.phone,
-        departmentId: dto.departmentId,
-        isActive: dto.isActive,
-        ...(passwordHash ? { passwordHash } : {}),
-      },
-      select: {
-        id: true, email: true, fullName: true, role: true,
-        designation: true, phone: true, departmentId: true, isActive: true,
-      },
+    return this.prisma.$transaction(async (tx) => {
+      // Replace module permissions if a new set was provided for an ADMIN user.
+      if (dto.permissions !== undefined && user.role === Role.ADMIN) {
+        const perms = dto.permissions.filter((p) => p !== Permission.ALL);
+        await tx.userPermission.deleteMany({ where: { userId: id } });
+        if (perms.length) {
+          await tx.userPermission.createMany({
+            data: perms.map((permission) => ({ userId: id, permission })),
+          });
+        }
+      }
+
+      return tx.user.update({
+        where: { id },
+        data: {
+          fullName: dto.fullName,
+          role: dto.role,
+          designation: dto.designation,
+          phone: dto.phone,
+          departmentId: dto.departmentId,
+          isActive: dto.isActive,
+          isSuperAdmin:
+            dto.isSuperAdmin !== undefined && user.role === Role.ADMIN
+              ? dto.isSuperAdmin
+              : undefined,
+          ...(passwordHash ? { passwordHash } : {}),
+        },
+        select: {
+          id: true, email: true, fullName: true, role: true,
+          designation: true, phone: true, departmentId: true, isActive: true,
+          isSuperAdmin: true,
+          permissions: { select: { permission: true } },
+        },
+      });
     });
   }
 
@@ -154,7 +192,7 @@ export class UsersService {
   async deactivate(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found.');
-    if (user.role === Role.SUPER_ADMIN) {
+    if (user.isSuperAdmin) {
       throw new BadRequestException('Super Admin accounts cannot be deactivated.');
     }
     return this.prisma.user.update({

@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { ToastContainer } from "@/components/ui/toast";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
+});
+
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  // Fraunces is a variable font — pick weights you'll actually use for headings
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -40,9 +48,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geistSans.variable} suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <html
+      lang="en"
+      className={`${dmSans.variable} ${fraunces.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="bg-background text-foreground">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+        >
           {children}
           <ToastContainer />
           <ServiceWorkerRegistration />
