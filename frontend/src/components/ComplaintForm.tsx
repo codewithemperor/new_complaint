@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, ApiError } from "@/lib/api";
-import { CATEGORIES, DEPARTMENTS, LGAS, CHANNELS } from "@/lib/constants";
+import { CATEGORIES, LGAS, CHANNELS } from "@/lib/constants";
 import {
   User,
   FileText,
@@ -34,15 +34,8 @@ import {
   ClipboardList,
   Phone,
   Mail,
-  Building2,
   Tag,
   MapPin,
-  Server,
-  Compass,
-  Palette,
-  Landmark,
-  Wallet,
-  BarChart3,
 } from "lucide-react";
 
 const inputClass =
@@ -61,24 +54,6 @@ const STEPS = [
 ] as const;
 
 const DRAFT_KEY = "kwaramoc_complaint_draft";
-
-// Department icons keyed by the icon key in lib/constants DEPARTMENTS.
-const DEPARTMENT_ICONS: Record<string, React.ReactNode> = {
-  server: <Server size={14} />,
-  compass: <Compass size={14} />,
-  palette: <Palette size={14} />,
-  landmark: <Landmark size={14} />,
-  wallet: <Wallet size={14} />,
-  chart: <BarChart3 size={14} />,
-  building: <Building2 size={14} />,
-};
-
-// Lookup a department's icon by its display name.
-function departmentIcon(name: string): React.ReactNode {
-  const dept = DEPARTMENTS.find((d) => d.name === name);
-  if (!dept) return <Info size={14} />;
-  return DEPARTMENT_ICONS[dept.icon] ?? <Info size={14} />;
-}
 
 interface ComplaintFormProps {
   /** When true, show the channel selector (intake officer variant). */
@@ -794,37 +769,24 @@ export function ComplaintForm({
             transition={{ duration: 0.25 }}
             className="space-y-4"
           >
-            {/* Category selection with icons */}
             <div>
               <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-neutral-700">
                 <Tag size={14} className="text-neutral-400" />
                 Category *
               </label>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required
+                className={selectClass}
+              >
+                <option value="">Select category...</option>
                 {CATEGORIES.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setCategory(c)}
-                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200 ${
-                      category === c
-                        ? "border-green-600 bg-green-50 text-green-700 ring-1 ring-green-600/20"
-                        : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"
-                    }`}
-                  >
-                    <span
-                      className={
-                        category === c
-                          ? "text-primary"
-                          : "text-muted-foreground"
-                      }
-                    >
-                      {departmentIcon(c)}
-                    </span>
+                  <option key={c} value={c}>
                     {c}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
 
             <div>

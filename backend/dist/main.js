@@ -57,9 +57,13 @@ async function bootstrap() {
     }));
     // Cookies (httpOnly auth cookie) + CORS with credentials for the frontend.
     app.use((0, _cookieparser.default)());
-    const corsOrigins = (config.get('CORS_ORIGIN') ?? 'http://localhost:3000').split(',').map((s)=>s.trim());
+    const corsOrigins = (config.get('CORS_ORIGIN') ?? 'http://localhost:3000').split(',').map((s)=>s.trim().replace(/\/+$/, '')).filter(Boolean);
     app.enableCors({
-        origin: corsOrigins,
+        origin (origin, callback) {
+            if (!origin) return callback(null, true);
+            const normalizedOrigin = origin.replace(/\/+$/, '');
+            return callback(null, corsOrigins.includes(normalizedOrigin));
+        },
         credentials: true
     });
     // JwtAuthGuard is registered globally via APP_GUARD in AppModule (DI-aware,

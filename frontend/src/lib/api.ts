@@ -51,7 +51,8 @@ async function request<T>(path: string, opts: FetchOptions = {}): Promise<T> {
     headers["Content-Type"] = "application/json";
   }
 
-  const url = `${API_BASE_URL}/api${path}`;
+  const apiPath = path.replace(/^\/+/, "");
+  const url = `${API_BASE_URL}/api/${apiPath}`;
 
   const res = await fetch(url, {
     method,

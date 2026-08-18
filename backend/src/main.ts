@@ -27,9 +27,14 @@ async function bootstrap() {
   app.use(cookieParser());
   const corsOrigins = (config.get<string>('CORS_ORIGIN') ?? 'http://localhost:3000')
     .split(',')
-    .map((s: string) => s.trim());
+    .map((s: string) => s.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
   app.enableCors({
-    origin: corsOrigins,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+      return callback(null, corsOrigins.includes(normalizedOrigin));
+    },
     credentials: true,
   });
 

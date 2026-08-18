@@ -433,22 +433,19 @@ export default function ReportPage() {
                   <label className="mb-1.5 block text-sm font-medium text-foreground">
                     Category <span className="text-destructive">*</span>
                   </label>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className={inputClass}
+                    required
+                  >
+                    <option value="">Select category...</option>
                     {CATEGORIES.map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setCategory(item)}
-                        className={`rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors ${
-                          category === item
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-card text-foreground hover:border-primary/60"
-                        }`}
-                      >
+                      <option key={item} value={item}>
                         {item}
-                      </button>
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-foreground">
