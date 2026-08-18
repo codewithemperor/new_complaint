@@ -562,7 +562,7 @@ export function Sidebar({
         </div>
 
         {/* Version badge footer */}
-        {!collapsed && (
+        {/* {!collapsed && (
           <div className="border-t border-border px-4 py-2 ">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center rounded-md bg-green-50 px-1.5 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-300">
@@ -573,7 +573,7 @@ export function Sidebar({
               </span>
             </div>
           </div>
-        )}
+        )} */}
       </aside>
     </>
   );

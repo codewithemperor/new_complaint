@@ -4,7 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { PublicFeedbackModal } from "@/components/PublicFeedbackModal";
 import { api, ApiError } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/config";
 import type { TimelineEntry } from "@/lib/types";
 import {
   ArrowLeft,
@@ -59,7 +61,14 @@ interface TrackedTicket {
   createdAt: string;
   resolvedAt?: string | null;
   resolutionText?: string | null;
-  attachments: { filename: string; mimetype: string }[];
+  attachments: {
+    id?: string;
+    filename: string;
+    storedPath?: string;
+    url?: string;
+    mimetype: string;
+    sizeBytes?: number;
+  }[];
   minutes?: TrackedMinute[];
   infoRequest?: { text: string; createdAt: string } | null;
   timeline: TimelineEntry[];
@@ -232,6 +241,14 @@ function getEstimatedResolution(
   return new Date(created.getTime() + hours * 60 * 60 * 1000);
 }
 
+function attachmentHref(attachment: TrackedTicket["attachments"][number]) {
+  const url =
+    attachment.url ??
+    (attachment.storedPath ? `/uploads/${attachment.storedPath}` : "");
+  if (!url) return "";
+  return url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+}
+
 /** Floating background element component */
 function FloatingElement({
   delay,
@@ -284,6 +301,7 @@ export default function TrackTicketPage() {
   const [error, setError] = useState<string | null>(null);
   const [ticketCopied, setTicketCopied] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [hoveredTimelineIdx, setHoveredTimelineIdx] = useState<number | null>(
     null,
   );
@@ -308,9 +326,14 @@ export default function TrackTicketPage() {
       return;
     }
     try {
-      const data = await api.get<TrackedTicket>(
-        `/tickets/${params.ticketCode}/track?${authQuery}`,
-      );
+      const data = passcode
+        ? await api.post<TrackedTicket>("/tickets/track", {
+            code: params.ticketCode,
+            passcode,
+          })
+        : await api.get<TrackedTicket>(
+            `/tickets/${params.ticketCode}/track?${authQuery}`,
+          );
       setTicket(data);
     } catch (err) {
       setError(
@@ -323,7 +346,7 @@ export default function TrackTicketPage() {
     } finally {
       setLoading(false);
     }
-  }, [params.ticketCode, authQuery]);
+  }, [params.ticketCode, authQuery, passcode]);
 
   useEffect(() => {
     fetchTicket();
@@ -477,6 +500,7 @@ export default function TrackTicketPage() {
   const statusIcon = STATUS_ICONS[ticket.status] ?? <Circle size={14} />;
   const isResolvedOrClosed =
     ticket.status === "RESOLVED" || ticket.status === "CLOSED";
+  const canSubmitFeedback = ticket.status === "RESOLVED";
 
   // Progress info
   let idx = getStepIndex(ticket.status);
@@ -871,16 +895,41 @@ export default function TrackTicketPage() {
                   <Paperclip size={12} />
                   Attachments
                 </div>
-                <ul className="mt-1 space-y-1">
-                  {ticket.attachments.map((a, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center gap-1.5 text-sm text-neutral-600"
-                    >
-                      <Paperclip size={12} className="text-neutral-400" />
-                      {a.filename}
-                    </li>
-                  ))}
+                <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {ticket.attachments.map((a, i) => {
+                    const href = attachmentHref(a);
+                    const isImage = a.mimetype?.startsWith("image/");
+                    return (
+                      <li key={a.id ?? i}>
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-2 text-sm text-neutral-700 transition-colors hover:border-green-300 hover:bg-green-50"
+                        >
+                          {isImage && href ? (
+                            <img
+                              src={href}
+                              alt={a.filename}
+                              className="h-12 w-12 shrink-0 rounded-md bg-neutral-100 object-contain"
+                            />
+                          ) : (
+                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                              <FileText size={18} className="text-neutral-500" />
+                            </span>
+                          )}
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-medium">
+                              {a.filename}
+                            </span>
+                            <span className="block text-xs text-neutral-400">
+                              {a.mimetype}
+                            </span>
+                          </span>
+                        </a>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
@@ -1052,8 +1101,8 @@ export default function TrackTicketPage() {
               </div>
             )}
 
-            {/* Submit Feedback link for resolved tickets */}
-            {isResolvedOrClosed && (
+            {/* Submit Feedback for resolved tickets */}
+            {canSubmitFeedback && (
               <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                 <div className="flex items-start gap-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-100">
@@ -1067,13 +1116,14 @@ export default function TrackTicketPage() {
                       We value your feedback. Let us know how we handled your
                       complaint.
                     </p>
-                    <Link
-                      href="/#feedback"
+                    <button
+                      type="button"
+                      onClick={() => setShowFeedbackModal(true)}
                       className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700"
                     >
                       <MessageSquare size={12} />
                       Submit Feedback
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1168,6 +1218,14 @@ export default function TrackTicketPage() {
           </div>
         </motion.div>
       </div>
+      <PublicFeedbackModal
+        isOpen={showFeedbackModal}
+        onOpenChange={setShowFeedbackModal}
+        ticketCode={ticket.ticketCode}
+        token={token}
+        passcode={passcode}
+        onSubmitted={fetchTicket}
+      />
     </div>
   );
 }

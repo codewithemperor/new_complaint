@@ -15,6 +15,8 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TicketsService, StoredAttachment } from './tickets.service';
 import { CreateTicketDto } from './dtos/create-ticket.dto';
+import { TrackTicketDto } from './dtos/track-ticket.dto';
+import { TrackFeedbackDto } from './dtos/track-feedback.dto';
 import { TriageTicketDto } from './dtos/triage-ticket.dto';
 import { PostMinuteDto } from './dtos/post-minute.dto';
 import { RequestInfoDto } from './dtos/request-info.dto';
@@ -143,8 +145,22 @@ export class TicketsController {
    * Public tracking view for citizens (passcode-based, no JWT needed).
    */
   @Public()
-  @Get('track')
+  @Post('track')
   @ApiOperation({ summary: 'Track a complaint by code + passcode (citizen)' })
+  async trackByPasscodePost(@Body() dto: TrackTicketDto) {
+    return this.ticketsService.findByCodeWithPasscode(dto.code, dto.passcode);
+  }
+
+  @Public()
+  @Post('track/feedback')
+  @ApiOperation({ summary: 'Submit complaint feedback by code + passcode (citizen)' })
+  async submitFeedbackByPasscode(@Body() dto: TrackFeedbackDto) {
+    return this.ticketsService.submitFeedbackWithPasscode(dto.code, dto.passcode, dto);
+  }
+
+  @Public()
+  @Get('track')
+  @ApiOperation({ summary: 'Track a complaint by code + passcode (citizen, legacy GET)' })
   async trackByPasscode(
     @Query('code') code: string,
     @Query('passcode') passcode: string,
@@ -182,7 +198,7 @@ export class TicketsController {
   // ─────────────────────────────────────────────────────────────────────────
 
   /**
-   * Start investigation on an ASSIGNED ticket → IN_PROGRESS. Starts SLA clock.
+   * Start or resume investigation on an ASSIGNED/REOPENED ticket → IN_PROGRESS.
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
@@ -329,7 +345,7 @@ export class TicketsController {
   }
 
   /**
-   * Admin: list reopened tickets (re-triage queue).
+   * Admin: list reopened tickets for monitoring/escalation.
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)

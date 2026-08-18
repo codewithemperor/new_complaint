@@ -13,6 +13,8 @@ const _platformexpress = require("@nestjs/platform-express");
 const _swagger = require("@nestjs/swagger");
 const _ticketsservice = require("./tickets.service");
 const _createticketdto = require("./dtos/create-ticket.dto");
+const _trackticketdto = require("./dtos/track-ticket.dto");
+const _trackfeedbackdto = require("./dtos/track-feedback.dto");
 const _triageticketdto = require("./dtos/triage-ticket.dto");
 const _postminutedto = require("./dtos/post-minute.dto");
 const _requestinfodto = require("./dtos/request-info.dto");
@@ -103,7 +105,13 @@ let TicketsController = class TicketsController {
     }
     /**
    * Public tracking view for citizens (passcode-based, no JWT needed).
-   */ async trackByPasscode(code, passcode) {
+   */ async trackByPasscodePost(dto) {
+        return this.ticketsService.findByCodeWithPasscode(dto.code, dto.passcode);
+    }
+    async submitFeedbackByPasscode(dto) {
+        return this.ticketsService.submitFeedbackWithPasscode(dto.code, dto.passcode, dto);
+    }
+    async trackByPasscode(code, passcode) {
         return this.ticketsService.findByCodeWithPasscode(code, passcode);
     }
     /**
@@ -120,7 +128,7 @@ let TicketsController = class TicketsController {
     // Officer investigation endpoints (Milestone 4 — Phase 3)
     // ─────────────────────────────────────────────────────────────────────────
     /**
-   * Start investigation on an ASSIGNED ticket → IN_PROGRESS. Starts SLA clock.
+   * Start or resume investigation on an ASSIGNED/REOPENED ticket → IN_PROGRESS.
    */ async start(id, user) {
         return this.ticketsService.start(id, user);
     }
@@ -171,7 +179,7 @@ let TicketsController = class TicketsController {
         return this.ticketsService.archive(id);
     }
     /**
-   * Admin: list reopened tickets (re-triage queue).
+   * Admin: list reopened tickets for monitoring/escalation.
    */ async reopened(departmentId, page, pageSize) {
         return this.ticketsService.findReopened({
             departmentId,
@@ -361,9 +369,35 @@ _ts_decorate([
 ], TicketsController.prototype, "triage", null);
 _ts_decorate([
     (0, _ispublicdecorator.Public)(),
-    (0, _common.Get)('track'),
+    (0, _common.Post)('track'),
     (0, _swagger.ApiOperation)({
         summary: 'Track a complaint by code + passcode (citizen)'
+    }),
+    _ts_param(0, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof _trackticketdto.TrackTicketDto === "undefined" ? Object : _trackticketdto.TrackTicketDto
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], TicketsController.prototype, "trackByPasscodePost", null);
+_ts_decorate([
+    (0, _ispublicdecorator.Public)(),
+    (0, _common.Post)('track/feedback'),
+    (0, _swagger.ApiOperation)({
+        summary: 'Submit complaint feedback by code + passcode (citizen)'
+    }),
+    _ts_param(0, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        typeof _trackfeedbackdto.TrackFeedbackDto === "undefined" ? Object : _trackfeedbackdto.TrackFeedbackDto
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], TicketsController.prototype, "submitFeedbackByPasscode", null);
+_ts_decorate([
+    (0, _ispublicdecorator.Public)(),
+    (0, _common.Get)('track'),
+    (0, _swagger.ApiOperation)({
+        summary: 'Track a complaint by code + passcode (citizen, legacy GET)'
     }),
     _ts_param(0, (0, _common.Query)('code')),
     _ts_param(1, (0, _common.Query)('passcode')),

@@ -88,6 +88,8 @@ export interface Ticket {
   slaDueAt?: string | null;
   slaBreached?: boolean;
   slaRemainingHours?: number | null;
+  closedAt?: string | null;
+  closedReason?: string | null;
   createdAt: string;
   updatedAt?: string | null;
   citizen?: { name?: string | null; email: string; phone?: string | null };
@@ -98,6 +100,7 @@ export interface Ticket {
     role?: string;
     designation?: string | null;
   } | null;
+  feedback?: { satisfied: boolean; createdAt?: string | null } | null;
   // Investigation artefacts (staff detail view).
   minutes?: Minute[];
   movements?: (TimelineEntry & {
@@ -114,6 +117,7 @@ export interface TicketAttachment {
   id: string;
   filename: string;
   storedPath: string;
+  url?: string;
   mimetype: string;
   sizeBytes?: number;
   kind?: string;

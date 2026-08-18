@@ -197,7 +197,7 @@ export function ComplaintForm({
         return !!((isAnonymous || name.trim()) && email.trim());
       case 2:
         return !!(
-          (category || showChannel) &&
+          category &&
           subject.trim() &&
           descriptionText.trim().length >= 10
         );
@@ -212,6 +212,15 @@ export function ComplaintForm({
     e.preventDefault();
     setError(null);
 
+    if (currentStep < 3) {
+      if (!isStepComplete(currentStep)) {
+        setError("Please complete the required fields before continuing.");
+        return;
+      }
+      setCurrentStep((s) => Math.min(3, s + 1));
+      return;
+    }
+
     // Final validation
     if (!isAnonymous && !name.trim()) {
       setError("Full name is required unless submitting anonymously.");
@@ -225,6 +234,11 @@ export function ComplaintForm({
     }
     if (!subject.trim()) {
       setError("Subject is required.");
+      setCurrentStep(2);
+      return;
+    }
+    if (!category) {
+      setError("Category is required.");
       setCurrentStep(2);
       return;
     }
@@ -244,7 +258,7 @@ export function ComplaintForm({
         phone,
         lga,
         isAnonymous,
-        category: category || "Admin Department",
+        category: category || "General complaint",
         subject,
         description: descriptionText,
       };
@@ -468,11 +482,16 @@ export function ComplaintForm({
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={() =>
-                router.push(
-                  `/track?code=${encodeURIComponent(success)}&passcode=${encodeURIComponent(successPasscode)}`,
-                )
-              }
+              onClick={() => {
+                sessionStorage.setItem(
+                  "kwaramoc_pending_track_lookup",
+                  JSON.stringify({
+                    code: success,
+                    passcode: successPasscode,
+                  }),
+                );
+                router.push("/track");
+              }}
               className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
             >
               <Shield size={16} />
@@ -1042,7 +1061,14 @@ export function ComplaintForm({
         {currentStep < 3 ? (
           <button
             type="button"
-            onClick={() => setCurrentStep((s) => s + 1)}
+            onClick={() => {
+              setError(null);
+              if (!isStepComplete(currentStep)) {
+                setError("Please complete the required fields before continuing.");
+                return;
+              }
+              setCurrentStep((s) => Math.min(3, s + 1));
+            }}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
           >
             Continue

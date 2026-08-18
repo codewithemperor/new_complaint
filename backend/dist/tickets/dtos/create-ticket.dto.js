@@ -74,9 +74,10 @@ _ts_decorate([
     _ts_metadata("design:type", Boolean)
 ], CreateTicketDto.prototype, "isAnonymous", void 0);
 _ts_decorate([
-    (0, _swagger.ApiProperty)({
-        example: 'Finance & Supply'
+    (0, _swagger.ApiPropertyOptional)({
+        example: 'Service quality'
     }),
+    (0, _classvalidator.IsOptional)(),
     (0, _classvalidator.IsString)(),
     _ts_metadata("design:type", String)
 ], CreateTicketDto.prototype, "category", void 0);

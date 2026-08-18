@@ -45,6 +45,7 @@ function _ts_param(paramIndex, decorator) {
         decorator(target, key, paramIndex);
     };
 }
+const DEFAULT_PUBLIC_CATEGORY = 'Pending classification';
 let TicketsService = class TicketsService {
     constructor(prisma, idGenerator, trackingTokenService, stateMachine, eventEmitter, routingService, slaClock, config, audit, storage){
         this.prisma = prisma;
@@ -105,7 +106,7 @@ let TicketsService = class TicketsService {
                 data: {
                     ticketCode,
                     status: _ticketstatus.TicketStatus.ACKNOWLEDGED,
-                    category: dto.category,
+                    category: dto.category ?? DEFAULT_PUBLIC_CATEGORY,
                     priority: dto.priority,
                     subject: dto.subject,
                     description: dto.description,
@@ -269,8 +270,13 @@ let TicketsService = class TicketsService {
             include: {
                 attachments: {
                     select: {
+                        id: true,
                         filename: true,
-                        mimetype: true
+                        storedPath: true,
+                        mimetype: true,
+                        sizeBytes: true,
+                        kind: true,
+                        uploadedAt: true
                     }
                 },
                 movements: {
@@ -346,7 +352,7 @@ let TicketsService = class TicketsService {
             createdAt: ticket.createdAt,
             resolvedAt: ticket.resolvedAt,
             resolutionText: ticket.resolutionText,
-            attachments: ticket.attachments,
+            attachments: this.mapAttachmentViews(ticket.attachments),
             minutes: ticket.minutes,
             infoRequest,
             timeline: ticket.movements.map((m)=>({
@@ -367,8 +373,13 @@ let TicketsService = class TicketsService {
             include: {
                 attachments: {
                     select: {
+                        id: true,
                         filename: true,
-                        mimetype: true
+                        storedPath: true,
+                        mimetype: true,
+                        sizeBytes: true,
+                        kind: true,
+                        uploadedAt: true
                     }
                 },
                 movements: {
@@ -448,7 +459,7 @@ let TicketsService = class TicketsService {
             createdAt: ticket.createdAt,
             resolvedAt: ticket.resolvedAt,
             resolutionText: ticket.resolutionText,
-            attachments: ticket.attachments,
+            attachments: this.mapAttachmentViews(ticket.attachments),
             minutes: ticket.minutes,
             infoRequest,
             timeline: ticket.movements.map((m)=>({
@@ -548,6 +559,12 @@ let TicketsService = class TicketsService {
                             id: true,
                             fullName: true
                         }
+                    },
+                    feedback: {
+                        select: {
+                            satisfied: true,
+                            createdAt: true
+                        }
                     }
                 }
             }),
@@ -561,6 +578,12 @@ let TicketsService = class TicketsService {
             page,
             pageSize
         };
+    }
+    mapAttachmentViews(attachments) {
+        return attachments.map((attachment)=>({
+                ...attachment,
+                url: this.storage.getUrl(attachment.storedPath)
+            }));
     }
     // ─────────────────────────────────────────────────────────────────────────
     // Investigation (Milestone 4 — Phase 3)
@@ -594,9 +617,9 @@ let TicketsService = class TicketsService {
         }
     }
     /**
-   * Officer starts investigation on an ASSIGNED ticket → IN_PROGRESS.
-   * Starts the SLA clock (snapshotting the resolution target) and notifies the
-   * citizen that work has begun.
+   * Officer starts or resumes investigation on an ASSIGNED/REOPENED ticket →
+   * IN_PROGRESS. Reopened tickets keep their category, priority, department,
+   * and assigned officer; they do not go back to classification.
    */ async start(id, user) {
         await this.assertCanAct(id, user);
         const ticket = await this.prisma.ticket.findUnique({
@@ -627,7 +650,7 @@ let TicketsService = class TicketsService {
                     ticketId: id,
                     type: _ticketstatus.MovementType.ASSIGNED,
                     fromUserId: user.id,
-                    note: 'Investigation started'
+                    note: ticket.status === _ticketstatus.TicketStatus.REOPENED ? 'Investigation resumed after citizen feedback' : 'Investigation started'
                 }
             });
         });
@@ -895,6 +918,7 @@ let TicketsService = class TicketsService {
         const remaining = ticket.slaTargetHours ? await this.slaClock.remainingHours(id) : null;
         return {
             ...ticket,
+            attachments: this.mapAttachmentViews(ticket.attachments),
             slaRemainingHours: remaining
         };
     }
@@ -1055,6 +1079,21 @@ let TicketsService = class TicketsService {
         return {
             status: _ticketstatus.TicketStatus.REOPENED
         };
+    }
+    async submitFeedbackWithPasscode(ticketCode, passcode, dto) {
+        const ticket = await this.prisma.ticket.findUnique({
+            where: {
+                ticketCode
+            },
+            select: {
+                citizenId: true,
+                trackingPasscode: true
+            }
+        });
+        if (!ticket || ticket.trackingPasscode !== passcode) {
+            throw new _common.NotFoundException('Ticket not found or invalid passcode');
+        }
+        return this.submitFeedback(ticketCode, ticket.citizenId, dto);
     }
     /**
    * Citizen explicit reopen (alternative entry). Subject to the 14-day window.
@@ -1228,7 +1267,7 @@ let TicketsService = class TicketsService {
             archived: true
         };
     }
-    /** Staff list of reopened tickets (admin triage view). */ async findReopened(filters) {
+    /** Staff list of reopened tickets (admin monitoring/escalation view). */ async findReopened(filters) {
         const { departmentId, page = 1, pageSize = 20 } = filters;
         const where = {
             status: _ticketstatus.TicketStatus.REOPENED

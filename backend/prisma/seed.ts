@@ -3,7 +3,6 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-// The seven complaint categories / departments.
 const DEPARTMENTS = [
   { name: 'Information Services', code: 'ISV', description: 'ICT, records and information management' },
   { name: 'Public Orientation', code: 'POR', description: 'Public enquiries, orientation and citizen engagement' },
@@ -13,6 +12,18 @@ const DEPARTMENTS = [
   { name: 'Planning, Research and Statistics', code: 'PRS', description: 'Planning, research, monitoring and statistics' },
   { name: 'Admin Department', code: 'ADM', description: 'Administration and human resources' },
 ] as const;
+
+const CATEGORIES = {
+  SERVICE_QUALITY: 'Service quality',
+  DELAYED_ACTION: 'Delayed action',
+  STAFF_CONDUCT: 'Staff conduct',
+  PAYMENT_PROCUREMENT: 'Payment or procurement',
+  PUBLIC_INFORMATION: 'Public information request',
+  FACILITY_EQUIPMENT: 'Facility or equipment',
+  SAFETY_SECURITY: 'Safety or security',
+  RECORDS_DATA: 'Records or data',
+  GENERAL: 'General complaint',
+} as const;
 
 const PASSWORD = 'Password123!';
 
@@ -64,21 +75,63 @@ async function main() {
     {
       // Department staff in Information Services.
       email: 'staff@kwmoc.gov.ng',
-      fullName: 'Information Services Officer',
+      fullName: 'Abdulrahman Bello',
       role: 'DEPARTMENT_STAFF' as const,
-      designation: 'Officer',
+      designation: 'Information Services Officer',
       departmentId: deptByCode.ISV.id,
     },
     {
+      email: 'staff.public@kwmoc.gov.ng',
+      fullName: 'Zainab Olayinka',
+      role: 'DEPARTMENT_STAFF' as const,
+      designation: 'Public Orientation Officer',
+      departmentId: deptByCode.POR.id,
+    },
+    {
+      email: 'staff.graphics@kwmoc.gov.ng',
+      fullName: 'Tunde Balogun',
+      role: 'DEPARTMENT_STAFF' as const,
+      designation: 'Graphics Officer',
+      departmentId: deptByCode.GRP.id,
+    },
+    {
+      email: 'staff.tourism@kwmoc.gov.ng',
+      fullName: 'Maryam Sulu-Gambari',
+      role: 'DEPARTMENT_STAFF' as const,
+      designation: 'Culture and Tourism Officer',
+      departmentId: deptByCode.CTU.id,
+    },
+    {
+      email: 'staff.finance@kwmoc.gov.ng',
+      fullName: 'Kemi Ajibade',
+      role: 'DEPARTMENT_STAFF' as const,
+      designation: 'Finance and Supply Officer',
+      departmentId: deptByCode.FNS.id,
+    },
+    {
+      email: 'staff.planning@kwmoc.gov.ng',
+      fullName: 'Ibrahim Sanni',
+      role: 'DEPARTMENT_STAFF' as const,
+      designation: 'Planning and Statistics Officer',
+      departmentId: deptByCode.PRS.id,
+    },
+    {
+      email: 'staff.admin@kwmoc.gov.ng',
+      fullName: 'Grace Adewole',
+      role: 'DEPARTMENT_STAFF' as const,
+      designation: 'Administrative Officer',
+      departmentId: deptByCode.ADM.id,
+    },
+    {
       email: 'hod@kwmoc.gov.ng',
-      fullName: 'Information Services HOD',
+      fullName: 'Dr. Yusuf Abdulkareem',
       role: 'DEPARTMENT_HOD' as const,
       designation: 'Head of Department',
       departmentId: deptByCode.ISV.id,
     },
     {
       email: 'hod.finance@kwmoc.gov.ng',
-      fullName: 'Finance & Supply HOD',
+      fullName: 'Mrs. Folake Jimoh',
       role: 'DEPARTMENT_HOD' as const,
       designation: 'Head of Department',
       departmentId: deptByCode.FNS.id,
@@ -108,6 +161,7 @@ async function main() {
     const created = await prisma.user.upsert({
       where: { email: base.email },
       update: {
+        fullName: base.fullName,
         role: base.role,
         isSuperAdmin: (base as any).isSuperAdmin ?? false,
         designation: base.designation,
@@ -152,73 +206,84 @@ async function main() {
 
   // ── Tickets ──
   const allCitizens = await prisma.citizen.findMany();
-  const isvStaff = await prisma.user.findFirst({
-    where: { role: 'DEPARTMENT_STAFF', departmentId: deptByCode.ISV.id },
-  });
+  const officerByDeptCode = Object.fromEntries(
+    await Promise.all(
+      DEPARTMENTS.map(async (department) => {
+        const officer = await prisma.user.findFirst({
+          where: { role: 'DEPARTMENT_STAFF', departmentId: deptByCode[department.code].id },
+        });
+        return [department.code, officer] as const;
+      }),
+    ),
+  );
   const adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
 
   const ticketData = [
     {
       subject: 'Internet outage in ministry offices',
       description: 'Government offices in our area have had no internet access for the past week.',
-      category: 'Information Services',
+      category: CATEGORIES.FACILITY_EQUIPMENT,
       priority: 'P2' as const,
       status: 'ACKNOWLEDGED' as const,
       channel: 'WEB' as const,
       citizenIdx: 0,
       departmentId: deptByCode.ISV.id,
+      officer: officerByDeptCode.ISV,
     },
     {
       subject: 'Unclear response on a submitted enquiry',
       description: 'I submitted an enquiry weeks ago and have not received any orientation or feedback.',
-      category: 'Public Orientation',
+      category: CATEGORIES.PUBLIC_INFORMATION,
       priority: 'P3' as const,
       status: 'ASSIGNED' as const,
       channel: 'WALK_IN' as const,
       citizenIdx: 1,
       departmentId: deptByCode.POR.id,
+      officer: officerByDeptCode.POR,
     },
     {
       subject: 'Print job not delivered',
       description: 'A design and print request submitted a month ago has not been delivered.',
-      category: 'Graphics',
+      category: CATEGORIES.DELAYED_ACTION,
       priority: 'P3' as const,
       status: 'IN_PROGRESS' as const,
       channel: 'WEB' as const,
       citizenIdx: 2,
       departmentId: deptByCode.GRP.id,
+      officer: officerByDeptCode.GRP,
     },
     {
       subject: 'Tourism site needs maintenance',
       description: 'A major tourism site is in disrepair and needs urgent attention.',
-      category: 'Culture and Tourism',
+      category: CATEGORIES.FACILITY_EQUIPMENT,
       priority: 'P2' as const,
       status: 'RESOLVED' as const,
       channel: 'PHONE' as const,
       citizenIdx: 4,
       departmentId: deptByCode.CTU.id,
-      officer: isvStaff,
+      officer: officerByDeptCode.CTU,
     },
     {
       subject: 'Delayed payment',
       description: 'A payment due to my organisation has been delayed despite completed documentation.',
-      category: 'Finance & Supply',
+      category: CATEGORIES.PAYMENT_PROCUREMENT,
       priority: 'P1' as const,
       status: 'CLOSED' as const,
       channel: 'EMAIL' as const,
       citizenIdx: 1,
       departmentId: deptByCode.FNS.id,
-      officer: isvStaff,
+      officer: officerByDeptCode.FNS,
     },
     {
       subject: 'Request for statistical data',
       description: 'I requested published statistics but have not received them.',
-      category: 'Planning, Research and Statistics',
+      category: CATEGORIES.RECORDS_DATA,
       priority: 'P4' as const,
       status: 'REOPENED' as const,
       channel: 'LETTER' as const,
       citizenIdx: 4,
       departmentId: deptByCode.PRS.id,
+      officer: officerByDeptCode.PRS,
     },
   ];
 
@@ -226,8 +291,8 @@ async function main() {
     const t = ticketData[i];
     const citizen = allCitizens[t.citizenIdx];
     const code = `KWMOC-2026-${String(i + 1).padStart(6, '0')}`;
-    const trackingToken = `tok_${Math.random().toString(36).slice(2)}`;
-    const passcode = String(Math.floor(100000 + Math.random() * 900000));
+    const trackingToken = `seed_token_${String(i + 1).padStart(6, '0')}`;
+    const passcode = String(958860 + i + 1);
 
     const data: any = {
       ticketCode: code,
@@ -270,7 +335,7 @@ async function main() {
 
     await prisma.ticket.upsert({
       where: { ticketCode: code },
-      update: {},
+      update: data,
       create: data,
     });
   }
@@ -296,19 +361,38 @@ async function main() {
     });
   }
 
-  // ── Routing rules (category → department) ──
+  // ── Routing rules (issue category → owning department) ──
   const routingRules = [
-    { category: 'Information Services', departmentId: deptByCode.ISV.id, priorityRank: 1 },
-    { category: 'Public Orientation', departmentId: deptByCode.POR.id, priorityRank: 1 },
-    { category: 'Graphics', departmentId: deptByCode.GRP.id, priorityRank: 1 },
-    { category: 'Culture and Tourism', departmentId: deptByCode.CTU.id, priorityRank: 1 },
-    { category: 'Finance & Supply', departmentId: deptByCode.FNS.id, priorityRank: 1 },
-    { category: 'Planning, Research and Statistics', departmentId: deptByCode.PRS.id, priorityRank: 1 },
-    { category: 'Admin Department', departmentId: deptByCode.ADM.id, priorityRank: 1 },
+    { category: CATEGORIES.SERVICE_QUALITY, departmentId: deptByCode.POR.id, priorityRank: 1 },
+    { category: CATEGORIES.DELAYED_ACTION, departmentId: deptByCode.ADM.id, priorityRank: 1 },
+    { category: CATEGORIES.STAFF_CONDUCT, departmentId: deptByCode.ADM.id, priorityRank: 1 },
+    { category: CATEGORIES.PAYMENT_PROCUREMENT, departmentId: deptByCode.FNS.id, priorityRank: 1 },
+    { category: CATEGORIES.PUBLIC_INFORMATION, departmentId: deptByCode.POR.id, priorityRank: 1 },
+    { category: CATEGORIES.FACILITY_EQUIPMENT, departmentId: deptByCode.ISV.id, priorityRank: 1 },
+    { category: CATEGORIES.SAFETY_SECURITY, departmentId: deptByCode.ADM.id, priorityRank: 1 },
+    { category: CATEGORIES.RECORDS_DATA, departmentId: deptByCode.PRS.id, priorityRank: 1 },
+    { category: CATEGORIES.GENERAL, departmentId: deptByCode.ADM.id, priorityRank: 1 },
   ];
+
+  await prisma.routingRule.updateMany({
+    where: { category: { in: DEPARTMENTS.map((d) => d.name) } },
+    data: { isActive: false },
+  });
+
   for (const rule of routingRules) {
     const existing = await prisma.routingRule.findFirst({ where: { category: rule.category } });
-    if (!existing) await prisma.routingRule.create({ data: rule });
+    if (existing) {
+      await prisma.routingRule.update({
+        where: { id: existing.id },
+        data: {
+          departmentId: rule.departmentId,
+          priorityRank: rule.priorityRank,
+          isActive: true,
+        },
+      });
+    } else {
+      await prisma.routingRule.create({ data: rule });
+    }
   }
 
   console.log('✅ Seed completed!');

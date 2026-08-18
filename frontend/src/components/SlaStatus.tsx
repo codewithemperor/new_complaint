@@ -14,12 +14,14 @@
  */
 
 type SlaStatusProps = {
+  status?: string | null;
   awaiting?: string | null;
   slaStartedAt?: string | null;
   slaTargetHours?: number | null;
   /** Live remaining hours, as derived by the backend SlaClockService. */
   slaRemainingHours?: number | null;
   slaBreached?: boolean;
+  feedbackSatisfied?: boolean | null;
 };
 
 function formatHours(hours: number): string {
@@ -29,12 +31,32 @@ function formatHours(hours: number): string {
 }
 
 export function SlaStatus({
+  status,
   awaiting,
   slaStartedAt,
   slaTargetHours,
   slaRemainingHours,
   slaBreached,
+  feedbackSatisfied,
 }: SlaStatusProps) {
+  if (status === "CLOSED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+        {feedbackSatisfied ? "Satisfied" : "Closed"}
+      </span>
+    );
+  }
+
+  if (status === "RESOLVED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+        Awaiting feedback
+      </span>
+    );
+  }
+
   // No clock started yet.
   if (!slaStartedAt || !slaTargetHours) {
     return (

@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { X } from "lucide-react";
+import { ArrowRight, FileText, Paperclip, X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/config";
 import { CATEGORIES, PRIORITIES, SENSITIVITIES } from "@/lib/constants";
-import type { Ticket, PaginatedResponse, Department } from "@/lib/types";
+import type { Ticket, PaginatedResponse, Department, TicketAttachment } from "@/lib/types";
 
 const inputClass =
   "w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600";
 
 const selectClass =
   "w-full rounded-lg border border-border bg-neutral-50 px-3 py-2.5 text-sm outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600";
+function attachmentHref(attachment: TicketAttachment) {
+  const url = attachment.url ?? (attachment.storedPath ? `/uploads/${attachment.storedPath}` : "");
+  if (!url) return "";
+  return url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
+}
 
 export default function TriagePage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -25,7 +31,11 @@ export default function TriagePage() {
     citizen: { name: string | null; email: string; phone: string | null };
     description: string;
     lga: string | null;
+    attachments: TicketAttachment[];
   } | null>(null);
+  const [triagePhase, setTriagePhase] = useState<"submission" | "classify">(
+    "submission",
+  );
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("");
   const [departmentId, setDepartmentId] = useState("");
@@ -60,6 +70,7 @@ export default function TriagePage() {
   function openTriageModal(ticket: Ticket) {
     setTriaging(ticket);
     setTriageDetail(null);
+    setTriagePhase("submission");
     setCategory(ticket.category ?? "");
     setPriority("");
     setDepartmentId("");
@@ -74,6 +85,7 @@ export default function TriagePage() {
           citizen: data.citizen ?? { name: null, email: "", phone: null },
           description: data.description ?? "",
           lga: data.lga ?? null,
+          attachments: data.attachments ?? [],
         });
       })
       .catch(() => {});
@@ -218,9 +230,35 @@ export default function TriagePage() {
           <div className="relative z-10 w-full max-w-lg rounded-2xl bg-neutral-50 p-0 shadow-2xl">
             <div className="p-6">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Classify & Review
-                </h2>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Classify & Review
+                  </h2>
+                  <div className="mt-2 flex gap-1 rounded-lg bg-neutral-100 p-1 text-xs font-medium">
+                    <button
+                      type="button"
+                      onClick={() => setTriagePhase("submission")}
+                      className={`rounded-md px-3 py-1.5 ${
+                        triagePhase === "submission"
+                          ? "bg-white text-green-700 shadow-sm"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      Submission
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTriagePhase("classify")}
+                      className={`rounded-md px-3 py-1.5 ${
+                        triagePhase === "classify"
+                          ? "bg-white text-green-700 shadow-sm"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      Classify & route
+                    </button>
+                  </div>
+                </div>
                 <button
                   onClick={() => setTriaging(null)}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-neutral-50"
@@ -229,51 +267,106 @@ export default function TriagePage() {
                 </button>
               </div>
               <div className="max-h-[70vh] space-y-4 overflow-y-auto">
-                {/* Complaint info (read-only) */}
-                <div className="rounded-lg border border-border bg-neutral-50 p-3 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-green-700">
-                      {triaging.ticketCode}
-                    </span>
-                    <span className="text-xs text-muted-foreground">·</span>
-                    <span className="text-sm font-medium text-foreground">
-                      {triaging.subject}
-                    </span>
-                  </div>
-                  {triageDetail && (
-                    <>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        <span>
-                          Citizen:{" "}
-                          <strong className="text-foreground">
-                            {triageDetail.citizen.name || "Anonymous"}
-                          </strong>
+                {triagePhase === "submission" && (
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-border bg-neutral-50 p-4 space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs text-green-700">
+                          {triaging.ticketCode}
                         </span>
-                        {triageDetail.citizen.phone && (
-                          <span>Phone: {triageDetail.citizen.phone}</span>
-                        )}
-                        <span>Email: {triageDetail.citizen.email}</span>
-                        {triageDetail.lga && (
-                          <span>LGA: {triageDetail.lga}</span>
-                        )}
+                        <span className="text-sm font-medium text-foreground">
+                          {triaging.subject}
+                        </span>
                       </div>
-                      <details className="text-sm">
-                        <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">
-                          Show full description
-                        </summary>
-                        <p className="mt-1 whitespace-pre-wrap text-foreground">
-                          {triageDetail.description}
+                      {triageDetail ? (
+                        <>
+                          <div className="grid grid-cols-1 gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                            <span>
+                              Citizen:{" "}
+                              <strong className="text-foreground">
+                                {triageDetail.citizen.name || "Anonymous"}
+                              </strong>
+                            </span>
+                            <span>Email: {triageDetail.citizen.email || "—"}</span>
+                            <span>Phone: {triageDetail.citizen.phone || "—"}</span>
+                            <span>LGA: {triageDetail.lga || "—"}</span>
+                          </div>
+                          <div>
+                            <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
+                              Description
+                            </p>
+                            <p className="whitespace-pre-wrap text-sm text-foreground">
+                              {triageDetail.description}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase text-muted-foreground">
+                              <Paperclip className="h-3 w-3" />
+                              Attachments ({triageDetail.attachments.length})
+                            </p>
+                            {triageDetail.attachments.length > 0 ? (
+                              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                {triageDetail.attachments.map((att) => {
+                                  const href = attachmentHref(att);
+                                  const isImg = att.mimetype?.startsWith("image/");
+                                  return (
+                                    <li key={att.id}>
+                                      <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 rounded-lg border border-border bg-white p-2 transition-colors hover:border-green-300 hover:bg-green-50"
+                                      >
+                                        {isImg && href ? (
+                                          <img
+                                            src={href}
+                                            alt={att.filename}
+                                            className="h-12 w-12 shrink-0 rounded-md bg-neutral-100 object-contain"
+                                          />
+                                        ) : (
+                                          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                                            <FileText className="h-5 w-5 text-muted-foreground" />
+                                          </span>
+                                        )}
+                                        <span className="min-w-0">
+                                          <span className="block truncate text-sm font-medium text-foreground">
+                                            {att.filename}
+                                          </span>
+                                          <span className="block text-xs text-muted-foreground">
+                                            {att.mimetype}
+                                          </span>
+                                        </span>
+                                      </a>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            ) : (
+                              <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+                                No attachments submitted.
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          Loading details…
                         </p>
-                      </details>
-                    </>
-                  )}
-                  {!triageDetail && (
-                    <p className="text-xs text-muted-foreground">
-                      Loading details…
-                    </p>
-                  )}
-                </div>
-                <div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTriagePhase("classify")}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                    >
+                      Continue to classification
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                {triagePhase === "classify" && (
+                  <>
+                    <div>
                   <label className="mb-1 block text-sm font-medium text-foreground">
                     Category *
                   </label>
@@ -355,6 +448,8 @@ export default function TriagePage() {
                     placeholder="Optional note about classification decision…"
                   />
                 </div>
+                  </>
+                )}
                 {error && (
                   <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                     {error}
@@ -372,7 +467,12 @@ export default function TriagePage() {
                 <button
                   className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
                   onClick={handleTriage}
-                  disabled={submitting || !category || !priority}
+                  disabled={
+                    submitting ||
+                    triagePhase !== "classify" ||
+                    !category ||
+                    !priority
+                  }
                 >
                   {submitting ? "Classifying…" : "Classify & Review"}
                 </button>

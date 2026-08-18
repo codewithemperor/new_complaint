@@ -12,13 +12,19 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private dateRangeWhere(from?: Date, to?: Date) {
+    const inclusiveTo = to ? new Date(to) : undefined;
+    if (inclusiveTo) inclusiveTo.setHours(23, 59, 59, 999);
+    const createdAt = {
+      ...(from ? { gte: from } : {}),
+      ...(inclusiveTo ? { lte: inclusiveTo } : {}),
+    };
+    return Object.keys(createdAt).length ? { createdAt } : {};
+  }
+
   /** Per-department performance metrics within an optional date range. */
   async departmentPerformance(from?: Date, to?: Date) {
-    const dateFilter = {
-      ...(from ? { gte: from } : {}),
-      ...(to ? { lte: to } : {}),
-    };
-    const where = Object.keys(dateFilter).length ? { createdAt: dateFilter } : {};
+    const where = this.dateRangeWhere(from, to);
 
     const departments = await this.prisma.department.findMany({
       include: {
@@ -66,11 +72,7 @@ export class ReportsService {
 
   /** Per-officer performance metrics within an optional date range. */
   async officerPerformance(from?: Date, to?: Date) {
-    const dateFilter = {
-      ...(from ? { gte: from } : {}),
-      ...(to ? { lte: to } : {}),
-    };
-    const ticketWhere = Object.keys(dateFilter).length ? { createdAt: dateFilter } : {};
+    const ticketWhere = this.dateRangeWhere(from, to);
 
     const officers = await this.prisma.user.findMany({
       where: {
@@ -124,29 +126,30 @@ export class ReportsService {
   }
 
   /** Headline system-wide totals for the reports dashboard cards. */
-  async overview() {
+  async overview(from?: Date, to?: Date) {
+    const where = this.dateRangeWhere(from, to);
     const [total, open, resolved, closed, breached, reopened, acknowledged, assigned, pendingApproval] = await Promise.all([
-      this.prisma.ticket.count(),
-      this.prisma.ticket.count({ where: { status: { in: ['ASSIGNED', 'IN_PROGRESS', 'PENDING_APPROVAL', 'APPROVED'] } } }),
-      this.prisma.ticket.count({ where: { status: 'RESOLVED' } }),
-      this.prisma.ticket.count({ where: { status: 'CLOSED' } }),
-      this.prisma.ticket.count({ where: { slaBreached: true } }),
-      this.prisma.ticket.count({ where: { reopenCount: { gt: 0 } } }),
-      this.prisma.ticket.count({ where: { status: 'ACKNOWLEDGED' } }),
-      this.prisma.ticket.count({ where: { status: 'ASSIGNED' } }),
-      this.prisma.ticket.count({ where: { status: 'PENDING_APPROVAL' } }),
+      this.prisma.ticket.count({ where }),
+      this.prisma.ticket.count({ where: { ...where, status: { in: ['ASSIGNED', 'IN_PROGRESS', 'PENDING_APPROVAL', 'APPROVED', 'REOPENED'] } } }),
+      this.prisma.ticket.count({ where: { ...where, status: 'RESOLVED' } }),
+      this.prisma.ticket.count({ where: { ...where, status: 'CLOSED' } }),
+      this.prisma.ticket.count({ where: { ...where, slaBreached: true } }),
+      this.prisma.ticket.count({ where: { ...where, reopenCount: { gt: 0 } } }),
+      this.prisma.ticket.count({ where: { ...where, status: 'ACKNOWLEDGED' } }),
+      this.prisma.ticket.count({ where: { ...where, status: 'ASSIGNED' } }),
+      this.prisma.ticket.count({ where: { ...where, status: 'PENDING_APPROVAL' } }),
     ]);
     return { total, open, resolved, closed, breached, reopened, acknowledged, assigned, pendingApproval };
   }
 
   /** Daily ticket count over the last N days (default 30) for charts. */
-  async trend(days: number = 30) {
+  async trend(days: number = 30, from?: Date, to?: Date) {
     const since = new Date();
     since.setDate(since.getDate() - days);
     since.setHours(0, 0, 0, 0);
 
     const tickets = await this.prisma.ticket.findMany({
-      where: { createdAt: { gte: since } },
+      where: this.dateRangeWhere(from ?? since, to),
       select: { createdAt: true, status: true },
       orderBy: { createdAt: 'asc' },
     });
@@ -167,10 +170,11 @@ export class ReportsService {
   }
 
   /** Ticket count by department + status for pie/bar charts. */
-  async statusByDepartment() {
+  async statusByDepartment(from?: Date, to?: Date) {
+    const where = this.dateRangeWhere(from, to);
     const departments = await this.prisma.department.findMany({
       include: {
-        tickets: { select: { status: true } },
+        tickets: { where, select: { status: true } },
       },
     });
     return departments.map((d) => ({
@@ -180,6 +184,18 @@ export class ReportsService {
       resolved: d.tickets.filter(t => t.status === 'RESOLVED').length,
       closed: d.tickets.filter(t => t.status === 'CLOSED').length,
       reopened: d.tickets.filter(t => t.status === 'REOPENED').length,
+    }));
+  }
+
+  async priorityBreakdown(from?: Date, to?: Date) {
+    const grouped = await this.prisma.ticket.groupBy({
+      by: ['priority'],
+      where: this.dateRangeWhere(from, to),
+      _count: { _all: true },
+    });
+    return grouped.map((row) => ({
+      key: row.priority ?? 'UNSET',
+      count: row._count._all,
     }));
   }
 }

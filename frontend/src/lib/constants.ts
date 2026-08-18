@@ -41,8 +41,18 @@ export const DEPARTMENTS = [
   },
 ] as const;
 
-/** Category list (department names) for the complaint form. */
-export const CATEGORIES = DEPARTMENTS.map((d) => d.name) as readonly string[];
+/** Complaint categories are issue types. Routing maps them to departments. */
+export const CATEGORIES = [
+  "Service quality",
+  "Delayed action",
+  "Staff conduct",
+  "Payment or procurement",
+  "Public information request",
+  "Facility or equipment",
+  "Safety or security",
+  "Records or data",
+  "General complaint",
+] as const;
 
 export const LGAS = [
   "Asa",

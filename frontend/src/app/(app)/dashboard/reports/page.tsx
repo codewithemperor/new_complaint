@@ -343,23 +343,27 @@ export default function ReportsPage() {
       const range = manual
         ? { from, to, days: 30 }
         : resolveRange(dateRangeFilter);
-      const deptQs = new URLSearchParams();
-      if (range.from) deptQs.set("from", range.from);
-      if (range.to) deptQs.set("to", range.to);
-      const deptQuery = deptQs.toString() ? `?${deptQs.toString()}` : "";
+      const rangeQs = new URLSearchParams();
+      if (range.from) rangeQs.set("from", range.from);
+      if (range.to) rangeQs.set("to", range.to);
+      const rangeQuery = rangeQs.toString() ? `?${rangeQs.toString()}` : "";
+      const trendQs = new URLSearchParams();
+      trendQs.set("days", String(range.days));
+      if (range.from) trendQs.set("from", range.from);
+      if (range.to) trendQs.set("to", range.to);
 
-      const [overviewRes, deptRes, trendRes, summaryRes] = await Promise.all([
-        api.get<OverviewStats>("/reports/overview"),
-        api.get<DeptPerf[]>(`/reports/department-performance${deptQuery}`),
-        api.get<TrendPoint[]>(`/reports/trend?days=${range.days}`),
-        api.get<{ breakdowns: { priority: { key: string; count: number }[] } }>(
-          "/dashboard/summary",
+      const [overviewRes, deptRes, trendRes, priorityRes] = await Promise.all([
+        api.get<OverviewStats>(`/reports/overview${rangeQuery}`),
+        api.get<DeptPerf[]>(`/reports/department-performance${rangeQuery}`),
+        api.get<TrendPoint[]>(`/reports/trend?${trendQs.toString()}`),
+        api.get<{ key: string; count: number }[]>(
+          `/reports/priority-breakdown${rangeQuery}`,
         ),
       ]);
       setStats(overviewRes);
       setDeptPerf(deptRes);
       setTrend(trendRes);
-      setPriorityBreakdown(summaryRes?.breakdowns?.priority ?? []);
+      setPriorityBreakdown(priorityRes ?? []);
     } catch {
       // Silently degrade
     } finally {

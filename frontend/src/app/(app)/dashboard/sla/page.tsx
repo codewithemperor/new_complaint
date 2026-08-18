@@ -131,11 +131,13 @@ export default function SlaDashboardPage() {
                       </td>
                       <td className="px-4 py-3">
                         <SlaStatus
+                          status={t.status}
                           awaiting={t.awaiting}
                           slaStartedAt={t.slaStartedAt}
                           slaTargetHours={t.slaTargetHours}
                           slaRemainingHours={t.slaRemainingHours}
                           slaBreached={t.slaBreached}
+                          feedbackSatisfied={t.feedback?.satisfied}
                         />
                       </td>
                     </tr>

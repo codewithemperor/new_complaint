@@ -43,6 +43,8 @@ export interface StoredAttachment {
   sizeBytes: number;
 }
 
+const DEFAULT_PUBLIC_CATEGORY = 'Pending classification';
+
 /**
  * TicketsService — the application coordinator for ticket creation + tracking.
  *
@@ -119,7 +121,7 @@ export class TicketsService {
         data: {
           ticketCode,
           status: TicketStatus.ACKNOWLEDGED,
-          category: dto.category,
+          category: dto.category ?? DEFAULT_PUBLIC_CATEGORY,
           priority: dto.priority,
           subject: dto.subject,
           description: dto.description,
@@ -273,7 +275,17 @@ export class TicketsService {
     const ticket = await this.prisma.ticket.findUnique({
       where: { ticketCode },
       include: {
-        attachments: { select: { filename: true, mimetype: true } },
+        attachments: {
+          select: {
+            id: true,
+            filename: true,
+            storedPath: true,
+            mimetype: true,
+            sizeBytes: true,
+            kind: true,
+            uploadedAt: true,
+          },
+        },
         movements: {
           orderBy: { createdAt: 'asc' },
           select: { type: true, note: true, createdAt: true },
@@ -323,7 +335,7 @@ export class TicketsService {
       createdAt: ticket.createdAt,
       resolvedAt: ticket.resolvedAt,
       resolutionText: ticket.resolutionText,
-      attachments: ticket.attachments,
+      attachments: this.mapAttachmentViews(ticket.attachments),
       minutes: ticket.minutes,
       infoRequest,
       timeline: ticket.movements.map((m) => ({
@@ -342,7 +354,17 @@ export class TicketsService {
     const ticket = await this.prisma.ticket.findUnique({
       where: { ticketCode },
       include: {
-        attachments: { select: { filename: true, mimetype: true } },
+        attachments: {
+          select: {
+            id: true,
+            filename: true,
+            storedPath: true,
+            mimetype: true,
+            sizeBytes: true,
+            kind: true,
+            uploadedAt: true,
+          },
+        },
         movements: {
           orderBy: { createdAt: 'asc' },
           select: {
@@ -400,7 +422,7 @@ export class TicketsService {
       createdAt: ticket.createdAt,
       resolvedAt: ticket.resolvedAt,
       resolutionText: ticket.resolutionText,
-      attachments: ticket.attachments,
+      attachments: this.mapAttachmentViews(ticket.attachments),
       minutes: ticket.minutes,
       infoRequest,
       timeline: ticket.movements.map((m) => ({
@@ -472,12 +494,22 @@ export class TicketsService {
           citizen: { select: { name: true, email: true, phone: true } },
           department: { select: { id: true, name: true, code: true } },
           assignedOfficer: { select: { id: true, fullName: true } },
+          feedback: { select: { satisfied: true, createdAt: true } },
         },
       }),
       this.prisma.ticket.count({ where }),
     ]);
 
     return { items, total, page, pageSize };
+  }
+
+  private mapAttachmentViews<
+    T extends { storedPath: string; [key: string]: unknown },
+  >(attachments: T[]) {
+    return attachments.map((attachment) => ({
+      ...attachment,
+      url: this.storage.getUrl(attachment.storedPath),
+    }));
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -517,9 +549,9 @@ export class TicketsService {
   }
 
   /**
-   * Officer starts investigation on an ASSIGNED ticket → IN_PROGRESS.
-   * Starts the SLA clock (snapshotting the resolution target) and notifies the
-   * citizen that work has begun.
+   * Officer starts or resumes investigation on an ASSIGNED/REOPENED ticket →
+   * IN_PROGRESS. Reopened tickets keep their category, priority, department,
+   * and assigned officer; they do not go back to classification.
    */
   async start(id: string, user: AuthenticatedUser): Promise<{ status: string }> {
     await this.assertCanAct(id, user);
@@ -549,7 +581,10 @@ export class TicketsService {
           ticketId: id,
           type: MovementType.ASSIGNED,
           fromUserId: user.id,
-          note: 'Investigation started',
+          note:
+            ticket.status === TicketStatus.REOPENED
+              ? 'Investigation resumed after citizen feedback'
+              : 'Investigation started',
         },
       });
     });
@@ -781,7 +816,11 @@ export class TicketsService {
       ? await this.slaClock.remainingHours(id)
       : null;
 
-    return { ...ticket, slaRemainingHours: remaining };
+    return {
+      ...ticket,
+      attachments: this.mapAttachmentViews(ticket.attachments),
+      slaRemainingHours: remaining,
+    };
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -937,6 +976,21 @@ export class TicketsService {
       meta: { reopenCount, comment: dto.comment },
     });
     return { status: TicketStatus.REOPENED };
+  }
+
+  async submitFeedbackWithPasscode(
+    ticketCode: string,
+    passcode: string,
+    dto: FeedbackDto,
+  ): Promise<{ status: string }> {
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { ticketCode },
+      select: { citizenId: true, trackingPasscode: true },
+    });
+    if (!ticket || ticket.trackingPasscode !== passcode) {
+      throw new NotFoundException('Ticket not found or invalid passcode');
+    }
+    return this.submitFeedback(ticketCode, ticket.citizenId, dto);
   }
 
   /**
@@ -1098,7 +1152,7 @@ export class TicketsService {
     return { archived: true };
   }
 
-  /** Staff list of reopened tickets (admin triage view). */
+  /** Staff list of reopened tickets (admin monitoring/escalation view). */
   async findReopened(filters: { departmentId?: string; page?: number; pageSize?: number }) {
     const { departmentId, page = 1, pageSize = 20 } = filters;
     const where: Record<string, unknown> = { status: TicketStatus.REOPENED };

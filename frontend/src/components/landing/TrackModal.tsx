@@ -17,9 +17,16 @@ export default function TrackModal({ isOpen, onOpenChange }: TrackModalProps) {
     e.preventDefault();
     const c = trackCode.trim();
     if (c) {
-      const p = new URLSearchParams({ code: c });
-      if (trackPasscode.trim()) p.set("passcode", trackPasscode.trim());
-      window.location.href = `/track?${p.toString()}`;
+      const passcode = trackPasscode.trim();
+      if (passcode) {
+        sessionStorage.setItem(
+          "kwaramoc_pending_track_lookup",
+          JSON.stringify({ code: c, passcode }),
+        );
+        window.location.href = "/track";
+        return;
+      }
+      window.location.href = `/track?code=${encodeURIComponent(c)}`;
     }
   };
 

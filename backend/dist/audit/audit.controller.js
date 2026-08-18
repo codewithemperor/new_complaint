@@ -69,8 +69,8 @@ let AuditController = class AuditController {
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.send(csv);
     }
-    async overview() {
-        return this.reportsService.overview();
+    async overview(from, to) {
+        return this.reportsService.overview(from ? new Date(from) : undefined, to ? new Date(to) : undefined);
     }
     async departmentPerformance(from, to) {
         return this.reportsService.departmentPerformance(from ? new Date(from) : undefined, to ? new Date(to) : undefined);
@@ -78,11 +78,14 @@ let AuditController = class AuditController {
     async officerPerformance(from, to) {
         return this.reportsService.officerPerformance(from ? new Date(from) : undefined, to ? new Date(to) : undefined);
     }
-    async trend(days) {
-        return this.reportsService.trend(days ? parseInt(days, 10) : undefined);
+    async trend(days, from, to) {
+        return this.reportsService.trend(days ? parseInt(days, 10) : undefined, from ? new Date(from) : undefined, to ? new Date(to) : undefined);
     }
-    async statusByDepartment() {
-        return this.reportsService.statusByDepartment();
+    async statusByDepartment(from, to) {
+        return this.reportsService.statusByDepartment(from ? new Date(from) : undefined, to ? new Date(to) : undefined);
+    }
+    async priorityBreakdown(from, to) {
+        return this.reportsService.priorityBreakdown(from ? new Date(from) : undefined, to ? new Date(to) : undefined);
     }
 };
 _ts_decorate([
@@ -147,8 +150,13 @@ _ts_decorate([
     (0, _swagger.ApiOperation)({
         summary: 'System-wide report totals'
     }),
+    _ts_param(0, (0, _common.Query)('from')),
+    _ts_param(1, (0, _common.Query)('to')),
     _ts_metadata("design:type", Function),
-    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:paramtypes", [
+        String,
+        String
+    ]),
     _ts_metadata("design:returntype", Promise)
 ], AuditController.prototype, "overview", null);
 _ts_decorate([
@@ -191,8 +199,12 @@ _ts_decorate([
         summary: 'Daily complaints trend over N days'
     }),
     _ts_param(0, (0, _common.Query)('days')),
+    _ts_param(1, (0, _common.Query)('from')),
+    _ts_param(2, (0, _common.Query)('to')),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
+        String,
+        String,
         String
     ]),
     _ts_metadata("design:returntype", Promise)
@@ -204,10 +216,31 @@ _ts_decorate([
     (0, _swagger.ApiOperation)({
         summary: 'Ticket counts by department and status'
     }),
+    _ts_param(0, (0, _common.Query)('from')),
+    _ts_param(1, (0, _common.Query)('to')),
     _ts_metadata("design:type", Function),
-    _ts_metadata("design:paramtypes", []),
+    _ts_metadata("design:paramtypes", [
+        String,
+        String
+    ]),
     _ts_metadata("design:returntype", Promise)
 ], AuditController.prototype, "statusByDepartment", null);
+_ts_decorate([
+    (0, _common.UseGuards)(_jwtauthguard.JwtAuthGuard, _rolesguard.RolesGuard),
+    (0, _rolesdecorator.Roles)(_role.Role.ADMIN, _role.Role.DEPARTMENT_HOD, _role.Role.PERMANENT_SECRETARY, _role.Role.COMMISSIONER, _role.Role.AUDITOR),
+    (0, _common.Get)('reports/priority-breakdown'),
+    (0, _swagger.ApiOperation)({
+        summary: 'Ticket counts by priority'
+    }),
+    _ts_param(0, (0, _common.Query)('from')),
+    _ts_param(1, (0, _common.Query)('to')),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        String,
+        String
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], AuditController.prototype, "priorityBreakdown", null);
 AuditController = _ts_decorate([
     (0, _swagger.ApiTags)('audit'),
     (0, _common.Controller)(),

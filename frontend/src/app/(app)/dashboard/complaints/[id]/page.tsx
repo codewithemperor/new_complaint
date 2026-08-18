@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/config";
 import { SlaStatus } from "@/components/SlaStatus";
 import { ReminderManager } from "@/components/ReminderManager";
 import { useSession } from "@/lib/session";
@@ -414,38 +415,56 @@ export default function AdminTicketDetailPage() {
     }
   }, [params.id, setBreadcrumbTitle]);
 
-  const fetchRelatedTickets = useCallback(async (t: Ticket) => {
-    setLoadingRelated(true);
-    try {
-      // Fetch tickets from same department or same citizen
-      const deptId = t.departmentId;
-      const citizenEmail = t.citizen?.email;
-      let related: Ticket[] = [];
+  const fetchRelatedTickets = useCallback(
+    async (t: Ticket) => {
+      setLoadingRelated(true);
+      try {
+        const deptId = t.departmentId;
+        const citizenEmail = t.citizen?.email;
+        const canViewCrossDepartmentRelated =
+          user?.role === "ADMIN" ||
+          user?.role === "PERMANENT_SECRETARY" ||
+          user?.role === "COMMISSIONER";
+        const canViewDepartmentRelated =
+          canViewCrossDepartmentRelated ||
+          (!!deptId && deptId === user?.departmentId);
+        let related: Ticket[] = [];
 
-      if (deptId) {
-        const deptRes = await api.get<PaginatedResponse<Ticket>>(
-          `/tickets?departmentId=${deptId}&pageSize=5`,
-        );
-        related = deptRes.items.filter((rt) => rt.id !== t.id);
+        if (deptId && canViewDepartmentRelated) {
+          const deptRes = await api.get<PaginatedResponse<Ticket>>(
+            `/tickets?departmentId=${deptId}&pageSize=5`,
+          );
+          related = deptRes.items.filter(
+            (rt) =>
+              rt.id !== t.id &&
+              (canViewCrossDepartmentRelated ||
+                rt.departmentId === user?.departmentId),
+          );
+        }
+
+        if (
+          canViewCrossDepartmentRelated &&
+          citizenEmail &&
+          related.length < 5
+        ) {
+          const citizenRes = await api.get<PaginatedResponse<Ticket>>(
+            `/tickets?search=${encodeURIComponent(citizenEmail)}&pageSize=5`,
+          );
+          const citizenRelated = citizenRes.items.filter(
+            (rt) => rt.id !== t.id && !related.some((r) => r.id === rt.id),
+          );
+          related = [...related, ...citizenRelated].slice(0, 5);
+        }
+
+        setRelatedTickets(related);
+      } catch {
+        // Silently fail: related tickets are only supporting context.
+      } finally {
+        setLoadingRelated(false);
       }
-
-      if (citizenEmail && related.length < 5) {
-        const citizenRes = await api.get<PaginatedResponse<Ticket>>(
-          `/tickets?search=${encodeURIComponent(citizenEmail)}&pageSize=5`,
-        );
-        const citizenRelated = citizenRes.items.filter(
-          (rt) => rt.id !== t.id && !related.some((r) => r.id === rt.id),
-        );
-        related = [...related, ...citizenRelated].slice(0, 5);
-      }
-
-      setRelatedTickets(related);
-    } catch {
-      // Silently fail — related tickets are nice-to-have
-    } finally {
-      setLoadingRelated(false);
-    }
-  }, []);
+    },
+    [user?.departmentId, user?.role],
+  );
 
   // Clear breadcrumb custom title when leaving the page
   useEffect(() => {
@@ -732,14 +751,23 @@ export default function AdminTicketDetailPage() {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
-  const canAct = [
+  const statusAllowsWork = [
     "ASSIGNED",
     "IN_PROGRESS",
     "PENDING_APPROVAL",
     "APPROVED",
     "REOPENED",
   ].includes(ticket.status);
+  const isAdmin = user?.role === "ADMIN";
   const isSuperAdmin = !!user?.isSuperAdmin;
+  const canReassign = isAdmin;
+  const isAssignedOfficer = ticket.assignedOfficerId === user?.id;
+  const isDepartmentHod =
+    user?.role === "DEPARTMENT_HOD" &&
+    !!ticket.departmentId &&
+    ticket.departmentId === user.departmentId;
+  const canWorkOnTicket = isSuperAdmin || isAssignedOfficer || isDepartmentHod;
+  const canAct = statusAllowsWork && canWorkOnTicket;
 
   // Priority info
   const priorityInfo = ticket.priority ? PRIORITY_MAP[ticket.priority] : null;
@@ -796,12 +824,10 @@ export default function AdminTicketDetailPage() {
   const slaDisplay = getSlaDisplay();
 
   // Determine which quick actions are available
-  const showAcknowledge =
-    ticket.status === "ACKNOWLEDGED" && (isSuperAdmin || canAct);
-  const showClassify =
-    ticket.status === "ACKNOWLEDGED" && (isSuperAdmin || canAct);
+  const showAcknowledge = ticket.status === "ACKNOWLEDGED" && isAdmin;
+  const showClassify = ticket.status === "ACKNOWLEDGED" && isAdmin;
   const showAssign =
-    ["TRIAGED", "ACKNOWLEDGED"].includes(ticket.status) && isSuperAdmin;
+    ["TRIAGED", "ACKNOWLEDGED"].includes(ticket.status) && canReassign;
   const showEscalate =
     ["IN_PROGRESS", "ASSIGNED", "PENDING_APPROVAL"].includes(ticket.status) &&
     (canAct || isSuperAdmin);
@@ -815,7 +841,13 @@ export default function AdminTicketDetailPage() {
     <div className="space-y-5">
       {/* Back to list navigation */}
       <button
-        onClick={() => router.push("/dashboard/complaints")}
+        onClick={() =>
+          router.push(
+            user?.role === "DEPARTMENT_STAFF"
+              ? "/dashboard/queue"
+              : "/dashboard/complaints",
+          )
+        }
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-green-700 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -949,11 +981,13 @@ export default function AdminTicketDetailPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <SlaStatus
+                    status={ticket.status}
                     awaiting={ticket.awaiting}
                     slaStartedAt={ticket.slaStartedAt}
                     slaTargetHours={ticket.slaTargetHours}
                     slaRemainingHours={ticket.slaRemainingHours}
                     slaBreached={ticket.slaBreached}
+                    feedbackSatisfied={ticket.feedback?.satisfied}
                   />
                   {/* Print & Share */}
                   <button
@@ -1033,7 +1067,7 @@ export default function AdminTicketDetailPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
                 <MetaField
                   icon={<Hash className="h-3.5 w-3.5" />}
                   label="LGA"
@@ -1076,7 +1110,12 @@ export default function AdminTicketDetailPage() {
                   <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {ticket.attachments.map((att) => {
                       const isImg = att.mimetype?.startsWith("image/");
-                      const href = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/uploads/${att.storedPath}`;
+                      const url =
+                        att.url ??
+                        (att.storedPath ? `/uploads/${att.storedPath}` : "");
+                      const href = url.startsWith("http")
+                        ? url
+                        : `${API_BASE_URL}${url}`;
                       return (
                         <li key={att.id}>
                           <a
@@ -1086,11 +1125,10 @@ export default function AdminTicketDetailPage() {
                             className="group flex items-center gap-3 rounded-lg border border-border bg-neutral-50 p-2.5 transition-colors hover:border-green-300 hover:bg-green-50/50"
                           >
                             {isImg ? (
-                              // eslint-disable-next-line @next/next/no-img-element
                               <img
                                 src={href}
                                 alt={att.filename}
-                                className="h-11 w-11 shrink-0 rounded-md object-cover"
+                                className="h-11 w-11 shrink-0 rounded-md bg-neutral-100 object-contain"
                               />
                             ) : (
                               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-neutral-50 text-muted-foreground">
@@ -1120,33 +1158,35 @@ export default function AdminTicketDetailPage() {
               {/* Action buttons (contextual) */}
               {(canAct || isSuperAdmin) && (
                 <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4 print:hidden">
-                  {ticket.status === "ASSIGNED" && (
+                  {(ticket.status === "ASSIGNED" || ticket.status === "REOPENED") && (
                     <button
-                      className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                      className="inline-flex items-center rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
                       onClick={handleStart}
                     >
                       <Activity className="mr-1.5 h-4 w-4" />
-                      Start Investigation
+                      {ticket.status === "REOPENED"
+                        ? "Resume Investigation"
+                        : "Start Investigation"}
                     </button>
                   )}
                   {ticket.status === "IN_PROGRESS" && (
                     <>
                       <button
-                        className="rounded-lg px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-neutral-50"
+                        className="rounded-lg flex items-center bg-amber-200 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-neutral-50"
                         onClick={() => setShowInfoModal(true)}
                       >
                         <Mail className="mr-1.5 h-4 w-4" />
                         Request Info
                       </button>
                       <button
-                        className="rounded-lg px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-neutral-50"
+                        className="rounded-lg flex items-center bg-secondary-200 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-neutral-50"
                         onClick={handleRequestApproval}
                       >
                         <Shield className="mr-1.5 h-4 w-4" />
                         Request Approval
                       </button>
                       <button
-                        className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                        className="rounded-lg flex items-center bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-700"
                         onClick={() => setShowResolutionModal(true)}
                       >
                         <CheckCircle2 className="mr-1.5 h-4 w-4" />
@@ -1320,7 +1360,7 @@ export default function AdminTicketDetailPage() {
         </div>
 
         {/* Right column — sidebar */}
-        <div className="space-y-5">
+        <div className="space-y-5 lg:sticky lg:top-6 lg:self-start">
           {/* SLA Status Card */}
           <div className="rounded-xl border border-border bg-neutral-50 shadow-sm">
             <div className="p-5">
@@ -1333,11 +1373,13 @@ export default function AdminTicketDetailPage() {
                 </h3>
               </div>
               <SlaStatus
+                status={ticket.status}
                 awaiting={ticket.awaiting}
                 slaStartedAt={ticket.slaStartedAt}
                 slaTargetHours={ticket.slaTargetHours}
                 slaRemainingHours={ticket.slaRemainingHours}
                 slaBreached={ticket.slaBreached}
+                feedbackSatisfied={ticket.feedback?.satisfied}
               />
               {slaDisplay && (
                 <div className="mt-3 space-y-1.5">
@@ -1410,20 +1452,22 @@ export default function AdminTicketDetailPage() {
                       Code: {ticket.department.code}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setShowReassignModal(true)}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground hover:bg-neutral-50 hover:text-foreground transition-colors print:hidden"
-                  >
-                    <ArrowRightLeft className="h-3.5 w-3.5" />
-                    Transfer Department
-                  </button>
+                  {canReassign && (
+                    <button
+                      onClick={() => setShowReassignModal(true)}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs font-medium text-muted-foreground hover:bg-neutral-50 hover:text-foreground transition-colors print:hidden"
+                    >
+                      <ArrowRightLeft className="h-3.5 w-3.5" />
+                      Transfer Department
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="rounded-lg border border-dashed border-border bg-neutral-50 p-3 text-center">
                   <p className="text-xs text-muted-foreground">
                     No department assigned
                   </p>
-                  {isSuperAdmin && (
+                  {canReassign && (
                     <button
                       onClick={() => setShowReassignModal(true)}
                       className="mt-2 text-xs font-semibold text-green-600 hover:text-green-700 print:hidden"
@@ -1475,7 +1519,7 @@ export default function AdminTicketDetailPage() {
                   <p className="text-xs text-muted-foreground">
                     No officer assigned
                   </p>
-                  {isSuperAdmin && (
+                  {canReassign && (
                     <button
                       onClick={() => setShowReassignModal(true)}
                       className="mt-2 text-xs font-semibold text-green-600 hover:text-green-700 print:hidden"

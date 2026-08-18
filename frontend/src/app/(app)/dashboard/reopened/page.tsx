@@ -6,9 +6,8 @@ import { api, ApiError } from "@/lib/api";
 import type { Ticket, PaginatedResponse } from "@/lib/types";
 
 /**
- * Admin: reopened tickets queue. Citizens who rejected a resolution land here
- * for re-triage. A reopen-count badge flags repeat reopeners (≥2 triggers a
- * REOPEN_ESCALATION to the HOD on the backend).
+ * Admin: reopened tickets monitoring view. Citizens who rejected a resolution
+ * land back with the same department/officer for continued investigation.
  */
 export default function ReopenedTicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -45,8 +44,8 @@ export default function ReopenedTicketsPage() {
             Reopened Tickets
           </h1>
           <p className="text-sm text-muted-foreground">
-            {total} ticket{total !== 1 ? "s" : ""} rejected by citizens —
-            re-classification required
+            {total} ticket{total !== 1 ? "s" : ""} reopened by citizens for
+            continued investigation
           </p>
         </div>
         <button

@@ -17,6 +17,10 @@ interface RouteAccess {
 
 /** Prefix match: the longest matching prefix wins. */
 const ROUTE_ACCESS: Record<string, RouteAccess> = {
+  "/dashboard/complaints/": {
+    roles: ["ADMIN", "DEPARTMENT_STAFF", "DEPARTMENT_HOD", "PERMANENT_SECRETARY", "COMMISSIONER", "AUDITOR"],
+    permission: "COMPLAINTS",
+  },
   "/dashboard/complaints": {
     roles: ["ADMIN", "DEPARTMENT_HOD", "PERMANENT_SECRETARY", "COMMISSIONER", "AUDITOR"],
     permission: "COMPLAINTS",

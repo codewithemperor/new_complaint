@@ -21,7 +21,7 @@ export class TicketStateMachine {
     [TicketStatus.PENDING_APPROVAL]: [TicketStatus.APPROVED, TicketStatus.IN_PROGRESS],
     [TicketStatus.APPROVED]: [TicketStatus.IN_PROGRESS],
     [TicketStatus.RESOLVED]: [TicketStatus.CLOSED, TicketStatus.REOPENED],
-    [TicketStatus.REOPENED]: [TicketStatus.TRIAGED],
+    [TicketStatus.REOPENED]: [TicketStatus.IN_PROGRESS],
     [TicketStatus.CLOSED]: [],
     [TicketStatus.ESCALATED]: [],
     [TicketStatus.REFERRED]: [],

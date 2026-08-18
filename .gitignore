@@ -1,0 +1,19 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependency folders
+node_modules/
+
+# Build output
+dist/
+.next/
+out/
+build/
+
+# Logs
+*.log
+dev.log
+dev.out.log
+server.log

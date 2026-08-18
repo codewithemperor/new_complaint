@@ -38,9 +38,10 @@ export class CreateTicketDto {
   @IsBoolean()
   isAnonymous?: boolean;
 
-  @ApiProperty({ example: 'Finance & Supply' })
+  @ApiPropertyOptional({ example: 'Service quality' })
+  @IsOptional()
   @IsString()
-  category: string;
+  category?: string;
 
   @ApiPropertyOptional({ enum: Priority, enumName: 'Priority' })
   @IsOptional()

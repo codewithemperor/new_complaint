@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Alert } from "@heroui/react";
 import {
   ArrowRight,
   Check,
@@ -14,7 +15,6 @@ import {
   Paperclip,
   Shield,
   X,
-  AlertCircle,
   CheckCircle2,
   Mail,
   Phone,
@@ -23,14 +23,13 @@ import {
 } from "lucide-react";
 import { PublicHeader } from "@/components/PublicHeader";
 import { api, ApiError } from "@/lib/api";
-import { LGAS } from "@/lib/constants";
+import { CATEGORIES, LGAS } from "@/lib/constants";
 
 /* ──────────────────────────────────────────────────────────────────
  *  Report a complaint — streamlined 3-step flow.
  *
- *  Category / department / priority are intentionally NOT collected here:
- *  those are set by an admin during triage/routing. Citizens only supply
- *  what they know: the issue, evidence, and how to reach them.
+ *  Citizens choose an issue category, while department and priority are set by
+ *  staff during triage/routing.
  * ────────────────────────────────────────────────────────────────── */
 
 const STEPS = [
@@ -41,7 +40,6 @@ const STEPS = [
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-
 const inputClass =
   "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/30";
 
@@ -53,6 +51,7 @@ export default function ReportPage() {
   const [submitProgress, setSubmitProgress] = useState(0);
 
   // Step 1 — Details
+  const [category, setCategory] = useState("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
@@ -80,6 +79,7 @@ export default function ReportPage() {
       if (!raw) return;
       const d = JSON.parse(raw);
       if (d.subject) setSubject(d.subject);
+      if (d.category) setCategory(d.category);
       if (d.description) setDescription(d.description);
       if (d.name) setName(d.name);
       if (d.email) setEmail(d.email);
@@ -99,6 +99,7 @@ export default function ReportPage() {
           DRAFT_KEY,
           JSON.stringify({
             subject,
+            category,
             description,
             name,
             email,
@@ -112,7 +113,17 @@ export default function ReportPage() {
       }
     }, 600);
     return () => clearTimeout(t);
-  }, [subject, description, name, email, phone, lga, isAnonymous, success]);
+  }, [
+    subject,
+    category,
+    description,
+    name,
+    email,
+    phone,
+    lga,
+    isAnonymous,
+    success,
+  ]);
 
   const clearDraft = () => {
     try {
@@ -149,7 +160,11 @@ export default function ReportPage() {
   /* ── Validation per step ── */
   const stepValid = (s: number): boolean => {
     if (s === 1)
-      return subject.trim().length >= 4 && description.trim().length >= 10;
+      return (
+        !!category &&
+        subject.trim().length >= 4 &&
+        description.trim().length >= 10
+      );
     if (s === 2) {
       if (isAnonymous) return termsAccepted && !!email.trim();
       return (
@@ -166,7 +181,7 @@ export default function ReportPage() {
     if (!stepValid(step)) {
       setError(
         step === 1
-          ? "Please add a subject (4+ chars) and description (10+ chars)."
+          ? "Please choose a category, then add a subject (4+ chars) and description (10+ chars)."
           : "Please complete the required fields.",
       );
       return;
@@ -191,6 +206,7 @@ export default function ReportPage() {
       const formData = new FormData();
       formData.append("subject", subject.trim());
       formData.append("description", description.trim());
+      formData.append("category", category);
       formData.append(
         "email",
         isAnonymous ? `anon-${Date.now()}@kwmoc.anon` : email.trim(),
@@ -239,7 +255,7 @@ export default function ReportPage() {
         <div className="mx-auto flex w-full max-w-2xl flex-1 items-center justify-center px-4 py-10">
           <div className="w-full rounded-2xl border border-border bg-card p-8 shadow-sm">
             <div className="flex flex-col items-center text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-success">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-success">
                 <CheckCircle2 className="h-9 w-9" />
               </div>
               <h1 className="mt-5 text-2xl font-semibold text-foreground">
@@ -298,12 +314,17 @@ export default function ReportPage() {
 
             <div className="mt-6 flex flex-col gap-2 sm:flex-row">
               <button
-                onClick={() =>
-                  router.push(
-                    `/track?code=${encodeURIComponent(success)}&passcode=${encodeURIComponent(successPasscode)}`,
-                  )
-                }
-                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-700"
+                onClick={() => {
+                  sessionStorage.setItem(
+                    "kwaramoc_pending_track_lookup",
+                    JSON.stringify({
+                      code: success,
+                      passcode: successPasscode,
+                    }),
+                  );
+                  router.push("/track");
+                }}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
               >
                 Track this complaint <ArrowRight className="h-4 w-4" />
               </button>
@@ -329,7 +350,7 @@ export default function ReportPage() {
         {/* ── Form column (80vh card, internal scroll) ── */}
         <div className="flex flex-col rounded-2xl border border-border bg-card shadow-sm lg:h-[80vh]">
           {/* Step header (sticky inside the card) */}
-          <div className="shrink-0 border-b border-border px-6 pt-6">
+          <div className="shrink-0 border-b border-border px-6 py-6">
             <h1 className="text-xl font-semibold text-foreground">
               Submit a complaint
             </h1>
@@ -348,9 +369,9 @@ export default function ReportPage() {
                       <div
                         className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
                           active
-                            ? "bg-primary text-primary-foreground"
+                            ? "bg-primary text-white"
                             : done
-                              ? "bg-success text-white"
+                              ? "bg-primary text-white"
                               : "bg-neutral-50 text-muted-foreground"
                         }`}
                       >
@@ -369,7 +390,7 @@ export default function ReportPage() {
                     </div>
                     {i < STEPS.length - 1 && (
                       <div
-                        className={`h-px flex-1 ${done ? "bg-success" : "bg-border"}`}
+                        className={`h-px flex-1 ${done ? "bg-primary" : "bg-border"}`}
                       />
                     )}
                   </div>
@@ -389,15 +410,46 @@ export default function ReportPage() {
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-6 py-6">
             {error && (
-              <div className="mb-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
+              <Alert
+                className="mb-4 border-red-200 bg-red-50 text-red-700"
+                status="danger"
+              >
+                <Alert.Indicator className="text-red-600" />
+                <Alert.Content>
+                  <Alert.Title className="text-red-900">
+                    Unable to submit complaint
+                  </Alert.Title>
+                  <Alert.Description className="text-red-700">
+                    {error}
+                  </Alert.Description>
+                </Alert.Content>
+              </Alert>
             )}
 
             {/* ── Step 1: Details ── */}
             {step === 1 && (
               <div className="space-y-5">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-foreground">
+                    Category <span className="text-destructive">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {CATEGORIES.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setCategory(item)}
+                        className={`rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors ${
+                          category === item
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-card text-foreground hover:border-primary/60"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-foreground">
                     Subject <span className="text-destructive">*</span>
@@ -584,6 +636,14 @@ export default function ReportPage() {
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Category
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-foreground">
+                    {category}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Description
                   </p>
                   <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
@@ -668,7 +728,7 @@ export default function ReportPage() {
               {step < 3 ? (
                 <button
                   onClick={next}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-700"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
                 >
                   Continue <ArrowRight className="h-4 w-4" />
                 </button>
@@ -676,7 +736,7 @@ export default function ReportPage() {
                 <button
                   onClick={submit}
                   disabled={submitting || !canSubmit}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting ? (
                     <>
@@ -769,25 +829,25 @@ function FilePreview({
   onRemove?: () => void;
   readOnly?: boolean;
 }) {
-  const [url, setUrl] = useState<string | null>(null);
   const isImage = file.type.startsWith("image/");
+  const url = useMemo(
+    () => (isImage ? URL.createObjectURL(file) : null),
+    [file, isImage],
+  );
 
   useEffect(() => {
-    if (!isImage) return;
-    const u = URL.createObjectURL(file);
-    setUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [file, isImage]);
+    if (!url) return;
+    return () => URL.revokeObjectURL(url);
+  }, [url]);
 
   return (
     <li className="group relative overflow-hidden rounded-lg border border-border bg-neutral-50/40">
       <div className="flex aspect-square items-center justify-center">
         {isImage && url ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={url}
             alt={file.name}
-            className="h-full w-full object-cover"
+            className="h-full w-full bg-neutral-100 object-contain"
           />
         ) : (
           <div className="flex flex-col items-center gap-1 p-3 text-center">

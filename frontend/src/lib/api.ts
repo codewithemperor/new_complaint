@@ -6,7 +6,7 @@
  * types from OpenAPI are a future nicety).
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+import { API_BASE_URL } from "./config";
 
 export class ApiError extends Error {
   constructor(
@@ -51,7 +51,7 @@ async function request<T>(path: string, opts: FetchOptions = {}): Promise<T> {
     headers["Content-Type"] = "application/json";
   }
 
-  const url = `${API_URL}/api${path}`;
+  const url = `${API_BASE_URL}/api${path}`;
 
   const res = await fetch(url, {
     method,

@@ -82,8 +82,14 @@ export class AuditController {
   )
   @Get('reports/overview')
   @ApiOperation({ summary: 'System-wide report totals' })
-  async overview() {
-    return this.reportsService.overview();
+  async overview(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.reportsService.overview(
+      from ? new Date(from) : undefined,
+      to ? new Date(to) : undefined,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -127,8 +133,16 @@ export class AuditController {
   )
   @Get('reports/trend')
   @ApiOperation({ summary: 'Daily complaints trend over N days' })
-  async trend(@Query('days') days?: string) {
-    return this.reportsService.trend(days ? parseInt(days, 10) : undefined);
+  async trend(
+    @Query('days') days?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.reportsService.trend(
+      days ? parseInt(days, 10) : undefined,
+      from ? new Date(from) : undefined,
+      to ? new Date(to) : undefined,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -138,7 +152,30 @@ export class AuditController {
   )
   @Get('reports/status-by-department')
   @ApiOperation({ summary: 'Ticket counts by department and status' })
-  async statusByDepartment() {
-    return this.reportsService.statusByDepartment();
+  async statusByDepartment(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.reportsService.statusByDepartment(
+      from ? new Date(from) : undefined,
+      to ? new Date(to) : undefined,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    Role.ADMIN, Role.DEPARTMENT_HOD, Role.PERMANENT_SECRETARY,
+    Role.COMMISSIONER, Role.AUDITOR,
+  )
+  @Get('reports/priority-breakdown')
+  @ApiOperation({ summary: 'Ticket counts by priority' })
+  async priorityBreakdown(
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.reportsService.priorityBreakdown(
+      from ? new Date(from) : undefined,
+      to ? new Date(to) : undefined,
+    );
   }
 }

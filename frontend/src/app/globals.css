@@ -5,6 +5,7 @@
  * Brand palette — primary (green)
  * ------------------------------------------------------------------------- */
 @theme {
+  --color-primary: oklch(0.573 0.122 136.24);
   --color-primary-50: oklch(0.95 0.081 137.47);
   --color-primary-100: oklch(0.897 0.191 136.36);
   --color-primary-200: oklch(0.82 0.174 136.34);
@@ -22,6 +23,7 @@
  * Brand palette — secondary (amber)
  * ------------------------------------------------------------------------- */
 @theme {
+  --color-secondary: oklch(0.558 0.093 63.26);
   --color-secondary-50: oklch(0.958 0.019 52.01);
   --color-secondary-100: oklch(0.916 0.039 53.32);
   --color-secondary-200: oklch(0.825 0.094 58.6);

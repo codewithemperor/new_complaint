@@ -63,7 +63,7 @@ let TicketStateMachine = class TicketStateMachine {
                 _ticketstatus.TicketStatus.REOPENED
             ],
             [_ticketstatus.TicketStatus.REOPENED]: [
-                _ticketstatus.TicketStatus.TRIAGED
+                _ticketstatus.TicketStatus.IN_PROGRESS
             ],
             [_ticketstatus.TicketStatus.CLOSED]: [],
             [_ticketstatus.TicketStatus.ESCALATED]: [],

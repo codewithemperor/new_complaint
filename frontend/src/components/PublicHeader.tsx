@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Drawer, Button } from "@heroui/react";
 import { useTheme } from "next-themes";
@@ -20,6 +21,7 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [isTrackOpen, setIsTrackOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const pathname = usePathname();
 
   const { theme, setTheme } = useTheme();
 
@@ -32,6 +34,8 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
   );
 
   const isDark = mounted && theme === "dark";
+  const isHomePage = pathname === "/";
+  const usesDarkHeader = !isHomePage || scrolled;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -82,8 +86,8 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "border-b border-border/10 bg-transparent backdrop-blur-xl shadow-sm"
+          usesDarkHeader
+            ? "border-b border-neutral-200 bg-white/95 backdrop-blur-xl shadow-sm"
             : "border-b border-transparent bg-transparent backdrop-blur-xl"
         }`}
       >
@@ -91,7 +95,7 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
           <Link
             href="/"
             className={`flex items-center gap-3 font-semibold ${
-              scrolled ? "text-foreground" : "text-white"
+              usesDarkHeader ? "text-black" : "text-white"
             }`}
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-lg font-bold text-white shadow-lg shadow-primary-500/20">
@@ -99,7 +103,7 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
             </span>
             <span
               className={`hidden text-base tracking-tight sm:inline ${
-                scrolled ? "text-foreground/90" : "text-white/90"
+                usesDarkHeader ? "text-black" : "text-white/90"
               }`}
             >
               KwaraMOc Complaints
@@ -114,8 +118,8 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
                 href={link.href}
                 onClick={(e) => handleSmoothScroll(e, link.href)}
                 className={`text-sm font-medium transition-colors ${
-                  scrolled
-                    ? "text-muted-foreground hover:text-foreground"
+                  usesDarkHeader
+                    ? "text-neutral-700 hover:text-black"
                     : "text-white/60 hover:text-white"
                 }`}
               >
@@ -129,8 +133,8 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
             <button
               onClick={() => setTheme(isDark ? "light" : "dark")}
               className={`hidden rounded-lg p-2 transition-colors sm:flex ${
-                scrolled
-                  ? "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  usesDarkHeader
+                  ? "text-neutral-700 hover:bg-neutral-100 hover:text-black"
                   : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
               aria-label={
@@ -149,8 +153,8 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
             <button
               onClick={handleTrackOpen}
               className={`hidden rounded-full px-4 py-2 text-sm font-semibold transition-all md:inline-flex ${
-                scrolled
-                  ? "border border-border bg-card text-foreground hover:bg-muted"
+                usesDarkHeader
+                  ? "border border-neutral-200 bg-white text-black hover:bg-neutral-100"
                   : "border border-white/20 bg-neutral-50/5 text-white hover:bg-neutral-50/10 hover:border-white/30"
               }`}
             >
@@ -166,8 +170,8 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
             <button
               onClick={() => setIsDrawerOpen(true)}
               className={`flex items-center justify-center rounded-lg p-2 transition-colors md:hidden ${
-                scrolled
-                  ? "text-foreground hover:bg-muted"
+                usesDarkHeader
+                  ? "text-black hover:bg-neutral-100"
                   : "text-white hover:bg-neutral-50/10"
               }`}
             >
@@ -188,6 +192,7 @@ export function PublicHeader({ defaultTrackCode }: PublicHeaderProps = {}) {
           </div>
         </div>
       </nav>
+      {!isHomePage && <div aria-hidden="true" className="h-[68px] shrink-0" />}
 
       {/* HeroUI v3 Drawer */}
       <Drawer isOpen={isDrawerOpen} onOpenChange={setIsDrawerOpen}>

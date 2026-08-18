@@ -156,7 +156,7 @@ export default function SlaConfigPage() {
         </div>
       )}
       {saveMsg && (
-        <div className="rounded-lg border border-success/30 bg-success/5 px-4 py-3 text-sm text-success">
+        <div className="rounded-lg border border-success/30 bg-primary/5 px-4 py-3 text-sm text-success">
           {saveMsg}
         </div>
       )}
