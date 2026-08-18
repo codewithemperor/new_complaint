@@ -25,10 +25,16 @@ async function bootstrap() {
 
   // Cookies (httpOnly auth cookie) + CORS with credentials for the frontend.
   app.use(cookieParser());
-  const corsOrigins = (config.get<string>('CORS_ORIGIN') ?? 'http://localhost:3000')
+  const configuredCorsOrigins =
+    config.get<string>('CORS_ORIGIN') ??
+    'http://localhost:3000,https://kwmoc-complaint-frontend.vercel.app';
+  const corsOrigins = configuredCorsOrigins
     .split(',')
     .map((s: string) => s.trim().replace(/\/+$/, ''))
     .filter(Boolean);
+  if (!corsOrigins.includes('https://kwmoc-complaint-frontend.vercel.app')) {
+    corsOrigins.push('https://kwmoc-complaint-frontend.vercel.app');
+  }
   app.enableCors({
     origin(origin, callback) {
       if (!origin) return callback(null, true);

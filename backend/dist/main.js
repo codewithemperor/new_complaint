@@ -57,7 +57,11 @@ async function bootstrap() {
     }));
     // Cookies (httpOnly auth cookie) + CORS with credentials for the frontend.
     app.use((0, _cookieparser.default)());
-    const corsOrigins = (config.get('CORS_ORIGIN') ?? 'http://localhost:3000').split(',').map((s)=>s.trim().replace(/\/+$/, '')).filter(Boolean);
+    const configuredCorsOrigins = config.get('CORS_ORIGIN') ?? 'http://localhost:3000,https://kwmoc-complaint-frontend.vercel.app';
+    const corsOrigins = configuredCorsOrigins.split(',').map((s)=>s.trim().replace(/\/+$/, '')).filter(Boolean);
+    if (!corsOrigins.includes('https://kwmoc-complaint-frontend.vercel.app')) {
+        corsOrigins.push('https://kwmoc-complaint-frontend.vercel.app');
+    }
     app.enableCors({
         origin (origin, callback) {
             if (!origin) return callback(null, true);
