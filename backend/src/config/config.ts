@@ -24,7 +24,6 @@ export const configValidationSchema = Joi.object({
 
   // CORS / cookies
   CORS_ORIGIN: Joi.string().default('http://localhost:3000'),
-  COOKIE_DOMAIN: Joi.string().default('localhost'),
   COOKIE_SECURE: Joi.boolean().default(false),
 
   // Email (optional in dev — notifications silently skip)

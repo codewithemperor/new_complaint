@@ -50,7 +50,6 @@ const configValidationSchema = _joi.object({
     APP_TOKEN_SECRET: _joi.string().min(16).default('kwmoc-tracking-token-secret-min16'),
     // CORS / cookies
     CORS_ORIGIN: _joi.string().default('http://localhost:3000'),
-    COOKIE_DOMAIN: _joi.string().default('localhost'),
     COOKIE_SECURE: _joi.boolean().default(false),
     // Email (optional in dev — notifications silently skip)
     MAIL_HOST: _joi.string().allow(''),

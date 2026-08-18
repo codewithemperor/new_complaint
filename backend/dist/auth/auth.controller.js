@@ -56,7 +56,8 @@ let AuthController = class AuthController {
     async logout(res) {
         res.clearCookie(COOKIE_NAME, {
             path: '/',
-            domain: this.configService.get('COOKIE_DOMAIN') || undefined
+            sameSite: this.getCookieSameSite(),
+            secure: this.configService.get('COOKIE_SECURE', false)
         });
     }
     async me(user) {
@@ -67,11 +68,13 @@ let AuthController = class AuthController {
         res.cookie(COOKIE_NAME, token, {
             httpOnly: true,
             secure: this.configService.get('COOKIE_SECURE', false),
-            sameSite: 'lax',
+            sameSite: this.getCookieSameSite(),
             maxAge: ttlMs,
-            path: '/',
-            domain: this.configService.get('COOKIE_DOMAIN') || undefined
+            path: '/'
         });
+    }
+    getCookieSameSite() {
+        return this.configService.get('COOKIE_SECURE', false) ? 'none' : 'lax';
     }
 };
 _ts_decorate([
@@ -99,7 +102,7 @@ _ts_decorate([
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
         typeof _logindto.LoginDto === "undefined" ? Object : _logindto.LoginDto,
-        Object
+        typeof Response === "undefined" ? Object : Response
     ]),
     _ts_metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
@@ -115,7 +118,7 @@ _ts_decorate([
     })),
     _ts_metadata("design:type", Function),
     _ts_metadata("design:paramtypes", [
-        Object
+        typeof Response === "undefined" ? Object : Response
     ]),
     _ts_metadata("design:returntype", Promise)
 ], AuthController.prototype, "logout", null);

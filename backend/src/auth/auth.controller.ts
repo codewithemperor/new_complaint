@@ -19,6 +19,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { ttlToMs } from '../common/utils/ttl';
+import type { Response } from 'express';
 
 const COOKIE_NAME = 'kwmoc_token';
 
@@ -33,13 +34,15 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Staff login — sets httpOnly cookie + returns token' })
+  @ApiOperation({
+    summary: 'Staff login — sets httpOnly cookie + returns token',
+  })
   @ApiBody({ type: LoginDto })
   @ApiResponse({ status: 200, type: AuthResponseDto })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
     @Body() dto: LoginDto,
-    @Res({ passthrough: true }) res: any,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
     const result = await this.authService.login(dto);
     this.setAuthCookie(res, result.accessToken);
@@ -50,10 +53,11 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Clear the auth cookie' })
-  async logout(@Res({ passthrough: true }) res: any) {
+  async logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie(COOKIE_NAME, {
       path: '/',
-      domain: this.configService.get<string>('COOKIE_DOMAIN') || undefined,
+      sameSite: this.getCookieSameSite(),
+      secure: this.configService.get<boolean>('COOKIE_SECURE', false),
     });
   }
 
@@ -66,15 +70,22 @@ export class AuthController {
     return user;
   }
 
-  private setAuthCookie(res: any, token: string) {
-    const ttlMs = ttlToMs(this.configService.get<string>('JWT_ACCESS_TTL') ?? '8h');
+  private setAuthCookie(res: Response, token: string) {
+    const ttlMs = ttlToMs(
+      this.configService.get<string>('JWT_ACCESS_TTL') ?? '8h',
+    );
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
       secure: this.configService.get<boolean>('COOKIE_SECURE', false),
-      sameSite: 'lax',
+      sameSite: this.getCookieSameSite(),
       maxAge: ttlMs,
       path: '/',
-      domain: this.configService.get<string>('COOKIE_DOMAIN') || undefined,
     });
+  }
+
+  private getCookieSameSite(): 'lax' | 'none' {
+    return this.configService.get<boolean>('COOKIE_SECURE', false)
+      ? 'none'
+      : 'lax';
   }
 }
