@@ -9,6 +9,7 @@ Object.defineProperty(exports, "StorageModule", {
     }
 });
 const _common = require("@nestjs/common");
+const _config = require("@nestjs/config");
 const _storageservice = require("./storage.service");
 const _cloudinarystorageservice = require("./cloudinary-storage.service");
 const _localstorageservice = require("./local-storage.service");
@@ -32,14 +33,15 @@ StorageModule = _ts_decorate([
         providers: [
             {
                 provide: _storageservice.STORAGE_SERVICE,
-                useFactory: ()=>{
-                    const driver = process.env.STORAGE_DRIVER ?? 'local';
+                inject: [
+                    _config.ConfigService
+                ],
+                useFactory: (config)=>{
+                    const driver = config.get('STORAGE_DRIVER') ?? (config.get('NODE_ENV') === 'production' ? 'cloudinary' : 'local');
                     if (driver === 'cloudinary') return new _cloudinarystorageservice.CloudinaryStorageService();
                     return new _localstorageservice.LocalStorageService();
                 }
-            },
-            _localstorageservice.LocalStorageService,
-            _cloudinarystorageservice.CloudinaryStorageService
+            }
         ],
         exports: [
             _storageservice.STORAGE_SERVICE

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { STORAGE_SERVICE, StorageService } from './storage.service';
 import { CloudinaryStorageService } from './cloudinary-storage.service';
 import { LocalStorageService } from './local-storage.service';
@@ -11,14 +12,17 @@ import { LocalStorageService } from './local-storage.service';
   providers: [
     {
       provide: STORAGE_SERVICE,
-      useFactory: (): StorageService => {
-        const driver = process.env.STORAGE_DRIVER ?? 'local';
+      inject: [ConfigService],
+      useFactory: (config: ConfigService): StorageService => {
+        const driver =
+          config.get<string>('STORAGE_DRIVER') ??
+          (config.get<string>('NODE_ENV') === 'production'
+            ? 'cloudinary'
+            : 'local');
         if (driver === 'cloudinary') return new CloudinaryStorageService();
         return new LocalStorageService();
       },
     },
-    LocalStorageService,
-    CloudinaryStorageService,
   ],
   exports: [STORAGE_SERVICE],
 })

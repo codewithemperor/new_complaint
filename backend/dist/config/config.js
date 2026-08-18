@@ -59,11 +59,27 @@ const configValidationSchema = _joi.object({
     MAIL_PASS: _joi.string().allow(''),
     MAIL_FROM: _joi.string().default('noreply@kwmoc.gov.ng'),
     // Storage
-    STORAGE_DRIVER: _joi.string().valid('local', 'cloudinary').default('local'),
+    STORAGE_DRIVER: _joi.string().valid('local', 'cloudinary').when('NODE_ENV', {
+        is: 'production',
+        then: _joi.string().default('cloudinary'),
+        otherwise: _joi.string().default('local')
+    }),
     UPLOADS_DIR: _joi.string().default('./uploads'),
-    CLOUDINARY_CLOUD_NAME: _joi.string().allow(''),
-    CLOUDINARY_API_KEY: _joi.string().allow(''),
-    CLOUDINARY_API_SECRET: _joi.string().allow(''),
+    CLOUDINARY_CLOUD_NAME: _joi.string().when('STORAGE_DRIVER', {
+        is: 'cloudinary',
+        then: _joi.required(),
+        otherwise: _joi.allow('')
+    }),
+    CLOUDINARY_API_KEY: _joi.string().when('STORAGE_DRIVER', {
+        is: 'cloudinary',
+        then: _joi.required(),
+        otherwise: _joi.allow('')
+    }),
+    CLOUDINARY_API_SECRET: _joi.string().when('STORAGE_DRIVER', {
+        is: 'cloudinary',
+        then: _joi.required(),
+        otherwise: _joi.allow('')
+    }),
     // App
     APP_URL: _joi.string().default('http://localhost:3000'),
     // SLA (see planning/05-sla-matrix.md §1). Hours, calendar-time (working-day

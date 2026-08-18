@@ -7,7 +7,9 @@ import * as Joi from 'joi';
  * to a runtime crash on first request.
  */
 export const configValidationSchema = Joi.object({
-  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'test')
+    .default('development'),
   PORT: Joi.number().default(4000),
 
   // Database (SQLite default)
@@ -16,7 +18,9 @@ export const configValidationSchema = Joi.object({
   // Auth
   JWT_SECRET: Joi.string().min(16).default('kwmoc-dev-secret-key-2026-min16'),
   JWT_ACCESS_TTL: Joi.string().default('8h'),
-  APP_TOKEN_SECRET: Joi.string().min(16).default('kwmoc-tracking-token-secret-min16'),
+  APP_TOKEN_SECRET: Joi.string()
+    .min(16)
+    .default('kwmoc-tracking-token-secret-min16'),
 
   // CORS / cookies
   CORS_ORIGIN: Joi.string().default('http://localhost:3000'),
@@ -31,11 +35,29 @@ export const configValidationSchema = Joi.object({
   MAIL_FROM: Joi.string().default('noreply@kwmoc.gov.ng'),
 
   // Storage
-  STORAGE_DRIVER: Joi.string().valid('local', 'cloudinary').default('local'),
+  STORAGE_DRIVER: Joi.string()
+    .valid('local', 'cloudinary')
+    .when('NODE_ENV', {
+      is: 'production',
+      then: Joi.string().default('cloudinary'),
+      otherwise: Joi.string().default('local'),
+    }),
   UPLOADS_DIR: Joi.string().default('./uploads'),
-  CLOUDINARY_CLOUD_NAME: Joi.string().allow(''),
-  CLOUDINARY_API_KEY: Joi.string().allow(''),
-  CLOUDINARY_API_SECRET: Joi.string().allow(''),
+  CLOUDINARY_CLOUD_NAME: Joi.string().when('STORAGE_DRIVER', {
+    is: 'cloudinary',
+    then: Joi.required(),
+    otherwise: Joi.allow(''),
+  }),
+  CLOUDINARY_API_KEY: Joi.string().when('STORAGE_DRIVER', {
+    is: 'cloudinary',
+    then: Joi.required(),
+    otherwise: Joi.allow(''),
+  }),
+  CLOUDINARY_API_SECRET: Joi.string().when('STORAGE_DRIVER', {
+    is: 'cloudinary',
+    then: Joi.required(),
+    otherwise: Joi.allow(''),
+  }),
 
   // App
   APP_URL: Joi.string().default('http://localhost:3000'),
