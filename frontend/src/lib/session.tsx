@@ -8,8 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, ApiError } from "./api";
-import type { User } from "./types";
+import { api, ApiError, clearAuthToken, setAuthToken } from "./api";
+import type { AuthResponse, User } from "./types";
 
 interface SessionContextValue {
   user: User | null;
@@ -20,7 +20,9 @@ interface SessionContextValue {
   refresh: () => Promise<void>;
 }
 
-const SessionContext = createContext<SessionContextValue | undefined>(undefined);
+const SessionContext = createContext<SessionContextValue | undefined>(
+  undefined,
+);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -34,6 +36,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setError(null);
     } catch (err) {
       if (err instanceof ApiError && err.statusCode === 401) {
+        clearAuthToken();
         setUser(null);
       } else {
         setError(err instanceof Error ? err.message : "Failed to load session");
@@ -43,18 +46,20 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      setError(null);
-      const res = await api.post<{ user: User }>("/auth/login", { email, password });
-      setUser(res.user);
-      return res.user;
-    },
-    [],
-  );
+  const login = useCallback(async (email: string, password: string) => {
+    setError(null);
+    const res = await api.post<AuthResponse>("/auth/login", {
+      email,
+      password,
+    });
+    setAuthToken(res.accessToken);
+    setUser(res.user);
+    return res.user;
+  }, []);
 
   const logout = useCallback(async () => {
-    await api.post("/auth/logout");
+    await api.post("/auth/logout").catch(() => undefined);
+    clearAuthToken();
     setUser(null);
   }, []);
 
@@ -63,7 +68,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   return (
-    <SessionContext.Provider value={{ user, loading, error, login, logout, refresh }}>
+    <SessionContext.Provider
+      value={{ user, loading, error, login, logout, refresh }}
+    >
       {children}
     </SessionContext.Provider>
   );

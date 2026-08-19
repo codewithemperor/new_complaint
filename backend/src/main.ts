@@ -41,6 +41,7 @@ async function bootstrap() {
       const normalizedOrigin = origin.replace(/\/+$/, '');
       return callback(null, corsOrigins.includes(normalizedOrigin));
     },
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 

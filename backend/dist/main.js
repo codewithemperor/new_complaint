@@ -68,6 +68,10 @@ async function bootstrap() {
             const normalizedOrigin = origin.replace(/\/+$/, '');
             return callback(null, corsOrigins.includes(normalizedOrigin));
         },
+        allowedHeaders: [
+            'Content-Type',
+            'Authorization'
+        ],
         credentials: true
     });
     // JwtAuthGuard is registered globally via APP_GUARD in AppModule (DI-aware,
